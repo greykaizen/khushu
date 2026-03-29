@@ -1,0 +1,32 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Release artifacts
+*.apk
+*.aab
+*.ap_
+*.jks
+*.keystore
+google-services.json
+
+# Claude Code
+CLAUDE.md
+CLAUDE-2.md
+.claude/
+tasks/
+
+# Figma exports - zips redundant, PNGs are committed
+figma/*.zip
