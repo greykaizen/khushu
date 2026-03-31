@@ -166,7 +166,7 @@ fun RakatPicker(
     ) {
         LazyColumn(
                 state = lazyListState,
-                modifier = Modifier.width(140.dp).height(ITEM_HEIGHT * 3).nestedScroll(connection),
+                modifier = Modifier.width(180.dp).height(ITEM_HEIGHT * 3).nestedScroll(connection),
                 contentPadding = PaddingValues(vertical = ITEM_HEIGHT),
                 flingBehavior = rememberSnapFlingBehavior(lazyListState),
                 userScrollEnabled = true,
@@ -180,6 +180,7 @@ fun RakatPicker(
                             text = rakat.toString(),
                             style = BASE_TEXT_STYLE,
                             color = Color.White,
+                            softWrap = false,
                             modifier =
                                     Modifier.wrapContentHeight(unbounded = true).graphicsLayer {
                                         // All layoutInfo reads are deferred to draw phase

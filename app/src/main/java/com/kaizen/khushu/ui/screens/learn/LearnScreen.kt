@@ -51,7 +51,7 @@ fun LearnScreen(
                 SearchBar(
                     query = query,
                     onQueryChange = { query = it },
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
                 )
             }
         }

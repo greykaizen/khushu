@@ -94,7 +94,7 @@ fun TasbeehScreen(
                 SearchBar(
                     query = query,
                     onQueryChange = { query = it },
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
                 )
             }
 
@@ -247,9 +247,11 @@ private fun CollectionCard(
             if (!collection.title.isNullOrBlank()) {
                 Text(
                     text = collection.title,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(6.dp))
             }
@@ -262,16 +264,17 @@ private fun CollectionCard(
                 ) {
                     Text(
                         text = item.name,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).padding(end = 4.dp),
                     )
                     Text(
                         text = item.targetCount.toString(),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = Color.White,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }
@@ -279,7 +282,7 @@ private fun CollectionCard(
             if (collection.items.size > 3) {
                 Text(
                     text = "...",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = Color.White.copy(alpha = 0.6f),
                 )
             }

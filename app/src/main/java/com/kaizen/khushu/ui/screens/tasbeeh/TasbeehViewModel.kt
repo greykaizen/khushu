@@ -16,6 +16,18 @@ class TasbeehViewModel(private val dao: TasbeehDao) : ViewModel() {
     init {
         viewModelScope.launch {
             if (dao.count() == 0) seedDefaults()
+            val currentCount = dao.count()
+            if (currentCount < 12) {
+                for (i in 1..(12 - currentCount)) {
+                    dao.insert(
+                        TasbeehCollection(
+                            title = "Dummy Card $i",
+                            colorInt = TasbeehPastelColors[i % TasbeehPastelColors.size].toArgb(),
+                            items = listOf(DhikrItem("Test Dhikr", 33))
+                        )
+                    )
+                }
+            }
         }
     }
 

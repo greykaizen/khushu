@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -39,8 +41,9 @@ fun KhushuAppBar(
     TopAppBar(
         title = {
             Column(
-                modifier = Modifier.wrapContentWidth(),
+                modifier = Modifier.wrapContentWidth().offset(x = (-8).dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
+
             ) {
                 Text(
                     text = title,
@@ -78,12 +81,13 @@ fun KhushuAppBar(
                 )
             }
         },
-        windowInsets = WindowInsets(0),
+//        windowInsets = WindowInsets(0),
+        windowInsets = TopAppBarDefaults.windowInsets,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Black,
             titleContentColor = Color.White,
             actionIconContentColor = Color.White,
         ),
-        modifier = modifier,
+        modifier = modifier.padding(top = 12.dp),
     )
 }

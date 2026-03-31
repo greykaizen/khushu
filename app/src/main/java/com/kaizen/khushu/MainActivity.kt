@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -81,13 +80,11 @@ private fun KhushuApp() {
     var showSettingsSheet by remember { mutableStateOf(false) }
     val hazeState = remember { HazeState() }
 
-    // Adaptive status bar icons: light on dark theme, dark on light theme
-    val darkTheme = isSystemInDarkTheme()
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
@@ -113,7 +110,7 @@ private fun KhushuApp() {
                 onSettingsClick = { showSettingsSheet = true },
                 modifier = Modifier
                     .statusBarsPadding()
-                    .padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
+                    .padding(start = 20.dp, end = 20.dp)
             )
 
             Box(
