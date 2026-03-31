@@ -16,4 +16,7 @@ interface TasbeehDao {
 
     @Delete
     suspend fun delete(collection: TasbeehCollection)
+
+    @Query("SELECT COUNT(*) FROM tasbeeh_collections")
+    suspend fun count(): Int
 }

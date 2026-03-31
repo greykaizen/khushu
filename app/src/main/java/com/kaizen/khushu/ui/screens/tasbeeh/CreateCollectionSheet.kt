@@ -364,7 +364,7 @@ fun CreateCollectionSheet(
                         .map { DhikrItem(name = it.name.trim(), targetCount = it.count.toInt()) }
                     val collection = TasbeehCollection(
                         title = title.trim().ifBlank { null },
-                        colorInt = selectedColor.value.toInt(),
+                        colorInt = selectedColor.toArgb(),
                         items = items,
                     )
                     scope.launch {
