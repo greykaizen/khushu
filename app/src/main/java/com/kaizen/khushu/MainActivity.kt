@@ -5,11 +5,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+//import androidx.compose.animation.slideIntoContainer
+//import androidx.compose.animation.slideOutOfContainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,8 +33,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,17 +50,24 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import com.kaizen.khushu.data.TasbeehDatabase
 import com.kaizen.khushu.ui.components.KhushuAppBar
 import com.kaizen.khushu.ui.components.PillNavBar
 import com.kaizen.khushu.ui.navigation.AppDestinations
+import com.kaizen.khushu.ui.navigation.LEARN_DETAIL_ROUTE
+import com.kaizen.khushu.ui.screens.learn.LearnScreen
+import com.kaizen.khushu.ui.screens.learn.LearnSectionDetailScreen
 import com.kaizen.khushu.ui.screens.salah.SalahImmersiveScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPickerScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPreset
 import com.kaizen.khushu.ui.screens.settings.SettingsSheet
-import com.kaizen.khushu.ui.screens.learn.LearnScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
@@ -74,17 +88,19 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun KhushuApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.SALAH) }
     var immersiveRakats by rememberSaveable { mutableStateOf<Int?>(null) }
     var showCreateSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     val hazeState = remember { HazeState() }
+    val navController = rememberNavController()
 
+    val darkTheme = isSystemInDarkTheme()
     val view = LocalView.current
     if (!view.isInEditMode) {
-        SideEffect {
+        DisposableEffect(darkTheme) {
             val window = (view.context as Activity).window
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            onDispose {}
         }
     }
 
@@ -99,55 +115,131 @@ private fun KhushuApp() {
     val pillClearance = navBarBottomDp + 30.dp + 56.dp
     val fabBottomPadding = navBarBottomDp + 30.dp + 56.dp + 20.dp
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val currentTab = AppDestinations.fromRoute(currentRoute) ?: AppDestinations.SALAH
+    // showShell = false when on detail screens (they manage their own top bar)
+    val showShell = AppDestinations.fromRoute(currentRoute) != null
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            KhushuAppBar(
-                title = currentDestination.label,
-                onSettingsClick = { showSettingsSheet = true },
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(start = 20.dp, end = 20.dp)
-            )
+            AnimatedVisibility(
+                visible = showShell,
+                enter = fadeIn(tween(350, delayMillis = 100)),
+                exit = fadeOut(tween(100))
+            ) {
+                KhushuAppBar(
+                    title = currentTab.label,
+                    onSettingsClick = { showSettingsSheet = true },
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(start = 20.dp, end = 20.dp),
+                )
+            }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .haze(state = hazeState),
             ) {
-                when (currentDestination) {
-                    AppDestinations.SALAH -> SalahPickerScreen(
-                        onStartPrayer = { immersiveRakats = it },
-                        navBarClearance = pillClearance,
-                    )
-                    AppDestinations.TASBEEH -> TasbeehScreen(
-                        viewModel = tasbeehViewModel,
-                        onCollectionTap = { /* TODO: immersive counter Phase 4 */ },
-                        contentPadding = PaddingValues(bottom = pillClearance),
-                    )
-                    AppDestinations.LEARN -> LearnScreen(
-                        contentPadding = PaddingValues(bottom = pillClearance),
-                    )
+                NavHost(
+                    navController = navController,
+                    startDestination = AppDestinations.SALAH.route,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    composable(
+                        route = AppDestinations.SALAH.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = { tabExit() },
+                        popEnterTransition = { tabEnter() },
+                        popExitTransition = { tabExit() },
+                    ) {
+                        SalahPickerScreen(
+                            onStartPrayer = { immersiveRakats = it },
+                            navBarClearance = pillClearance,
+                        )
+                    }
+
+                    composable(
+                        route = AppDestinations.TASBEEH.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = { tabExit() },
+                        popEnterTransition = { tabEnter() },
+                        popExitTransition = { tabExit() },
+                    ) {
+                        TasbeehScreen(
+                            viewModel = tasbeehViewModel,
+                            onCollectionTap = { /* TODO: immersive counter Phase 4 */ },
+                            contentPadding = PaddingValues(bottom = pillClearance),
+                        )
+                    }
+
+                    composable(
+                        route = AppDestinations.LEARN.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = {
+                            if (targetState.destination.route?.startsWith("learn_detail") == true)
+                                scaleOut(targetScale = 0.95f, animationSpec = tween(300)) + fadeOut(tween(90))
+                            else tabExit()
+                        },
+                        popEnterTransition = {
+                            fadeIn(tween(300)) + scaleIn(initialScale = 0.95f, animationSpec = tween(300))
+                        },
+                        popExitTransition = { tabExit() },
+                    ) {
+                        LearnScreen(
+                            onSectionTap = { title ->
+                                navController.navigate("learn_detail/$title")
+                            },
+                            contentPadding = PaddingValues(bottom = pillClearance),
+                        )
+                    }
+
+                    composable(
+                        route = LEARN_DETAIL_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                    ) { backStackEntry ->
+                        val sectionTitle = backStackEntry.arguments?.getString("sectionTitle") ?: ""
+                        LearnSectionDetailScreen(
+                            sectionTitle = sectionTitle,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                 }
             }
         }
 
-        PillNavBar(
-            currentDestination = currentDestination,
-            onDestinationSelected = { currentDestination = it },
-            hazeState = hazeState,
+        AnimatedVisibility(
+            visible = showShell,
+            enter = fadeIn(tween(350, delayMillis = 100)),
+            exit = fadeOut(tween(100)),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 30.dp),
-        )
+        ) {
+            PillNavBar(
+                currentDestination = currentTab,
+                onDestinationSelected = { dest ->
+                    navController.navigate(dest.route) {
+                        popUpTo(AppDestinations.SALAH.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                hazeState = hazeState,
+            )
+        }
 
         // FAB — visible only on Tasbeeh tab, animates in/out with scale+fade
         AnimatedVisibility(
-            visible = currentDestination == AppDestinations.TASBEEH,
+            visible = currentRoute == AppDestinations.TASBEEH.route,
             enter = scaleIn() + fadeIn(),
             exit = scaleOut() + fadeOut(),
             modifier = Modifier
@@ -189,5 +281,25 @@ private fun KhushuApp() {
 
     if (showSettingsSheet) {
         SettingsSheet(onDismiss = { showSettingsSheet = false })
+    }
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabEnter(): EnterTransition {
+    val i = AppDestinations.entries.indexOfFirst { it.route == initialState.destination.route }
+    val t = AppDestinations.entries.indexOfFirst { it.route == targetState.destination.route }
+    return when {
+        i < 0 || t < 0 -> fadeIn(tween(210, delayMillis = 90)) + scaleIn(initialScale = 0.92f, animationSpec = tween(300))
+        t > i -> slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+        else -> slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+    }
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabExit(): ExitTransition {
+    val i = AppDestinations.entries.indexOfFirst { it.route == initialState.destination.route }
+    val t = AppDestinations.entries.indexOfFirst { it.route == targetState.destination.route }
+    return when {
+        i < 0 || t < 0 -> fadeOut(tween(90)) + scaleOut(targetScale = 0.92f, animationSpec = tween(300))
+        t > i -> slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+        else -> slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
     }
 }
