@@ -140,6 +140,7 @@ fun CreateCollectionSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.95f)
+
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 32.dp),

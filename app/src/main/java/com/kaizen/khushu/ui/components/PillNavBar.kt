@@ -74,7 +74,7 @@ fun PillNavBar(
             .clip(PillShape)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                 shape = PillShape,
             )
     ) {
@@ -87,7 +87,7 @@ fun PillNavBar(
                     shape = PillShape,
                     style = HazeStyle(
                         blurRadius = 20.dp,
-                        tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.40f),
+                        tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                     ),
                 )
         )
@@ -150,7 +150,7 @@ private fun PillNavItem(
             .clip(PillShape)
             .background(
                 color = if (isSelected)
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) // selected pill bar opacity
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) // selected pill bar opacity
                 else Color.Transparent,
             )
             .clickable(

@@ -57,7 +57,28 @@ val Typography = Typography(
         lineHeight = 44.sp,
         letterSpacing = 0.sp,
     ),
-    // App bar titles
+    // App bar titles and large headings
+    headlineLarge = TextStyle(
+        fontFamily = Antonio,
+        fontWeight = FontWeight.Normal,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp,
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = Antonio,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp,
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = Antonio,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp,
+    ),
     titleLarge = TextStyle(
         fontFamily = Antonio,
         fontWeight = FontWeight.Normal,

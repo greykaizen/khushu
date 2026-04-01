@@ -58,37 +58,84 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.kaizen.khushu.data.TasbeehDatabase
 import com.kaizen.khushu.ui.components.KhushuAppBar
 import com.kaizen.khushu.ui.components.PillNavBar
-import com.kaizen.khushu.ui.navigation.AppDestinations
-import com.kaizen.khushu.ui.navigation.LEARN_DETAIL_ROUTE
+import com.kaizen.khushu.ui.navigation.*
 import com.kaizen.khushu.ui.screens.learn.LearnScreen
 import com.kaizen.khushu.ui.screens.learn.LearnSectionDetailScreen
 import com.kaizen.khushu.ui.screens.salah.SalahImmersiveScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPickerScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPreset
-import com.kaizen.khushu.ui.screens.settings.SettingsSheet
+import com.kaizen.khushu.ui.screens.settings.*
 import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
 import com.kaizen.khushu.ui.theme.KhushuTheme
 import androidx.compose.ui.platform.LocalContext
+import com.kaizen.khushu.data.SettingsRepository
+import com.kaizen.khushu.ui.screens.settings.SettingsViewModel
+import android.view.KeyEvent
+import android.view.WindowManager
+import androidx.compose.runtime.collectAsState
 
 class MainActivity : ComponentActivity() {
+    private lateinit var settingsRepository: SettingsRepository
+    private lateinit var settingsViewModel: SettingsViewModel
+    private lateinit var tasbeehViewModel: TasbeehViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        settingsRepository = SettingsRepository(applicationContext)
+        settingsViewModel = SettingsViewModel(settingsRepository)
+        
+        val dao = TasbeehDatabase.getInstance(applicationContext).tasbeehDao()
+        tasbeehViewModel = ViewModelProvider(this as ViewModelStoreOwner, TasbeehViewModel.factory(dao))[TasbeehViewModel::class.java]
+
         setContent {
-            KhushuTheme {
-                KhushuApp()
+            val settings by settingsViewModel.settings.collectAsState()
+
+            // Handle Keep Screen Awake
+            DisposableEffect(settings.keepScreenAwake) {
+                if (settings.keepScreenAwake) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                onDispose {}
+            }
+
+            KhushuTheme(
+                dynamicColor = settings.dynamicColor,
+                pureBlack = settings.pureBlack
+            ) {
+                KhushuApp(
+                    settingsViewModel = settingsViewModel,
+                    tasbeehViewModel = tasbeehViewModel
+                )
             }
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val settings = settingsViewModel.settings.value
+        if (settings.volumeCounting && (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)) {
+            tasbeehViewModel.incrementActiveCount()
+            return true // Consume the event to prevent volume UI from showing
+        }
+        return super.onKeyDown(keyCode, event)
     }
 }
 
 @Composable
-private fun KhushuApp() {
+private fun KhushuApp(
+    settingsViewModel: SettingsViewModel,
+    tasbeehViewModel: TasbeehViewModel
+) {
     var immersiveRakats by rememberSaveable { mutableStateOf<Int?>(null) }
     var showCreateSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
@@ -106,11 +153,7 @@ private fun KhushuApp() {
         }
     }
 
-    val context = LocalContext.current
-    val dao = remember {
-        TasbeehDatabase.getInstance(context.applicationContext).tasbeehDao()
-    }
-    val tasbeehViewModel: TasbeehViewModel = viewModel(factory = TasbeehViewModel.factory(dao))
+    // ViewModel removed from here as it's passed in from MainActivity
 
     val density = LocalDensity.current
     val navBarBottomDp = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -212,6 +255,148 @@ private fun KhushuApp() {
                             onBack = { navController.popBackStack() },
                         )
                     }
+
+                    composable(
+                        route = SETTINGS_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        SettingsScreen(
+                            onNavigateGeneral = { navController.navigate(SETTINGS_GENERAL_ROUTE) },
+                            onNavigateCounter = { navController.navigate(SETTINGS_COUNTER_ROUTE) },
+                            onNavigateAppearance = { navController.navigate(SETTINGS_APPEARANCE_ROUTE) },
+                            onBack = {
+                                navController.popBackStack()
+                                showSettingsSheet = true
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = SETTINGS_GENERAL_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        GeneralSettingsScreen(
+                            viewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = SETTINGS_COUNTER_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        CounterSettingsScreen(
+                            viewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = SETTINGS_APPEARANCE_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        AppearanceSettingsScreen(
+                            viewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = CUSTOMIZE_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        CustomizeScreen(
+                            onNavigateBranding = { navController.navigate(CUSTOMIZE_BRANDING_ROUTE) },
+                            onNavigatePalette = { navController.navigate(CUSTOMIZE_PALETTE_ROUTE) },
+                            onNavigateSalah = { navController.navigate(CUSTOMIZE_SALAH_ROUTE) },
+                            onNavigateTasbeeh = { navController.navigate(CUSTOMIZE_TASBEEH_ROUTE) },
+                            onBack = {
+                                navController.popBackStack()
+                                showSettingsSheet = true
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = CUSTOMIZE_SALAH_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        SalahCustomizeScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = CUSTOMIZE_TASBEEH_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        TasbeehCustomizeScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = CUSTOMIZE_BRANDING_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        BrandingSettingsScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = CUSTOMIZE_PALETTE_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300))
+                        },
+                    ) {
+                        PaletteSettingsScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
@@ -259,7 +444,18 @@ private fun KhushuApp() {
     }
 
     if (showSettingsSheet) {
-        SettingsSheet(onDismiss = { showSettingsSheet = false })
+        SettingsSheet(
+            viewModel = settingsViewModel,
+            onNavigateSettings = {
+                showSettingsSheet = false
+                navController.navigate(SETTINGS_ROUTE)
+            },
+            onNavigateCustomize = {
+                showSettingsSheet = false
+                navController.navigate(CUSTOMIZE_ROUTE)
+            },
+            onDismiss = { showSettingsSheet = false }
+        )
     }
 }
 

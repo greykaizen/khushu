@@ -57,8 +57,8 @@ fun KhushuAppBar(
                     Modifier.hazeChild(
                         state = hazeState,
                         style = HazeStyle(
-                            blurRadius = 20.dp,
-                            tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            blurRadius = 35.dp,
+                            tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.0f)
                         )
                     )
                 } else Modifier

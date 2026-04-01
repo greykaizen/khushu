@@ -48,12 +48,12 @@ import com.kaizen.khushu.ui.theme.Antonio
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
-private val ITEM_HEIGHT = 165.dp
-private const val OVERSCROLL_THRESHOLD_DP = 120f
+private val ITEM_HEIGHT = 145.dp
+private const val OVERSCROLL_THRESHOLD_DP = 280f
 
 // Scaling constants for dynamic font sizing
-private const val MAX_SCALE = 1.0f
-private const val MIN_SCALE = 0.45f
+private const val MAX_SCALE = 0.8f
+private const val MIN_SCALE = 0.40f
 private val BASE_TEXT_STYLE =
         TextStyle(
                 fontFamily = Antonio,

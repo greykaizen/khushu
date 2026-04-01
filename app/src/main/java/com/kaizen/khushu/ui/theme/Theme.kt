@@ -38,9 +38,10 @@ fun KhushuTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    pureBlack: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    var colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -48,6 +49,19 @@ fun KhushuTheme(
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+
+    // Apply Pure Black override if requested and in dark mode
+    if (darkTheme && pureBlack) {
+        colorScheme = colorScheme.copy(
+            surface = androidx.compose.ui.graphics.Color.Black,
+            background = androidx.compose.ui.graphics.Color.Black,
+            surfaceContainer = androidx.compose.ui.graphics.Color.Black,
+            surfaceContainerLow = androidx.compose.ui.graphics.Color.Black,
+            surfaceContainerLowest = androidx.compose.ui.graphics.Color.Black,
+            surfaceContainerHigh = androidx.compose.ui.graphics.Color.Black,
+            surfaceContainerHighest = androidx.compose.ui.graphics.Color.Black,
+        )
     }
 
     MaterialTheme(
