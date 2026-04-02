@@ -140,7 +140,7 @@ fun SettingsSheet(
                     }
                     Text(
                         text = "v${BuildConfig.VERSION_NAME}",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                         modifier = Modifier.padding(bottom = 50.dp, top = 12.dp)
                     )
@@ -177,7 +177,7 @@ private fun SettingsMenuItem(
         text = text,
         style = MaterialTheme.typography.headlineLarge.copy(
             fontFamily = Antonio,
-            fontSize = 40.sp
+            fontSize = 34.sp,
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -242,7 +242,7 @@ private fun SocialCircleButton(iconRes: Int) {
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(35.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

@@ -5,20 +5,26 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val gitHash: String = try {
+    ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+        .start()
+        .inputStream
+        .bufferedReader()
+        .use { it.readText().trim() }
+} catch (e: Exception) {
+    "unknown"
+}
+
 android {
     namespace = "com.kaizen.khushu"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.kaizen.khushu"
         minSdk = 31
         targetSdk = 36
         versionCode = 2
-        versionName = "0.5.0"
+        versionName = "0.5.0+$gitHash"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
