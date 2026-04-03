@@ -46,6 +46,9 @@ android {
         compose = true
         buildConfig = true
     }
+    lint {
+        disable += "ContextCastToActivity"
+    }
 }
 
 configurations.all {
@@ -72,6 +75,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.ui.test)
+    implementation(libs.androidx.ui)
     ksp(libs.room.compiler)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.reorderable)

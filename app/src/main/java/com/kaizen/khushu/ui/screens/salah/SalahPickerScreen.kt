@@ -1,6 +1,7 @@
 package com.kaizen.khushu.ui.screens.salah
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.ui.components.KhushuAppBar
@@ -33,7 +35,7 @@ import dev.chrisbanes.haze.haze
 
 @Composable
 fun SalahPickerScreen(
-    onStartPrayer: (rakats: Int) -> Unit,
+    onStartSalah: (rakats: Int, preset: SalahPreset) -> Unit,
     onSettingsClick: () -> Unit,
     onNavigateTab: (AppDestinations) -> Unit,
     navBarClearance: Dp = 88.dp,
@@ -43,8 +45,7 @@ fun SalahPickerScreen(
     val hazeState = remember { HazeState() }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Full-screen tap to start — picker scroll (drag) consumes its own events,
-        // so quick taps anywhere (including over the picker) reach this handler.
+        // Full-screen tap to start
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -54,7 +55,7 @@ fun SalahPickerScreen(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                    onClick = { onStartPrayer(selectedRakat) },
+                    onClick = { onStartSalah(selectedRakat, SalahPreset.Minimal) },
                 ),
             contentAlignment = Alignment.Center,
         ) {

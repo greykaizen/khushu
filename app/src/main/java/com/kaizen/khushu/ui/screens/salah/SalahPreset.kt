@@ -11,6 +11,9 @@ sealed class SalahPreset {
     /** Preset 1 — minimal: medium-large Antonio numeral, centered, light grey fill */
     object Minimal : SalahPreset()
 
+    /** Preset 2 — custom: user-defined widgets from the canvas editor */
+    object Custom : SalahPreset()
+
     // Reserved for future presets (design §6):
     // object OutlineRight : SalahPreset()   // Preset 2
     // object MassiveFill : SalahPreset()    // Preset 3

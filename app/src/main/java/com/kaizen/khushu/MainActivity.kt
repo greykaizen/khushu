@@ -43,10 +43,15 @@ import com.kaizen.khushu.ui.screens.learn.LearnSectionDetailScreen
 import com.kaizen.khushu.ui.screens.salah.SalahImmersiveScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPickerScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPreset
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
+import com.kaizen.khushu.data.CanvasDatabase
+import com.kaizen.khushu.ui.screens.salah.SalahCanvasScreen
+import com.kaizen.khushu.ui.screens.salah.SalahCanvasViewModel
 import com.kaizen.khushu.ui.screens.settings.*
 import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehImmersiveScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
+import com.kaizen.khushu.data.TasbeehCollection
 import com.kaizen.khushu.ui.theme.KhushuTheme
 import com.kaizen.khushu.ui.theme.ThemeTransitionProvider
 
@@ -54,6 +59,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var tasbeehViewModel: TasbeehViewModel
+    private lateinit var salahCanvasViewModel: SalahCanvasViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +70,9 @@ class MainActivity : ComponentActivity() {
         
         val dao = TasbeehDatabase.getInstance(applicationContext).tasbeehDao()
         tasbeehViewModel = ViewModelProvider(this as ViewModelStoreOwner, TasbeehViewModel.factory(dao))[TasbeehViewModel::class.java]
+
+        val canvasDao = CanvasDatabase.getInstance(applicationContext).canvasDao()
+        salahCanvasViewModel = ViewModelProvider(this as ViewModelStoreOwner, SalahCanvasViewModel.factory(canvasDao))[SalahCanvasViewModel::class.java]
 
         setContent {
             val settings by settingsViewModel.settings.collectAsState()
@@ -104,6 +113,7 @@ class MainActivity : ComponentActivity() {
                     KhushuApp(
                         settingsViewModel = settingsViewModel,
                         tasbeehViewModel = tasbeehViewModel,
+                        salahCanvasViewModel = salahCanvasViewModel,
                         darkTheme = darkTheme
                     )
                 }
@@ -125,9 +135,14 @@ class MainActivity : ComponentActivity() {
 private fun KhushuApp(
     settingsViewModel: SettingsViewModel,
     tasbeehViewModel: TasbeehViewModel,
+    salahCanvasViewModel: SalahCanvasViewModel,
     darkTheme: Boolean
 ) {
-    var immersiveRakats by rememberSaveable { mutableStateOf<Int?>(null) }
+    var immersiveRakats by remember { mutableStateOf<Int?>(null) }
+    var immersivePreset by remember { mutableStateOf<SalahPreset>(SalahPreset.Minimal) }
+    var activeTasbeehCollection by remember { mutableStateOf<TasbeehCollection?>(null) }
+    var showCanvasEditor by remember { mutableStateOf(false) }
+    var canvasEditorRakats by remember { mutableIntStateOf(4) }
     var showCreateSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     val navController = rememberNavController()
@@ -174,7 +189,10 @@ private fun KhushuApp(
                         popExitTransition = { tabExit() },
                     ) {
                         SalahPickerScreen(
-                            onStartPrayer = { immersiveRakats = it },
+                            onStartSalah = { rakats, preset ->
+                                immersiveRakats = rakats
+                                immersivePreset = preset
+                            },
                             onSettingsClick = { showSettingsSheet = true },
                             onNavigateTab = onNavigateTab,
                             navBarClearance = 0.dp, // Center visually on screen, not pushed up
@@ -190,7 +208,7 @@ private fun KhushuApp(
                     ) {
                         TasbeehScreen(
                             viewModel = tasbeehViewModel,
-                            onCollectionTap = { /* TODO: immersive counter Phase 4 */ },
+                            onCollectionTap = { collection -> activeTasbeehCollection = collection },
                             onSettingsClick = { showSettingsSheet = true },
                             onNavigateTab = onNavigateTab,
                             contentPadding = PaddingValues(start = 0.dp, top = topClearance, end = 0.dp, bottom = pillClearance),
@@ -341,6 +359,10 @@ private fun KhushuApp(
                     ) {
                         SalahCustomizeScreen(
                             viewModel = settingsViewModel,
+                            onCustomizeLayout = { rakats ->
+                                canvasEditorRakats = rakats
+                                showCanvasEditor = true
+                            },
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -419,9 +441,27 @@ private fun KhushuApp(
         immersiveRakats?.let { rakats ->
             SalahImmersiveScreen(
                 targetRakats = rakats,
-                preset = SalahPreset.Minimal,
+                preset = immersivePreset,
+                salahCanvasViewModel = salahCanvasViewModel,
                 onComplete = { immersiveRakats = null },
                 onExit = { immersiveRakats = null },
+            )
+        }
+
+        activeTasbeehCollection?.let { collection ->
+            TasbeehImmersiveScreen(
+                collection = collection,
+                onComplete = { activeTasbeehCollection = null },
+                onExit = { activeTasbeehCollection = null },
+            )
+        }
+
+        if (showCanvasEditor) {
+            SalahCanvasScreen(
+                targetRakats = canvasEditorRakats,
+                viewModel = salahCanvasViewModel,
+                onSave = { showCanvasEditor = false },
+                onExit = { showCanvasEditor = false }
             )
         }
     }
