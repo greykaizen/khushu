@@ -57,12 +57,16 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.input.pointer.pointerInput
 import android.app.Activity
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Check
 
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -363,8 +367,10 @@ fun CanvasWidgetItem(
                 detectTransformGestures(
                     onGesture = { _, pan, zoom, _ ->
                         val w = currentWidget
-                        val newOffsetX = (w.offsetX + pan.x).coerceAtLeast(0f)
-                        val newOffsetY = (w.offsetY + pan.y).coerceAtLeast(0f)
+//                        val newOffsetX = (w.offsetX + pan.x).coerceAtLeast(0f)
+//                        val newOffsetY = (w.offsetY + pan.y).coerceAtLeast(0f)
+                        val newOffsetX = w.offsetX + pan.x
+                        val newOffsetY = w.offsetY + pan.y
                         val newScale = (w.scale * zoom).coerceIn(0.2f, 5f)
                         
                         val updated = when (w) {
@@ -396,11 +402,7 @@ fun CanvasWidgetItem(
                     style = TextStyle(
                         color = Color(widget.color).copy(alpha = widget.opacity),
                         drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-                        lineHeight = widget.fontSizeSp.sp,
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Center,
-                            trim = LineHeightStyle.Trim.Both
-                        )
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
                     )
                 )
             }
@@ -429,11 +431,7 @@ fun CanvasWidgetItem(
                         style = TextStyle(
                             color = Color(widget.color).copy(alpha = widget.opacity),
                             drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-                            lineHeight = widget.fontSizeSp.sp,
-                            lineHeightStyle = LineHeightStyle(
-                                alignment = LineHeightStyle.Alignment.Center,
-                                trim = LineHeightStyle.Trim.Both
-                            )
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
                         )
                     )
                 }
@@ -464,11 +462,7 @@ private fun LiveClockText(widget: CanvasWidget.ClockWidget, opacity: Float, isOu
         style = TextStyle(
             color = Color(widget.color).copy(alpha = opacity),
             drawStyle = if (isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-            lineHeight = widget.fontSizeSp.sp,
-            lineHeightStyle = LineHeightStyle(
-                alignment = LineHeightStyle.Alignment.Center,
-                trim = LineHeightStyle.Trim.Both
-            )
+            platformStyle = PlatformTextStyle(includeFontPadding = false)
         )
     )
 }
@@ -483,11 +477,7 @@ private fun LiveClockTextPreview(widget: CanvasWidget.ClockWidget) {
         style = TextStyle(
             color = Color(widget.color).copy(alpha = widget.opacity),
             drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-            lineHeight = widget.fontSizeSp.sp,
-            lineHeightStyle = LineHeightStyle(
-                alignment = LineHeightStyle.Alignment.Center,
-                trim = LineHeightStyle.Trim.Both
-            )
+            platformStyle = PlatformTextStyle(includeFontPadding = false)
         )
     )
 }
@@ -542,57 +532,95 @@ private fun AddWidgetSheet(
     onDismiss: () -> Unit,
 ) {
     var showColorPicker by remember { mutableStateOf(false) }
-    
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(Unit) {
+        sheetState.expand()
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = sheetState,
         shape = MaterialTheme.shapes.extraLarge,
-        scrimColor = Color.Black.copy(alpha = 0.6f)
+        scrimColor = Color.Black.copy(alpha = 0.6f),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 32.dp)) {
-            Text("Canvas Background", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(CANVAS_BACKGROUNDS) { (color, name) ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "CANVAS BACKGROUND",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Premium Color Picker with Scale Pop & Checkmark
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CANVAS_BACKGROUNDS.take(5).forEach { (color, _) ->
                     val colorInt = color.toSolidInt()
+                    val isSelected = currentBackground == colorInt
+
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            // Physical scale pop for selected item
+                            .size(if (isSelected) 52.dp else 44.dp)
+                            .clip(CircleShape)
                             .background(color)
                             .border(
-                                width = if (currentBackground == colorInt) 2.dp else 1.dp,
-                                color = if (currentBackground == colorInt) Color.White else Color.White.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(8.dp)
+                                width = if (isSelected) 2.dp else 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape
                             )
-                            .clickable { onBackgroundChange(colorInt) }
-                    )
-                }
-                item {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                                    colors = listOf(Color.Red, Color.Green, Color.Blue)
-                                )
-                            )
-                            .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .clickable { showColorPicker = true },
+                            .clickable { onBackgroundChange(colorInt) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Default.Palette,
-                            contentDescription = "Custom Color",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        // High-contrast checkmark overlay
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
+                }
+
+                // Custom Color Gradient Wheel
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.sweepGradient(
+                                colors = listOf(Color.Red, Color.Magenta, Color.Blue, Color.Cyan, Color.Green, Color.Yellow, Color.Red)
+                            )
+                        )
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        .clickable { showColorPicker = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Palette,
+                        contentDescription = "Custom Color",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
 
             if (showColorPicker) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
                 ColorPicker(
                     onColorSelected = { colorInt ->
                         onBackgroundChange(colorInt)
@@ -602,28 +630,115 @@ private fun AddWidgetSheet(
                 )
             }
 
+            Spacer(Modifier.height(32.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(Modifier.height(24.dp))
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+            Text(
+                text = "ADD WIDGET",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
             Spacer(Modifier.height(16.dp))
 
-            Text("Add Widgets", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            
-            ListItem(
-                headlineContent = { Text("Rakat Counter") },
-                supportingContent = { Text("Display the current rakat number") },
-                modifier = Modifier.clickable { onAdd(CanvasWidget.RakatCount()) }
+            // Visual Grid Layout
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Rakat Preview Card
+                WidgetPreviewCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Rakat Counter",
+                    onClick = { onAdd(CanvasWidget.RakatCount()) }
+                ) {
+                    Text(
+                        text = "4",
+                        fontFamily = Antonio,
+                        fontSize = 56.sp,
+                        color = Color.White
+                    )
+                }
+
+                // Clock Preview Card
+                WidgetPreviewCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Digital Clock",
+                    onClick = { onAdd(CanvasWidget.ClockWidget()) }
+                ) {
+                    Text(
+                        text = "12:00",
+                        fontFamily = BeVietnamPro,
+                        fontSize = 24.sp,
+                        color = Color.White
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Custom Text Full-Width Banner
+            WidgetPreviewCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Custom Text",
+                onClick = { onAdd(CanvasWidget.CustomText()) }
+            ) {
+                Text(
+                    text = "صلاة",
+                    fontFamily = BeVietnamPro,
+                    fontSize = 36.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+// ─── New Reusable Preview Card ────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WidgetPreviewCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    onClick: () -> Unit,
+    previewContent: @Composable BoxScope.() -> Unit
+) {
+    OutlinedCard(
+        onClick = onClick,
+        modifier = modifier.height(140.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Miniature Canvas Representation
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)), // Deep black to simulate the canvas
+                contentAlignment = Alignment.Center,
+                content = previewContent
             )
-            ListItem(
-                headlineContent = { Text("Clock") },
-                supportingContent = { Text("Keep track of prayer time") },
-                modifier = Modifier.clickable { onAdd(CanvasWidget.ClockWidget()) }
-            )
-            ListItem(
-                headlineContent = { Text("Custom Text") },
-                supportingContent = { Text("Add specific dhikr or reminders") },
-                modifier = Modifier.clickable { onAdd(CanvasWidget.CustomText()) }
-            )
+
+            // Label Area
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }
@@ -637,16 +752,64 @@ private fun PresetsSheet(
     onDismiss: () -> Unit,
     onLoadPreset: (List<CanvasWidget>, Int) -> Unit,
 ) {
-    // Preset layouts
+    val workingWidgets by viewModel.workingWidgets.collectAsStateWithLifecycle()
+    val workingBackground by viewModel.workingBackgroundColor.collectAsStateWithLifecycle()
+
+    // Preset layouts - Minimal to Premium
     val presets = listOf(
         CanvasPreset(
-            id = "custom",
-            name = "Custom",
+            id = "current",
+            name = "Current",
+            backgroundColor = workingBackground,
+            widgets = workingWidgets,
+            isDeletable = false
+        ),
+        CanvasPreset(
+            id = "minimal",
+            name = "Minimal",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
-                CanvasWidget.RakatCount(offsetX = 549.7927f, offsetY = 789.03436f, scale = 2.6846793f, color = -1, opacity = 1.0f, fontSizeSp = 180.0f, fontWeight = 400, isOutline = true, fontName = "Antonio"),
-                CanvasWidget.ClockWidget(offsetX = 53.81276f, offsetY = 345.4276f, scale = 1.8795846f, color = -1, opacity = 1.0f, fontSizeSp = 48.0f, showSeconds = false, use24Hour = true, isOutline = false, fontName = "BeVietnamPro"),
-                CanvasWidget.CustomText(offsetX = 92.394714f, offsetY = 999.25824f, scale = 2.133892f, text = "صلاة", color = -1, opacity = 1.0f, fontSizeSp = 32.0f, fontWeight = 400, italic = false, textAlign = "Center", verticalAlign = "Center", isOutline = false, fontName = "BeVietnamPro"),
+                CanvasWidget.RakatCount(offsetX = 441.7226f, offsetY = 662.8323f, scale = 3.3677413f, color = -1, opacity = 1.0f, fontSizeSp = 77.18303f, fontWeight = 400, isOutline = false, fontName = "Antonio"),
+            ),
+            isDeletable = false
+        ),
+        CanvasPreset(
+            id = "classy",
+            name = "Classy",
+            backgroundColor = 0xFF000000.toInt(),
+            widgets = listOf(
+                CanvasWidget.RakatCount(offsetX = 441.7226f, offsetY = 662.8323f, scale = 3.3677413f, color = -1, opacity = 1.0f, fontSizeSp = 77.18303f, fontWeight = 400, isOutline = true, fontName = "Antonio"),
+            ),
+            isDeletable = false
+        ),
+        CanvasPreset(
+            id = "pure",
+            name = "Pure",
+            backgroundColor = 0xFF000000.toInt(),
+            widgets = listOf(
+                CanvasWidget.RakatCount(offsetX = 770.9055f, offsetY = 667.29614f, scale = 3.3677413f, color = -1, opacity = 1.0f, fontSizeSp = 77.18303f, fontWeight = 400, isOutline = false, fontName = "Antonio"),
+                CanvasWidget.CustomText(offsetX = 114.73828f, offsetY = 1122.4414f, scale = 1.0f, text = "صلاة", color = -1, opacity = 1.0f, fontSizeSp = 71.04196f, fontWeight = 400, italic = false, textAlign = "Center", verticalAlign = "Center", isOutline = true, fontName = "BeVietnamPro"),
+            ),
+            isDeletable = false
+        ),
+        CanvasPreset(
+            id = "subtle",
+            name = "Subtle",
+            backgroundColor = 0xFF000000.toInt(),
+            widgets = listOf(
+                CanvasWidget.RakatCount(offsetX = 378.284f, offsetY = 31.923096f, scale = 3.3677413f, color = -1, opacity = 1.0f, fontSizeSp = 180.0f, fontWeight = 400, isOutline = false, fontName = "Antonio"),
+                CanvasWidget.CustomText(offsetX = 67.146484f, offsetY = 108.02832f, scale = 1.0f, text = "صلاة", color = -1, opacity = 1.0f, fontSizeSp = 71.04196f, fontWeight = 400, italic = false, textAlign = "Center", verticalAlign = "Center", isOutline = true, fontName = "BeVietnamPro"),
+            ),
+            isDeletable = false
+        ),
+        CanvasPreset(
+            id = "premium",
+            name = "Premium",
+            backgroundColor = 0xFF000000.toInt(),
+            widgets = listOf(
+                CanvasWidget.ClockWidget(offsetX = 41.727997f, offsetY = 242.21165f, scale = 1.5047318f, color = -1, opacity = 1.0f, fontSizeSp = 48.0f, showSeconds = false, use24Hour = true, isOutline = false, fontName = "BeVietnamPro"),
+                CanvasWidget.CustomText(offsetX = 719.8713f, offsetY = 589.70654f, scale = 2.133892f, text = "صلاة", color = -1, opacity = 1.0f, fontSizeSp = 32.0f, fontWeight = 400, italic = false, textAlign = "Center", verticalAlign = "Center", isOutline = false, fontName = "BeVietnamPro"),
+                CanvasWidget.RakatCount(offsetX = 559.13025f, offsetY = 687.25366f, scale = 2.5634913f, color = -1, opacity = 1.0f, fontSizeSp = 180.0f, fontWeight = 400, isOutline = false, fontName = "Antonio"),
             ),
             isDeletable = false
         ),
@@ -662,33 +825,57 @@ private fun PresetsSheet(
     
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        scrimColor = Color.Black.copy(alpha = 0.6f),
+//        scrimColor = ModalBottomSheetDefaults.scrimColor,
         sheetState = sheetState,
-        containerColor = Color(0xFF0A0A0A),
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         dragHandle = null
     ) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.9f)
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
+                .fillMaxHeight(0.85f)
         ) {
-            Text(
-                text = "Presets",
-                style = MaterialTheme.typography.headlineMedium,
-                fontFamily = com.kaizen.khushu.ui.theme.BeVietnamPro
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "Swipe to browse presets",
-                style = MaterialTheme.typography.bodyMedium,
-                fontFamily = com.kaizen.khushu.ui.theme.BeVietnamPro,
-                color = Color.White.copy(alpha = 0.6f)
-            )
-            
-            Spacer(Modifier.height(24.dp))
-                     // Premium Preset Carousel with HorizontalPager
+            // Header Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 30.dp, vertical = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Presets",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = BeVietnamPro,
+//                    fontWeight = FontWeight.,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                TextButton(
+                    onClick = {
+                        viewModel.clearWidgets()
+                        viewModel.updateBackgroundColor(0xFF000000.toInt())
+                        onDismiss()
+                    },
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),  // very small & natural
+                    modifier = Modifier.defaultMinSize(minWidth = 0.dp, minHeight = 0.dp)  // removes forced 48.dp height
+                ){
+                    Text(
+                        text = "Create",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = BeVietnamPro,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+            val screenWidthDp = configuration.screenWidthDp.dp
+            val horizontalPadding = (screenWidthDp - 230.dp) / 2
+            // Premium Preset Carousel with HorizontalPager
             val pagerState = rememberPagerState(pageCount = { presets.size })
             
             Box(
@@ -705,7 +892,7 @@ private fun PresetsSheet(
                         is CanvasWidget.ClockWidget -> Color(it.color)
                         is CanvasWidget.CustomText -> Color(it.color)
                     }
-                } ?: Color(0xFF1A1A1A)
+                } ?: MaterialTheme.colorScheme.surfaceVariant
 
                 Box(
                     modifier = Modifier
@@ -727,13 +914,14 @@ private fun PresetsSheet(
                 HorizontalPager(
                     state = pagerState,
                     key = { index -> presets[index].id },
-                    contentPadding = PaddingValues(horizontal = 60.dp),
-                    pageSpacing = 16.dp,
+                    contentPadding = PaddingValues(horizontal = horizontalPadding),
+                    pageSpacing = 12.dp,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
                     val preset = presets[page]
-                    val pageOffset = pagerState.currentPageOffsetFraction
-                    
+//                    val pageOffset = pagerState.currentPageOffsetFraction
+                    val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+
                     val cardScale = 1f - (kotlin.math.abs(pageOffset) * 0.15f).coerceIn(0f, 0.15f)
                     val cardAlpha = 1f - (kotlin.math.abs(pageOffset) * 0.5f).coerceIn(0f, 0.5f)
                     
@@ -748,8 +936,8 @@ private fun PresetsSheet(
                     ) {
                         BoxWithConstraints(
                             modifier = Modifier
-                                .width(220.dp)
-                                .height(420.dp)
+                                .width(230.dp)
+                                .height(440.dp)
                         ) {
                             val previewScale = constraints.maxWidth.toFloat() / actualScreenWidth
 
@@ -760,7 +948,7 @@ private fun PresetsSheet(
                                     .background(Color(preset.backgroundColor))
                                     .border(
                                         width = 1.dp,
-                                        color = Color.White.copy(alpha = 0.05f),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
                                         shape = RoundedCornerShape(32.dp)
                                     )
                                     .pointerInput(preset.id) {
@@ -816,11 +1004,7 @@ private fun PresetsSheet(
                                                         style = TextStyle(
                                                             color = Color(widget.color).copy(alpha = widget.opacity),
                                                             drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-                                                            lineHeight = widget.fontSizeSp.sp,
-                                                            lineHeightStyle = LineHeightStyle(
-                                                                alignment = LineHeightStyle.Alignment.Center,
-                                                                trim = LineHeightStyle.Trim.Both
-                                                            )
+                                                            platformStyle = PlatformTextStyle(includeFontPadding = false)
                                                         )
                                                     )
                                                 }
@@ -849,11 +1033,7 @@ private fun PresetsSheet(
                                                             style = TextStyle(
                                                                 color = Color(widget.color).copy(alpha = widget.opacity),
                                                                 drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-                                                                lineHeight = widget.fontSizeSp.sp,
-                                                                lineHeightStyle = LineHeightStyle(
-                                                                    alignment = LineHeightStyle.Alignment.Center,
-                                                                    trim = LineHeightStyle.Trim.Both
-                                                                )
+                                                                platformStyle = PlatformTextStyle(includeFontPadding = false)
                                                             )
                                                         )
                                                     }
@@ -871,16 +1051,16 @@ private fun PresetsSheet(
                             text = preset.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontFamily = BeVietnamPro,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
             
-            // Page indicator and bottom buttons
-            Spacer(Modifier.height(16.dp))
+            // Page indicator 
+            Spacer(Modifier.height(24.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 repeat(presets.size) { index ->
@@ -890,32 +1070,10 @@ private fun PresetsSheet(
                             .padding(horizontal = 4.dp)
                             .size(if (isSelected) 8.dp else 6.dp)
                             .background(
-                                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f),
+                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                                 shape = CircleShape
                             )
                     )
-                }
-            }
-            
-            Spacer(Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        viewModel.clearWidgets()
-                        viewModel.updateBackgroundColor(0xFF000000.toInt())
-                        onDismiss()
-                    },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Create Blank")
-                }
-                
-                TextButton(onClick = onDismiss) {
-                    Text("Close")
                 }
             }
         }
@@ -931,45 +1089,98 @@ private fun WidgetConfigSheet(
     onDismiss: () -> Unit,
     onAlign: (Alignment.Horizontal?, Alignment.Vertical?) -> Unit,
 ) {
+    var showColorPicker by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(Unit) {
+        sheetState.expand()
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        scrimColor = Color.Black.copy(alpha = 0.6f)
+        sheetState = sheetState,
+        scrimColor = Color.Black.copy(alpha = 0.6f),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = MaterialTheme.colorScheme.onSurface, // Fixes invisible text bug
+        dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
-        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 48.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.75f) // Locks to 75% screen height
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            // ── HEADER ───────────────────────────────────────────────
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = when(widget) {
-                        is CanvasWidget.RakatCount -> "Rakat Counter"
-                        is CanvasWidget.ClockWidget -> "Clock"
-                        is CanvasWidget.CustomText -> "Custom Text"
+                        is CanvasWidget.RakatCount -> "Configure Counter"
+                        is CanvasWidget.ClockWidget -> "Configure Clock"
+                        is CanvasWidget.CustomText -> "Configure Text"
                     },
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                IconButton(
+                    onClick = {
+                        onDelete()
+                        onDismiss()
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete Widget")
                 }
             }
-            
-            Spacer(Modifier.height(16.dp))
 
-            // Common Color Picker
-            Text("Color", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(24.dp))
+
+            // ── TEXT CONTENT (If applicable, moved to top for UX) ────
+            if (widget is CanvasWidget.CustomText) {
+                OutlinedTextField(
+                    value = widget.text ?: "",
+                    onValueChange = { onUpdate(widget.copy(text = it)) },
+                    label = { Text("Text Content") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // ── COLOR PICKER (5 + 1) ─────────────────────────────────
+            Text("COLOR", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(12.dp))
+
             val widgetColor = when (widget) {
                 is CanvasWidget.RakatCount -> widget.color
                 is CanvasWidget.ClockWidget -> widget.color
                 is CanvasWidget.CustomText -> widget.color
             }
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(WIDGET_COLORS) { color ->
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                WIDGET_COLORS.take(5).forEach { color ->
                     val colorInt = color.toIntArgb()
+                    val isSelected = widgetColor == colorInt
+
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .size(if (isSelected) 52.dp else 44.dp)
+                            .clip(CircleShape)
                             .background(color)
-                            .border(1.dp, if (colorInt == widgetColor) Color.White else Color.White.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                            .border(
+                                width = if (isSelected) 2.dp else 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape
+                            )
                             .clickable {
                                 val updated = when (widget) {
                                     is CanvasWidget.RakatCount -> widget.copy(color = colorInt)
@@ -977,264 +1188,229 @@ private fun WidgetConfigSheet(
                                     is CanvasWidget.CustomText -> widget.copy(color = colorInt)
                                 }
                                 onUpdate(updated)
-                            }
-                    )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
+
+                // Custom Color Wheel
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(androidx.compose.ui.graphics.Brush.sweepGradient(listOf(Color.Red, Color.Magenta, Color.Blue, Color.Cyan, Color.Green, Color.Yellow, Color.Red)))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        .clickable { showColorPicker = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Palette, contentDescription = "Custom", tint = Color.White, modifier = Modifier.size(20.dp))
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
-
-            // Opacity Control
-            val widgetOpacity = when (widget) {
-                is CanvasWidget.RakatCount -> widget.opacity
-                is CanvasWidget.ClockWidget -> widget.opacity
-                is CanvasWidget.CustomText -> widget.opacity
-            }
-            Text("Opacity", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Slider(
-                    value = widgetOpacity,
-                    onValueChange = { 
+            if (showColorPicker) {
+                Spacer(Modifier.height(16.dp))
+                ColorPicker(
+                    onColorSelected = { colorInt ->
                         val updated = when (widget) {
-                            is CanvasWidget.RakatCount -> widget.copy(opacity = it)
-                            is CanvasWidget.ClockWidget -> widget.copy(opacity = it)
-                            is CanvasWidget.CustomText -> widget.copy(opacity = it)
+                            is CanvasWidget.RakatCount -> widget.copy(color = colorInt)
+                            is CanvasWidget.ClockWidget -> widget.copy(color = colorInt)
+                            is CanvasWidget.CustomText -> widget.copy(color = colorInt)
+                        }
+                        onUpdate(updated)
+                        showColorPicker = false
+                    },
+                    onDismiss = { showColorPicker = false }
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(Modifier.height(24.dp))
+
+            // ── FORMATTING & STYLE BAR ───────────────────────────────
+            Text("STYLE & FORMAT", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(12.dp))
+
+            // Compact Toggle Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Outline Toggle (Available to all)
+                val isOutline = when (widget) {
+                    is CanvasWidget.RakatCount -> widget.isOutline
+                    is CanvasWidget.ClockWidget -> widget.isOutline
+                    is CanvasWidget.CustomText -> widget.isOutline
+                }
+                FilterChip(
+                    selected = isOutline,
+                    onClick = {
+                        val updated = when (widget) {
+                            is CanvasWidget.RakatCount -> widget.copy(isOutline = !isOutline)
+                            is CanvasWidget.ClockWidget -> widget.copy(isOutline = !isOutline)
+                            is CanvasWidget.CustomText -> widget.copy(isOutline = !isOutline)
                         }
                         onUpdate(updated)
                     },
-                    valueRange = 0.1f..1f,
-                    modifier = Modifier.weight(1f)
+                    label = { Text("Outline") }
                 )
-                Spacer(Modifier.width(12.dp))
-                Text("${(widgetOpacity * 100).toInt()}%", style = MaterialTheme.typography.bodyMedium)
-            }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Outline Toggle (for all widgets)
-            val isOutline = when (widget) {
-                is CanvasWidget.RakatCount -> widget.isOutline
-                is CanvasWidget.ClockWidget -> widget.isOutline
-                is CanvasWidget.CustomText -> widget.isOutline
-            }
-            if (widget is CanvasWidget.RakatCount || widget is CanvasWidget.ClockWidget || widget is CanvasWidget.CustomText) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Outline", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = isOutline,
-                        onCheckedChange = {
+                // Bold Toggle
+                if (widget is CanvasWidget.RakatCount || widget is CanvasWidget.CustomText) {
+                    val isBold = when (widget) {
+                        is CanvasWidget.RakatCount -> widget.fontWeight == 700
+                        is CanvasWidget.CustomText -> widget.fontWeight == 700
+                        else -> false
+                    }
+                    FilterChip(
+                        selected = isBold,
+                        onClick = {
+                            val newWeight = if (isBold) 400 else 700
                             val updated = when (widget) {
-                                is CanvasWidget.RakatCount -> widget.copy(isOutline = it)
-                                is CanvasWidget.ClockWidget -> widget.copy(isOutline = it)
-                                is CanvasWidget.CustomText -> widget.copy(isOutline = it)
+                                is CanvasWidget.RakatCount -> widget.copy(fontWeight = newWeight)
+                                is CanvasWidget.CustomText -> widget.copy(fontWeight = newWeight)
                                 else -> widget
                             }
                             onUpdate(updated)
-                        }
+                        },
+                        label = { Text("Bold") }
                     )
                 }
-            }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Alignment Controls (Figma-style)
-            Text("Alignment", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-
-            // Horizontal alignment row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilledTonalButton(
-                    onClick = { onAlign(Alignment.Start, null) },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.AlignHorizontalLeft, contentDescription = "Left", modifier = Modifier.size(20.dp))
-                }
-                FilledTonalButton(
-                    onClick = { onAlign(Alignment.CenterHorizontally, null) },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.Default.AlignHorizontalCenter, contentDescription = "Center H", modifier = Modifier.size(20.dp))
-                }
-                FilledTonalButton(
-                    onClick = { onAlign(Alignment.End, null) },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.AlignHorizontalRight, contentDescription = "Right", modifier = Modifier.size(20.dp))
-                }
-            }
-
-            Spacer(Modifier.height(4.dp))
-
-            // Vertical alignment row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilledTonalButton(
-                    onClick = { onAlign(null, Alignment.Top) },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.Default.VerticalAlignTop, contentDescription = "Top", modifier = Modifier.size(20.dp))
-                }
-                FilledTonalButton(
-                    onClick = { onAlign(null, Alignment.CenterVertically) },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.Default.VerticalAlignCenter, contentDescription = "Center V", modifier = Modifier.size(20.dp))
-                }
-                FilledTonalButton(
-                    onClick = { onAlign(null, Alignment.Bottom) },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(Icons.Default.VerticalAlignBottom, contentDescription = "Bottom", modifier = Modifier.size(20.dp))
+                // Italic Toggle
+                if (widget is CanvasWidget.CustomText) {
+                    FilterChip(
+                        selected = widget.italic,
+                        onClick = { onUpdate(widget.copy(italic = !widget.italic)) },
+                        label = { Text("Italic") }
+                    )
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // Specific controls
-            when (widget) {
-                is CanvasWidget.RakatCount -> {
-                    SliderControl("Size", widget.fontSizeSp, 48f, 300f) {
-                        onUpdate(widget.copy(fontSizeSp = it))
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Bold", Modifier.weight(1f))
-                        Switch(
-                            checked = widget.fontWeight == 700,
-                            onCheckedChange = { onUpdate(widget.copy(fontWeight = if (it) 700 else 400)) }
-                        )
-                    }
+            // ── SLIDERS (Size & Opacity) ─────────────────────────────
+            val widgetSize = when (widget) {
+                is CanvasWidget.RakatCount -> widget.fontSizeSp
+                is CanvasWidget.ClockWidget -> widget.fontSizeSp
+                is CanvasWidget.CustomText -> widget.fontSizeSp
+            }
+            SliderControl("SIZE", widgetSize, 12f, 300f) { newValue ->
+                val updated = when (widget) {
+                    is CanvasWidget.RakatCount -> widget.copy(fontSizeSp = newValue)
+                    is CanvasWidget.ClockWidget -> widget.copy(fontSizeSp = newValue)
+                    is CanvasWidget.CustomText -> widget.copy(fontSizeSp = newValue)
                 }
-                is CanvasWidget.ClockWidget -> {
-                    SliderControl("Size", widget.fontSizeSp, 24f, 120f) {
-                        onUpdate(widget.copy(fontSizeSp = it))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Show Seconds", Modifier.weight(1f))
-                        Switch(checked = widget.showSeconds, onCheckedChange = { onUpdate(widget.copy(showSeconds = it)) })
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("24H Format", Modifier.weight(1f))
-                        Switch(checked = widget.use24Hour, onCheckedChange = { onUpdate(widget.copy(use24Hour = it)) })
-                    }
+                onUpdate(updated)
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            val widgetOpacity = when (widget) {
+                is CanvasWidget.RakatCount -> widget.opacity
+                is CanvasWidget.ClockWidget -> widget.opacity
+                is CanvasWidget.CustomText -> widget.opacity
+            }
+            SliderControl("OPACITY (${(widgetOpacity * 100).toInt()}%)", widgetOpacity, 0.1f, 1f) { newValue ->
+                val updated = when (widget) {
+                    is CanvasWidget.RakatCount -> widget.copy(opacity = newValue)
+                    is CanvasWidget.ClockWidget -> widget.copy(opacity = newValue)
+                    is CanvasWidget.CustomText -> widget.copy(opacity = newValue)
                 }
-                is CanvasWidget.CustomText -> {
-                    OutlinedTextField(
-                        value = widget.text,
-                        onValueChange = { onUpdate(widget.copy(text = it)) },
-                        label = { Text("Text Content") },
-                        modifier = Modifier.fillMaxWidth()
+                onUpdate(updated)
+            }
+
+            Spacer(Modifier.height(24.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(Modifier.height(24.dp))
+
+            // ── ALIGNMENT ────────────────────────────────────────────
+            Text("ALIGNMENT", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(12.dp))
+
+            // Horizontal Alignment
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    Alignment.Start to Icons.AutoMirrored.Filled.AlignHorizontalLeft,
+                    Alignment.CenterHorizontally to Icons.Default.AlignHorizontalCenter,
+                    Alignment.End to Icons.AutoMirrored.Filled.AlignHorizontalRight
+                ).forEach { (align, icon) ->
+                    FilledTonalButton(
+                        onClick = { onAlign(align, null) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                    ) { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Vertical Alignment
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    Alignment.Top to Icons.Default.VerticalAlignTop,
+                    Alignment.CenterVertically to Icons.Default.VerticalAlignCenter,
+                    Alignment.Bottom to Icons.Default.VerticalAlignBottom
+                ).forEach { (align, icon) ->
+                    FilledTonalButton(
+                        onClick = { onAlign(null, align) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                    ) { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) }
+                }
+            }
+
+            // ── CLOCK SPECIFICS (12H / 24H) ──────────────────────────
+            if (widget is CanvasWidget.ClockWidget) {
+                Spacer(Modifier.height(24.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(24.dp))
+                Text("TIME FORMAT", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(12.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = !widget.use24Hour,
+                        onClick = { onUpdate(widget.copy(use24Hour = false)) },
+                        label = { Text("12-Hour") }
                     )
-                    Spacer(Modifier.height(16.dp))
-                    SliderControl("Size", widget.fontSizeSp, 12f, 120f) {
-                        onUpdate(widget.copy(fontSizeSp = it))
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Bold", Modifier.weight(1f))
-                        Switch(
-                            checked = widget.fontWeight == 700,
-                            onCheckedChange = { onUpdate(widget.copy(fontWeight = if (it) 700 else 400)) }
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Italic", Modifier.weight(1f))
-                        Switch(
-                            checked = widget.italic,
-                            onCheckedChange = { onUpdate(widget.copy(italic = it)) }
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text("Horizontal Alignment", style = MaterialTheme.typography.labelMedium)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf(
-                            "Left" to Icons.AutoMirrored.Filled.AlignHorizontalLeft,
-                            "Center" to Icons.Default.AlignHorizontalCenter,
-                            "Right" to Icons.AutoMirrored.Filled.AlignHorizontalRight
-                        ).forEach { (align, icon) ->
-                            IconButton(
-                                onClick = { onUpdate(widget.copy(textAlign = align)) },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        if (widget.textAlign == align)
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                                        else Color.Transparent
-                                    )
-                            ) {
-                                Icon(
-                                    icon,
-                                    contentDescription = align,
-                                    tint = if (widget.textAlign == align)
-                                        MaterialTheme.colorScheme.primary
-                                    else Color.White.copy(alpha = 0.6f)
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(Modifier.height(4.dp))
-                    
-                    Text("Vertical Alignment", style = MaterialTheme.typography.labelMedium)
-                    val currentVerticalAlign = widget.verticalAlign
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        val options = listOf(
-                            Pair("Top", Icons.Default.KeyboardArrowUp),
-                            Pair("Center", Icons.Default.Close),
-                            Pair("Bottom", Icons.Default.KeyboardArrowDown)
-                        )
-                        for ((align, icon) in options) {
-                            FilledTonalButton(
-                                onClick = { onUpdate(widget.copy(verticalAlign = align)) },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = if (currentVerticalAlign == align)
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                                    else MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Icon(icon, contentDescription = align, modifier = Modifier.size(20.dp))
-                            }
-                        }
-                    }
+                    FilterChip(
+                        selected = widget.use24Hour,
+                        onClick = { onUpdate(widget.copy(use24Hour = true)) },
+                        label = { Text("24-Hour") }
+                    )
+                    FilterChip(
+                        selected = widget.showSeconds,
+                        onClick = { onUpdate(widget.copy(showSeconds = !widget.showSeconds)) },
+                        label = { Text("Show Seconds") }
+                    )
                 }
             }
         }
     }
 }
 
+// ── Refactored Slider Helper ──
 @Composable
 private fun SliderControl(label: String, value: Float, min: Float, max: Float, onUpdate: (Float) -> Unit) {
     Column {
-        Text(label, style = MaterialTheme.typography.labelMedium)
-        Slider(value = value, onValueChange = onUpdate, valueRange = min..max)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Slider(
+            value = value,
+            onValueChange = onUpdate,
+            valueRange = min..max,
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary
+            )
+        )
     }
-}
-
-private fun Color.toArgb(): Int {
-    return (alpha * 255.0f + 0.5f).toInt() shl 24 or
-           (red * 255.0f + 0.5f).toInt() shl 16 or
-           (green * 255.0f + 0.5f).toInt() shl 8 or
-           (blue * 255.0f + 0.5f).toInt()
 }
 
 @Composable
