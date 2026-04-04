@@ -14,4 +14,20 @@ interface CanvasDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun save(layout: SalahCanvasLayout)
+
+    // Presets
+    @Query("SELECT * FROM canvas_presets")
+    fun getAllPresets(): Flow<List<PresetEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPreset(preset: PresetEntity)
+
+    @Query("UPDATE canvas_presets SET name = :newName WHERE id = :id")
+    suspend fun renamePreset(id: String, newName: String)
+
+    @Query("DELETE FROM canvas_presets WHERE id = :id")
+    suspend fun deletePreset(id: String)
+
+    @Query("SELECT COUNT(*) FROM canvas_presets")
+    suspend fun getPresetCount(): Int
 }

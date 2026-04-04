@@ -7,7 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.kaizen.khushu.data.CanvasDao
 import com.kaizen.khushu.data.CanvasPreset
 import com.kaizen.khushu.data.CanvasWidget
+import com.kaizen.khushu.data.DefaultPresets
 import com.kaizen.khushu.data.SalahCanvasLayout
+import com.kaizen.khushu.data.toEntity
+import com.kaizen.khushu.data.toDomain
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -17,8 +20,9 @@ class SalahCanvasViewModel(private val dao: CanvasDao) : ViewModel() {
         .map { it ?: SalahCanvasLayout() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SalahCanvasLayout())
 
-    private val _customPresets = MutableStateFlow<List<CanvasPreset>>(emptyList())
-    val customPresets = _customPresets.asStateFlow()
+    val customPresets = dao.getAllPresets()
+        .map { entities -> entities.map { it.toDomain() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _selectedWidgetId = MutableStateFlow<String?>(null)
     val selectedWidgetId: StateFlow<String?> = _selectedWidgetId
@@ -46,6 +50,13 @@ class SalahCanvasViewModel(private val dao: CanvasDao) : ViewModel() {
                 if (_workingWidgets.value.isEmpty()) {
                     _workingWidgets.value = it.widgets 
                     _workingBackgroundColor.value = it.backgroundColorInt
+                }
+            }
+        }
+        viewModelScope.launch {
+            if (dao.getPresetCount() == 0) {
+                DefaultPresets.defaults.forEach { preset ->
+                    dao.insertPreset(preset.toEntity())
                 }
             }
         }
@@ -167,24 +178,24 @@ class SalahCanvasViewModel(private val dao: CanvasDao) : ViewModel() {
     }
 
     fun saveCustomPreset(name: String, widgets: List<CanvasWidget>, background: Int) {
-        val newPreset = CanvasPreset(
-            id = java.util.UUID.randomUUID().toString(),
-            name = name,
-            backgroundColor = background,
-            widgets = widgets.toList(),
-            isDeletable = true
-        )
-        _customPresets.value = _customPresets.value + newPreset
+        viewModelScope.launch {
+            val newPreset = CanvasPreset(
+                id = java.util.UUID.randomUUID().toString(),
+                name = name,
+                backgroundColor = background,
+                widgets = widgets.toList(),
+                isDeletable = true
+            )
+            dao.insertPreset(newPreset.toEntity())
+        }
     }
 
     fun deletePreset(id: String) {
-        _customPresets.value = _customPresets.value.filter { it.id != id }
+        viewModelScope.launch { dao.deletePreset(id) }
     }
 
     fun renamePreset(id: String, newName: String) {
-        _customPresets.value = _customPresets.value.map {
-            if (it.id == id) it.copy(name = newName) else it
-        }
+        viewModelScope.launch { dao.renamePreset(id, newName) }
     }
 
     companion object {
