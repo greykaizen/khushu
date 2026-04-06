@@ -37,7 +37,7 @@ fun SettingsScreen(
             LargeTopAppBar(
                 title = {
                     Text(
-                        "Customize",
+                        "Settings",
                         fontFamily = BeVietnamPro,
                         style = MaterialTheme.typography.displaySmall
                     )

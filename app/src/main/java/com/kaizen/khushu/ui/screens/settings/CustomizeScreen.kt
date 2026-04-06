@@ -66,12 +66,12 @@ fun CustomizeScreen(
                 onClick = onNavigateTasbeeh
             )
 
-            MenuSectionItem(
-                title = "Branding",
-                detail = "Logos, Socials & Identity",
-                iconRes = com.kaizen.khushu.R.drawable.ic_learn, // Placeholder icon
-                onClick = onNavigateBranding
-            )
+//            MenuSectionItem(
+//                title = "Branding",
+//                detail = "Logos, Socials & Identity",
+//                iconRes = com.kaizen.khushu.R.drawable.ic_learn, // Placeholder icon
+//                onClick = onNavigateBranding
+//            )
 
             MenuSectionItem(
                 title = "Palette",

@@ -1,9 +1,12 @@
 package com.kaizen.khushu.ui.screens.settings
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,6 +54,14 @@ import com.kaizen.khushu.R
 import com.kaizen.khushu.ui.theme.Antonio
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import com.kaizen.khushu.BuildConfig
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 private enum class SettingsView {
     Main, History
@@ -71,29 +82,19 @@ fun SettingsSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = MaterialTheme.shapes.extraLarge,
-//        dragHandle = {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(top = 22.dp, bottom = 0.dp),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Box(
-//                    modifier = Modifier
-//                        .width(32.dp)
-//                        .height(4.dp)
-//                        .clip(RoundedCornerShape(50))
-//                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-//                )
-//            }
-//        }
         dragHandle = null
     ) {
-        val sheetHeightModifier = if (currentView == SettingsView.History) {
-            Modifier.fillMaxHeight(0.92f)
-        } else {
-            Modifier.fillMaxHeight(0.73f)
+        BackHandler(enabled = currentView == SettingsView.History) {
+            currentView = SettingsView.Main
         }
+
+        val targetFraction = if (currentView == SettingsView.History) 0.92f else 0.73f
+
+        val animatedFraction by animateFloatAsState(
+            targetValue = targetFraction,
+            animationSpec = tween(300),
+            label = "sheetHeight"
+        )
 
         val contentPadding = if (currentView == SettingsView.History) {
             PaddingValues(0.dp)
@@ -104,10 +105,12 @@ fun SettingsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(sheetHeightModifier)
+                .fillMaxHeight(animatedFraction)
         ) {
-            SettingsBrandingHeader(onDismiss = onDismiss)
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            if (currentView == SettingsView.Main) {
+                SettingsBrandingHeader(onDismiss = onDismiss)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
 
             Column(
                 modifier = Modifier
@@ -117,7 +120,15 @@ fun SettingsSheet(
             ) {
                 AnimatedContent(
                     targetState = currentView,
-                    transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
+                    transitionSpec = {
+                        if (targetState == SettingsView.History) {
+                            slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) togetherWith
+                                    slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300))
+                        } else {
+                            slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) togetherWith
+                                    slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300))
+                        }
+                    },
                     label = "settings_sheet_nav",
                     modifier = Modifier.weight(1f)
                 ) { view ->
@@ -128,7 +139,8 @@ fun SettingsSheet(
                             onHistory = { currentView = SettingsView.History }
                         )
                         SettingsView.History -> HistoryView(
-                            onBack = { currentView = SettingsView.Main }
+                            onBack = { currentView = SettingsView.Main },
+                            onDismiss = onDismiss
                         )
                     }
                 }
@@ -201,35 +213,47 @@ private fun SettingsMenuItem(
 }
 
 @Composable
-private fun HistoryView(onBack: () -> Unit) {
+private fun HistoryView(onBack: () -> Unit, onDismiss: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 18.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 12.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = onBack) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Spacer(Modifier.width(18.dp))
+                Text(
+                    text = "History",
+                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = BeVietnamPro, fontSize = 28.sp),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            IconButton(onClick = onDismiss) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            Spacer(Modifier.width(18.dp))
-            Text(
-                text = "History",
-                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = BeVietnamPro, fontSize = 28.sp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
         }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 18.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
