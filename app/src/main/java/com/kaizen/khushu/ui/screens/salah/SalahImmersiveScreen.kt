@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -70,6 +71,9 @@ fun SalahImmersiveScreen(
         onDispose { controller.show(WindowInsetsCompat.Type.systemBars()) }
     }
 
+    // Initialize the Android Haptic Engine
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+
     var count by remember { mutableIntStateOf(0) }
     var resetProgress by remember { mutableFloatStateOf(0f) }
     var resetArmed by remember { mutableStateOf(false) }
@@ -79,7 +83,7 @@ fun SalahImmersiveScreen(
 
     LaunchedEffect(isComplete) {
         if (isComplete) {
-            delay(10_000)
+            kotlinx.coroutines.delay(10_000)
             onComplete()
         }
     }
@@ -91,45 +95,86 @@ fun SalahImmersiveScreen(
             .fillMaxSize()
             .background(safeBackgroundColor)
             .pointerInput(isComplete) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    var isSwiping = false
-                    var holdJob: Job? = null
+                awaitPointerEventScope {
+                    while (true) {
+                        val downEvent = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                        val downChange = downEvent.changes.firstOrNull { it.pressed } ?: continue
 
-                    if (!isComplete) {
-                        holdJob = scope.launch {
-                            showOverlay = true
-                            resetProgress = 0f
-                            resetArmed = false
-                            for (i in 1..20) {
-                                delay(50)
-                                resetProgress = i / 20f
+                        var hasSwiped = false
+                        var localResetArmed = false // Logic state (independent of visual state)
+                        var holdJob: kotlinx.coroutines.Job? = null
+
+                        if (!isComplete) {
+                            holdJob = scope.launch {
+                                kotlinx.coroutines.delay(200)
+                                showOverlay = true
+                                resetProgress = 0f
+                                resetArmed = false
+
+                                for (i in 1..20) {
+                                    kotlinx.coroutines.delay(40)
+                                    resetProgress = i / 20f
+                                }
+                                resetArmed = true
+                                localResetArmed = true // Update logic state
+                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             }
-                            resetArmed = true
+                        }
+
+                        // Tracking Loop
+                        while (true) {
+                            val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Main)
+                            val change = event.changes.firstOrNull()
+
+                            if (change == null || !change.pressed) {
+                                break // Finger lifted
+                            }
+
+                            if (!hasSwiped && (change.position.y - downChange.position.y > 100f)) {
+                                hasSwiped = true
+                                holdJob?.cancel()
+
+                                if (showOverlay) {
+                                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                } else if (count > 0 && !isComplete) {
+                                    count--
+                                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                }
+                            }
+
+                            if (change.positionChanged()) {
+                                change.consume()
+                            }
+                        }
+
+                        // Finger Lifted
+                        holdJob?.cancel()
+                        val overlayWasShown = showOverlay // Capture this before hiding
+
+                        if (!hasSwiped && !isComplete) {
+                            if (localResetArmed) { // Uses the local state so rapid taps don't trigger resets
+                                count = 0
+                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            } else if (overlayWasShown) {
+                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                            } else {
+                                count++
+                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                            }
+                        }
+
+                        // Trigger the slide-out animation immediately
+                        showOverlay = false
+
+                        // DELAY the visual state resets so the 500ms slide-out animation completes with the correct red/armed text
+                        scope.launch {
+                            kotlinx.coroutines.delay(500)
+                            if (!showOverlay) { // Only clear it if a new touch hasn't started
+                                resetProgress = 0f
+                                resetArmed = false
+                            }
                         }
                     }
-
-                    do {
-                        val event = awaitPointerEvent()
-                        val change = event.changes.firstOrNull() ?: break
-                        if (change.position.y - down.position.y > 100f) {
-                            isSwiping = true
-                            break
-                        }
-                    } while (event.changes.any { it.pressed })
-
-                    holdJob?.cancel()
-
-                    if (isSwiping) {
-                        if (!resetArmed && resetProgress < 0.3f && count > 0) count--
-                    } else {
-                        if (resetArmed) count = 0
-                        else if (resetProgress < 0.3f && !isComplete) count++
-                    }
-
-                    resetProgress = 0f
-                    resetArmed = false
-                    showOverlay = false
                 }
             }
     ) {
@@ -150,14 +195,14 @@ fun SalahImmersiveScreen(
 
         AnimatedVisibility(
             visible = showOverlay,
-            enter = slideInVertically(
+            enter = androidx.compose.animation.slideInVertically(
                 initialOffsetY = { -it },
-                animationSpec = tween(durationMillis = 500)
-            ) + fadeIn(animationSpec = tween(durationMillis = 400)),
-            exit = slideOutVertically(
+                animationSpec = androidx.compose.animation.core.tween(durationMillis = 500)
+            ) + fadeIn(animationSpec = androidx.compose.animation.core.tween(durationMillis = 400)),
+            exit = androidx.compose.animation.slideOutVertically(
                 targetOffsetY = { -it },
-                animationSpec = tween(durationMillis = 500)
-            ) + fadeOut(animationSpec = tween(durationMillis = 400)),
+                animationSpec = androidx.compose.animation.core.tween(durationMillis = 500)
+            ) + fadeOut(animationSpec = androidx.compose.animation.core.tween(durationMillis = 400)),
             modifier = Modifier.align(Alignment.TopCenter).padding(top = 48.dp)
         ) {
             Box(
@@ -185,17 +230,17 @@ fun SalahImmersiveScreen(
             }
         }
 
-        OutlinedButton (
+        androidx.compose.material3.OutlinedButton (
             onClick = onExit,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 48.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f))
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f))
         ) {
             Text(
                 text = "Exit",
                 color = Color.White.copy(alpha = 0.2f),
-                style = MaterialTheme.typography.bodyLarge // Bigger, more legible font
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
