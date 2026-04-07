@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaizen.khushu.data.TasbeehCollection
 import com.kaizen.khushu.ui.components.KhushuAppBar
-import com.kaizen.khushu.ui.components.PillNavBar
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
@@ -64,7 +63,7 @@ fun TasbeehScreen(
     viewModel: TasbeehViewModel,
     onCollectionTap: (TasbeehCollection) -> Unit,
     onSettingsClick: () -> Unit,
-    onNavigateTab: (AppDestinations) -> Unit,
+    hazeState: HazeState,
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
 ) {
@@ -85,8 +84,6 @@ fun TasbeehScreen(
                 it.items.any { item -> item.name.contains(query, ignoreCase = true) }
         }
     }
-
-    val hazeState = remember { HazeState() }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyVerticalGrid(
@@ -132,20 +129,11 @@ fun TasbeehScreen(
         KhushuAppBar(
             title = AppDestinations.TASBEEH.label,
             onSettingsClick = onSettingsClick,
-            hazeState = hazeState,
+//            hazeState = hazeState,
             modifier = Modifier
                 .align(Alignment.TopCenter),
         )
 
-        PillNavBar(
-            currentDestination = AppDestinations.TASBEEH,
-            onDestinationSelected = onNavigateTab,
-            hazeState = hazeState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 30.dp),
-        )
     }
 
     // Start confirmation dialog

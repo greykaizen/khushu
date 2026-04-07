@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import com.kaizen.khushu.ui.components.KhushuAppBar
-import com.kaizen.khushu.ui.components.PillNavBar
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
@@ -57,12 +56,11 @@ import com.kaizen.khushu.ui.theme.duaCardPalette
 fun LearnScreen(
     onSectionTap: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onNavigateTab: (AppDestinations) -> Unit,
+    hazeState: HazeState,
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
 ) {
     var query by remember { mutableStateOf("") }
-    val hazeState = remember { HazeState() }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
@@ -151,20 +149,11 @@ fun LearnScreen(
         KhushuAppBar(
             title = AppDestinations.LEARN.label,
             onSettingsClick = onSettingsClick,
-            hazeState = hazeState,
+//            hazeState = hazeState,
             modifier = Modifier
                 .align(Alignment.TopCenter),
         )
 
-        PillNavBar(
-            currentDestination = AppDestinations.LEARN,
-            onDestinationSelected = onNavigateTab,
-            hazeState = hazeState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 30.dp),
-        )
     }
 }
 

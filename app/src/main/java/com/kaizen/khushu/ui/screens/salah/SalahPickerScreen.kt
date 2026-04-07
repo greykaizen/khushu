@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.ui.components.KhushuAppBar
-import com.kaizen.khushu.ui.components.PillNavBar
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
@@ -37,12 +35,10 @@ import dev.chrisbanes.haze.haze
 fun SalahPickerScreen(
     onStartSalah: (rakats: Int, presetId: String?) -> Unit,
     onSettingsClick: () -> Unit,
-    onNavigateTab: (AppDestinations) -> Unit,
-    navBarClearance: Dp = 88.dp,
+    hazeState: HazeState,
     modifier: Modifier = Modifier,
 ) {
     var selectedRakat by rememberSaveable { mutableIntStateOf(2) }
-    val hazeState = remember { HazeState() }
 
     Box(modifier = modifier.fillMaxSize()) {
         // Full-screen tap to start
@@ -51,7 +47,6 @@ fun SalahPickerScreen(
                 .fillMaxSize()
                 .haze(state = hazeState)
                 .navigationBarsPadding()
-                .padding(bottom = navBarClearance)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
@@ -82,19 +77,10 @@ fun SalahPickerScreen(
         KhushuAppBar(
             title = AppDestinations.SALAH.label,
             onSettingsClick = onSettingsClick,
-            hazeState = hazeState,
+//            hazeState = hazeState,
             modifier = Modifier
                 .align(Alignment.TopCenter),
         )
 
-        PillNavBar(
-            currentDestination = AppDestinations.SALAH,
-            onDestinationSelected = onNavigateTab,
-            hazeState = hazeState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 30.dp),
-        )
     }
 }

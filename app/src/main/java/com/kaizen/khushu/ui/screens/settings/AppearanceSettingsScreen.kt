@@ -96,7 +96,7 @@ fun AppearanceSettingsScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                         },
-                        label = { Text(label, fontFamily = BeVietnamPro) }
+                        label = { Text(label, fontFamily = BeVietnamPro, style = MaterialTheme.typography.labelLarge) }
                     )
                 }
             }

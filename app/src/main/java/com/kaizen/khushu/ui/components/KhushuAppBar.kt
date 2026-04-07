@@ -34,12 +34,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.R
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.hazeChild
+import androidx.compose.ui.geometry.Size  // NOT android.util.Size
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,21 +52,14 @@ fun KhushuAppBar(
     title: String,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    hazeState: HazeState? = null,
+//    hazeState: HazeState? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (hazeState != null) {
-                    Modifier.hazeChild(
-                        state = hazeState,
-                        style = HazeStyle(
-                            blurRadius = 35.dp,
-                            tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.0f)
-                        )
-                    )
-                } else Modifier
+            .background(
+                color = MaterialTheme.colorScheme.background,
+//                shape = ConvexBottomTabShape(cornerRadius = 28.dp)
             )
             .statusBarsPadding()
     ) {
@@ -84,17 +82,18 @@ fun KhushuAppBar(
                     ) { targetTitle ->
                         Text(
                             text = targetTitle,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.displaySmall,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
                     Box(
                         modifier = Modifier
-                            .width(35.dp)
-                            .height(4.dp)
+                            .width(28.dp)
+                            .height(3.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
+//                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                     )
                 }
             },
