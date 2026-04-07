@@ -60,19 +60,24 @@ fun SalahCustomizeScreen(
             )
 
             AnimatedVisibility(visible = settings.showCompletionText) {
-                OutlinedTextField(
+                androidx.compose.material3.OutlinedTextField(
+                    // If the backend has the literal default, display it as empty so the placeholder shows natively
                     value = if (settings.completionText == "الحمد لله") "" else settings.completionText,
                     onValueChange = { text ->
-                        viewModel.updateCompletionText(text.ifBlank { "الحمد لله" })
+                        // Save EXACTLY what they type, even if it's an empty string. Do not force Arabic here.
+                        viewModel.updateCompletionText(text)
                     },
                     label = { Text("Completion Message") },
                     placeholder = {
                         Text("الحمد لله", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                     },
+                    // CRITICAL FIX: Forces the cursor to respect LTR (English) or RTL (Arabic) dynamically
+                    textStyle = androidx.compose.material3.LocalTextStyle.current.copy(
+                        textDirection = androidx.compose.ui.text.style.TextDirection.Content
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                    singleLine = true
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
                 )
             }
 

@@ -148,6 +148,7 @@ private fun KhushuApp(
     var showCreateSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     val navController = rememberNavController()
+    val settings by settingsViewModel.settings.collectAsState()
 
 
     // ViewModel removed from here as it's passed in from MainActivity
@@ -458,9 +459,9 @@ private fun KhushuApp(
             SalahImmersiveScreen(
                 targetRakats = rakats,
                 preset = finalPresetToRender,
-                showExitButton = settingsViewModel.settings.value.showExitButton,
-                showCompletionText = settingsViewModel.settings.value.showCompletionText,
-                completionText = settingsViewModel.settings.value.completionText,
+                showExitButton = settings.showExitButton,
+                showCompletionText = settings.showCompletionText,
+                completionText = settings.completionText.ifBlank { "الحمد لله" },
                 onComplete = { immersiveRakats = null },
                 onExit = { immersiveRakats = null }
             )
@@ -507,10 +508,27 @@ private fun KhushuApp(
     }
 }
 
+// blur scale in/out animation
+//private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabEnter(): EnterTransition =
+//    fadeIn(tween(300, easing = LinearOutSlowInEasing)) +
+//    scaleIn(initialScale = 0.92f, animationSpec = tween(300, easing = LinearOutSlowInEasing))
+//
+//private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabExit(): ExitTransition =
+//    fadeOut(tween(150, easing = FastOutLinearInEasing)) +
+//    scaleOut(targetScale = 0.92f, animationSpec = tween(150, easing = FastOutLinearInEasing))
+
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabEnter(): EnterTransition =
-    fadeIn(tween(300, easing = LinearOutSlowInEasing)) +
-    scaleIn(initialScale = 0.92f, animationSpec = tween(300, easing = LinearOutSlowInEasing))
+    androidx.compose.animation.fadeIn(
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 300,
+            easing = androidx.compose.animation.core.LinearOutSlowInEasing
+        )
+    )
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabExit(): ExitTransition =
-    fadeOut(tween(150, easing = FastOutLinearInEasing)) +
-    scaleOut(targetScale = 0.92f, animationSpec = tween(150, easing = FastOutLinearInEasing))
+    androidx.compose.animation.fadeOut(
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 150,
+            easing = androidx.compose.animation.core.FastOutLinearInEasing
+        )
+    )

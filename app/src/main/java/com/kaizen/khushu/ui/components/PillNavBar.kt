@@ -150,7 +150,7 @@ private fun PillNavItem(
             .clip(PillShape)
             .background(
                 color = if (isSelected)
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f) // selected pill bar opacity
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) // selected pill bar opacity
                 else Color.Transparent,
             )
             .clickable(
