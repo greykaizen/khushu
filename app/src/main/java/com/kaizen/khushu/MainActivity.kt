@@ -44,7 +44,7 @@ import com.kaizen.khushu.ui.screens.salah.SalahImmersiveScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPickerScreen
 import com.kaizen.khushu.ui.screens.settings.*
 import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehImmersiveScreen
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbihPhysicalScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
 import com.kaizen.khushu.ui.theme.KhushuTheme
@@ -155,6 +155,7 @@ private fun KhushuApp(
     var immersiveRakats by remember { mutableStateOf<Int?>(null) }
     var immersivePresetId by remember { mutableStateOf("signature") }
     var activeTasbeehCollection by remember { mutableStateOf<TasbeehCollection?>(null) }
+    var showTasbihPreview by remember { mutableStateOf(false) }
     var showCanvasEditor by remember { mutableStateOf(false) }
     var canvasEditorRakats by remember { mutableIntStateOf(4) }
     var showCreateSheet by remember { mutableStateOf(false) }
@@ -450,6 +451,7 @@ private fun KhushuApp(
                     ) {
                         TasbeehCustomizeScreen(
                                 viewModel = settingsViewModel,
+                                onPreview = { showTasbihPreview = true },
                                 onBack = { navController.popBackStack() }
                         )
                     }
@@ -557,10 +559,26 @@ private fun KhushuApp(
         }
 
         activeTasbeehCollection?.let { collection ->
-            TasbeehImmersiveScreen(
-                    collection = collection,
-                    onComplete = { activeTasbeehCollection = null },
-                    onExit = { activeTasbeehCollection = null },
+            TasbihPhysicalScreen(
+                collection = collection,
+                onExit = { activeTasbeehCollection = null },
+            )
+        }
+
+        if (showTasbihPreview) {
+            val previewCollection = TasbeehCollection(
+                id = -1L,
+                title = "Preview",
+                colorInt = 0xFF6650A4.toInt(),
+                items = listOf(
+                    com.kaizen.khushu.data.DhikrItem("سُبْحَانَ اللَّهِ", 33),
+                    com.kaizen.khushu.data.DhikrItem("الْحَمْدُ لِلَّهِ", 33),
+                    com.kaizen.khushu.data.DhikrItem("اللَّهُ أَكْبَرُ", 34),
+                ),
+            )
+            TasbihPhysicalScreen(
+                collection = previewCollection,
+                onExit = { showTasbihPreview = false },
             )
         }
 

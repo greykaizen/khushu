@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TasbeehCustomizeScreen(
     viewModel: SettingsViewModel,
+    onPreview: () -> Unit = {},
     onBack: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -38,6 +39,13 @@ fun TasbeehCustomizeScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(8.dp))
+            SectionHeader("Preview")
+            MenuSectionItem(
+                title = "Preview Physical Screen",
+                detail = "See the new tasbih bead counter",
+                onClick = onPreview
+            )
+            Spacer(Modifier.height(16.dp))
             SectionHeader("Interface")
             SettingsToggle(
                 title = "Vibrate on Count",
