@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -20,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.serialization.Serializable
 import kotlin.math.sqrt
+
+enum class BeadStyle { CLASSIC_AMBER, DARK_ONYX }
 
 @Serializable
 sealed interface TasbihWidget {
@@ -37,6 +40,7 @@ sealed interface TasbihWidget {
         override val offsetY: Float = 0.5f,
         override val scale: Float = 1f,
         override val zIndex: Float = 0f,
+        val beadStyle: BeadStyle = BeadStyle.CLASSIC_AMBER,
     ) : TasbihWidget
 
     /** Shows current dhikr name (Arabic text). Renders top-left. */
@@ -80,20 +84,65 @@ private const val BEAD_RADIUS = 18f          // dp-independent px — scaled by 
 private const val BOTTOM_VISIBLE_BEADS = 7   // how many uncounted beads show at the bottom
 private const val TOP_GATHERED_MAX = 3        // max beads shown in top cluster
 
-/** Draws a single bead circle with a simple highlight for depth. */
-private fun DrawScope.drawBead(center: Offset, radius: Float, alpha: Float) {
-    // Base sphere
-    drawCircle(
-        color = Color(0xFFCCCCCC).copy(alpha = alpha),
-        radius = radius,
-        center = center,
-    )
-    // Top-left highlight
-    drawCircle(
-        color = Color.White.copy(alpha = alpha * 0.55f),
-        radius = radius * 0.45f,
-        center = center + Offset(-radius * 0.25f, -radius * 0.25f),
-    )
+/**
+ * Draws a single faux-3D bead using radial gradient lighting.
+ * The light source is simulated from top-left, giving a convex sphere illusion.
+ */
+private fun DrawScope.drawBead(
+    center: Offset,
+    radius: Float,
+    alpha: Float,
+    style: BeadStyle = BeadStyle.CLASSIC_AMBER,
+) {
+    when (style) {
+        BeadStyle.CLASSIC_AMBER -> {
+            // Warm resin/amber sphere — orange-gold with soft warm highlight
+            val lightCenter = center + Offset(-radius * 0.28f, -radius * 0.28f)
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFFFFBF4D).copy(alpha = alpha),   // warm highlight
+                        Color(0xFFD4850A).copy(alpha = alpha),   // mid amber
+                        Color(0xFF7A4000).copy(alpha = alpha),   // deep shadow
+                    ),
+                    center = lightCenter,
+                    radius = radius * 1.6f,
+                ),
+                radius = radius,
+                center = center,
+            )
+            // Specular dot
+            drawCircle(
+                color = Color.White.copy(alpha = alpha * 0.65f),
+                radius = radius * 0.22f,
+                center = lightCenter + Offset(radius * 0.04f, radius * 0.04f),
+            )
+        }
+        BeadStyle.DARK_ONYX -> {
+            // Deep charcoal — sharp bright specular, slight oval via y-scale trick
+            val lightCenter = center + Offset(-radius * 0.3f, -radius * 0.3f)
+            // Slightly oval: draw as ellipse (taller than wide)
+            drawOval(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF555555).copy(alpha = alpha),   // lifted highlight
+                        Color(0xFF1A1A1A).copy(alpha = alpha),   // base onyx
+                        Color(0xFF000000).copy(alpha = alpha),   // deep shadow
+                    ),
+                    center = lightCenter,
+                    radius = radius * 1.5f,
+                ),
+                topLeft = center + Offset(-radius, -radius * 1.08f),
+                size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2.16f),
+            )
+            // Sharp bright specular — smaller and brighter than amber
+            drawCircle(
+                color = Color.White.copy(alpha = alpha * 0.85f),
+                radius = radius * 0.18f,
+                center = lightCenter + Offset(radius * 0.05f, radius * 0.05f),
+            )
+        }
+    }
 }
 
 /**
@@ -119,6 +168,7 @@ fun TasbihWidgetRenderer(
 ) {
     when (widget) {
         is TasbihWidget.StringBeadWidget -> {
+            val beadStyle = widget.beadStyle
             Canvas(
                 modifier = modifier
                     .fillMaxHeight(0.9f)
@@ -166,7 +216,7 @@ fun TasbihWidgetRenderer(
                     pm.getPosTan(dist, pos, tan)
                     val center = Offset(pos[0], pos[1])
                     val fisheyeScale = fisheyeScale(center, thumbPosition, size.width / 2f, 2.5f)
-                    drawBead(center, beadRadius * fisheyeScale, alpha = 1f)
+                    drawBead(center, beadRadius * fisheyeScale, alpha = 1f, style = beadStyle)
                 }
 
                 // --- BOTTOM POOL (uncounted beads) ---
@@ -181,7 +231,7 @@ fun TasbihWidgetRenderer(
                     // Fade out beads deeper in the stack
                     val alpha = if (i < 3) 1f else 1f - ((i - 2f) / (visibleBottom - 2f)) * 0.6f
                     val fisheyeScale = fisheyeScale(center, thumbPosition, size.width / 2f, 2.5f)
-                    drawBead(center, beadRadius * fisheyeScale, alpha = alpha.coerceIn(0.2f, 1f))
+                    drawBead(center, beadRadius * fisheyeScale, alpha = alpha.coerceIn(0.2f, 1f), style = beadStyle)
                 }
             }
         }
