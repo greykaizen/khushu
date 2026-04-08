@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
+import com.kaizen.khushu.ui.navigation.AppDestinations
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import com.kaizen.khushu.ui.theme.LocalThemeTransitionController
 import com.kaizen.khushu.ui.theme.colorSeeds
@@ -150,7 +151,39 @@ fun AppearanceSettingsScreen(
                             )
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                }
+            }
+
+            Spacer(Modifier.height(32.dp))
+            SectionHeader("Startup Screen")
+
+            Column(
+                modifier = Modifier.padding(vertical = 12.dp)
+            ) {
+                Text(
+                    text = "Choose which tab opens when the app launches",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val tabs = listOf(
+                        "Salah" to AppDestinations.SALAH.route,
+                        "Tasbeeh" to AppDestinations.TASBEEH.route,
+                        "Learn" to AppDestinations.LEARN.route
+                    )
+
+                    tabs.forEach { (label, route) ->
+                        FilterChip(
+                            selected = settings.startupTab == route,
+                            onClick = { viewModel.setStartupTab(route) },
+                            label = { Text(label) }
+                        )
+                    }
                 }
             }
 

@@ -8,12 +8,22 @@ import androidx.lifecycle.viewModelScope
 import com.kaizen.khushu.data.DhikrItem
 import com.kaizen.khushu.data.TasbeehCollection
 import com.kaizen.khushu.data.TasbeehDao
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TasbeehViewModel(private val dao: TasbeehDao) : ViewModel() {
 
-    val collections = dao.getAll()
+    // Eagerly-started StateFlow so the list is pre-loaded before the screen is ever
+    // composed — prevents the empty→populated flash that conflicts with page transitions.
+    val collections: StateFlow<List<TasbeehCollection>> = dao.getAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList(),
+        )
 
     private val _countIncrementSignal = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val countIncrementSignal = _countIncrementSignal.asSharedFlow()

@@ -44,13 +44,17 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.R
 import androidx.compose.ui.geometry.Size  // NOT android.util.Size
-import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KhushuAppBar(
     title: String,
     onSettingsClick: () -> Unit,
+    // Pass non-null to show the grid/list toggle in the actions area.
+    // isListMode drives which button is highlighted; both callbacks are required together.
+    isListMode: Boolean? = null,
+    onGridClick: (() -> Unit)? = null,
+    onListClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 //    hazeState: HazeState? = null,
 ) {
@@ -98,6 +102,22 @@ fun KhushuAppBar(
                 }
             },
             actions = {
+                if (isListMode != null && onGridClick != null && onListClick != null) {
+                    AppBarIconButton(
+                        iconRes = R.drawable.ic_toggle,
+                        contentDescription = "Grid view",
+                        selected = !isListMode,
+                        onClick = onGridClick,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    AppBarIconButton(
+                        iconRes = R.drawable.ic_list_view,
+                        contentDescription = "List view",
+                        selected = isListMode,
+                        onClick = onListClick,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -126,6 +146,44 @@ fun KhushuAppBar(
                 actionIconContentColor = MaterialTheme.colorScheme.onSurface,
             ),
             modifier = Modifier.padding(top = 12.dp, start = 20.dp, end = 20.dp),
+        )
+    }
+}
+
+@Composable
+private fun AppBarIconButton(
+    iconRes: Int,
+    contentDescription: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+    }
+    val iconTint = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    }
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(containerColor)
+            .clickable(
+                onClick = onClick,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            tint = iconTint,
+            modifier = Modifier.size(20.dp),
         )
     }
 }

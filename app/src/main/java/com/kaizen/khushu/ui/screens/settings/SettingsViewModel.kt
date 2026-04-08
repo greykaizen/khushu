@@ -7,6 +7,7 @@ import com.kaizen.khushu.data.SettingsRepository
 import com.kaizen.khushu.data.UserSettings
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -14,7 +15,7 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 
     val settings: StateFlow<UserSettings> = repository.settingsFlow.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = UserSettings(
             hapticsEnabled = true,
             dynamicColor = true,
@@ -29,9 +30,19 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
             showExitButton = true,
             showCompletionText = true,
             completionText = "الحمد لله",
-            colorSeed = "default"
+            colorSeed = "default",
+            tasbeehListMode = false,
+            startupTab = "salah"
         )
     )
+
+    val isSettingsLoaded: StateFlow<Boolean> = repository.settingsFlow
+        .map { true }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
 
     fun toggleHaptics(enabled: Boolean) {
         viewModelScope.launch { repository.updateHaptics(enabled) }
@@ -87,6 +98,14 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 
     fun setColorSeed(seed: String) {
         viewModelScope.launch { repository.updateColorSeed(seed) }
+    }
+
+    fun toggleTasbeehListMode(isList: Boolean) {
+        viewModelScope.launch { repository.updateTasbeehListMode(isList) }
+    }
+
+    fun setStartupTab(route: String) {
+        viewModelScope.launch { repository.updateStartupTab(route) }
     }
 
     companion object {

@@ -32,6 +32,8 @@ class SettingsRepository(private val context: Context) {
         val SHOW_COMPLETION_TEXT = booleanPreferencesKey("show_completion_text")
         val COMPLETION_TEXT = stringPreferencesKey("completion_text")
         val COLOR_SEED = stringPreferencesKey("color_seed")
+        val TASBEEH_LIST_MODE = booleanPreferencesKey("tasbeeh_list_mode")
+        val STARTUP_TAB = stringPreferencesKey("startup_tab")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data
@@ -56,7 +58,9 @@ class SettingsRepository(private val context: Context) {
                 showExitButton = preferences[PreferencesKeys.SHOW_EXIT_BUTTON] ?: true,
                 showCompletionText = preferences[PreferencesKeys.SHOW_COMPLETION_TEXT] ?: true,
                 completionText = preferences[PreferencesKeys.COMPLETION_TEXT] ?: "الحمد لله",
-                colorSeed = preferences[PreferencesKeys.COLOR_SEED] ?: "default"
+                colorSeed = preferences[PreferencesKeys.COLOR_SEED] ?: "default",
+                tasbeehListMode = preferences[PreferencesKeys.TASBEEH_LIST_MODE] ?: false,
+                startupTab = preferences[PreferencesKeys.STARTUP_TAB] ?: "salah"
             )
         }
 
@@ -115,6 +119,14 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateColorSeed(seed: String) {
         context.dataStore.edit { it[PreferencesKeys.COLOR_SEED] = seed }
     }
+
+    suspend fun updateTasbeehListMode(isList: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.TASBEEH_LIST_MODE] = isList }
+    }
+
+    suspend fun updateStartupTab(route: String) {
+        context.dataStore.edit { it[PreferencesKeys.STARTUP_TAB] = route }
+    }
 }
 
 data class UserSettings(
@@ -131,5 +143,7 @@ data class UserSettings(
     val showExitButton: Boolean,
     val showCompletionText: Boolean,
     val completionText: String,
-    val colorSeed: String
+    val colorSeed: String,
+    val tasbeehListMode: Boolean,
+    val startupTab: String
 )

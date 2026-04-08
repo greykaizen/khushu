@@ -23,8 +23,8 @@ android {
         applicationId = "com.kaizen.khushu"
         minSdk = 31
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.10.1+$gitHash"
+        versionCode = 13
+        versionName = "0.10.2+$gitHash"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
