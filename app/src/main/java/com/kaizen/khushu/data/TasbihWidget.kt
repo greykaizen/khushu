@@ -10,7 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.serialization.Serializable
@@ -72,30 +75,42 @@ val DefaultTasbihPreset = TasbihCanvasPreset(
 
 /**
  * Renders a single TasbihWidget. Mirrors WidgetRenderer in CanvasWidget.kt.
- * [currentCount] and [currentItem] are session state injected from TasbihPhysicalScreen.
+ *
+ * [stringControlXOffset] — px deflection of the Bezier control point from string center (0 = straight).
+ * [stringControlYFraction] — 0.0–1.0, where along the string height the apex sits (0.5 = midpoint).
  */
 @Composable
 fun TasbihWidgetRenderer(
     widget: TasbihWidget,
     currentCount: Int,
     currentItem: DhikrItem?,
+    stringControlXOffset: Float = 0f,
+    stringControlYFraction: Float = 0.5f,
     modifier: Modifier = Modifier,
 ) {
     when (widget) {
         is TasbihWidget.StringBeadWidget -> {
-            // Phase 1: static vertical line. Phase 2+ replaces with Bezier + beads.
             Canvas(
                 modifier = modifier
                     .fillMaxHeight(0.9f)
                     .width(60.dp)
             ) {
                 val cx = size.width / 2f
-                drawLine(
+                val controlX = cx + stringControlXOffset
+                val controlY = size.height * stringControlYFraction
+
+                val path = Path().apply {
+                    moveTo(cx, 0f)
+                    quadraticTo(controlX, controlY, cx, size.height)
+                }
+                drawPath(
+                    path = path,
                     color = Color.White.copy(alpha = 0.35f),
-                    start = Offset(cx, 0f),
-                    end = Offset(cx, size.height),
-                    strokeWidth = 2.dp.toPx(),
-                    cap = StrokeCap.Round,
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    )
                 )
             }
         }
