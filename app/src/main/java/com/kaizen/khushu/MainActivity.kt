@@ -44,6 +44,8 @@ import com.kaizen.khushu.ui.screens.salah.SalahImmersiveScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPickerScreen
 import com.kaizen.khushu.ui.screens.settings.*
 import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
+import com.kaizen.khushu.data.BeadStyle
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbihBeadCustomizerSheet
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbihPhysicalScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
@@ -156,6 +158,7 @@ private fun KhushuApp(
     var immersivePresetId by remember { mutableStateOf("signature") }
     var activeTasbeehCollection by remember { mutableStateOf<TasbeehCollection?>(null) }
     var showTasbihPreview by remember { mutableStateOf(false) }
+    var showBeadCustomizer by remember { mutableStateOf(false) }
     var showCanvasEditor by remember { mutableStateOf(false) }
     var canvasEditorRakats by remember { mutableIntStateOf(4) }
     var showCreateSheet by remember { mutableStateOf(false) }
@@ -452,6 +455,7 @@ private fun KhushuApp(
                         TasbeehCustomizeScreen(
                                 viewModel = settingsViewModel,
                                 onPreview = { showTasbihPreview = true },
+                                onCustomizeBeads = { showBeadCustomizer = true },
                                 onBack = { navController.popBackStack() }
                         )
                     }
@@ -559,13 +563,16 @@ private fun KhushuApp(
         }
 
         activeTasbeehCollection?.let { collection ->
+            val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
             TasbihPhysicalScreen(
                 collection = collection,
+                beadStyle = beadStyle,
                 onExit = { activeTasbeehCollection = null },
             )
         }
 
         if (showTasbihPreview) {
+            val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
             val previewCollection = TasbeehCollection(
                 id = -1L,
                 title = "Preview",
@@ -578,7 +585,20 @@ private fun KhushuApp(
             )
             TasbihPhysicalScreen(
                 collection = previewCollection,
+                beadStyle = beadStyle,
                 onExit = { showTasbihPreview = false },
+            )
+        }
+
+        if (showBeadCustomizer) {
+            val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
+            TasbihBeadCustomizerSheet(
+                currentStyle = beadStyle,
+                onStyleSelected = { style ->
+                    settingsViewModel.setTasbihBeadStyle(style.name)
+                    showBeadCustomizer = false
+                },
+                onDismiss = { showBeadCustomizer = false },
             )
         }
 

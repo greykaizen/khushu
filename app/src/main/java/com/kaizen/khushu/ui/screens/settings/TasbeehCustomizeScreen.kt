@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 fun TasbeehCustomizeScreen(
     viewModel: SettingsViewModel,
     onPreview: () -> Unit = {},
+    onCustomizeBeads: () -> Unit = {},
     onBack: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -44,6 +45,11 @@ fun TasbeehCustomizeScreen(
                 title = "Preview Physical Screen",
                 detail = "See the new tasbih bead counter",
                 onClick = onPreview
+            )
+            MenuSectionItem(
+                title = "Bead Style",
+                detail = "Choose Classic Amber or Dark Onyx",
+                onClick = onCustomizeBeads
             )
             Spacer(Modifier.height(16.dp))
             SectionHeader("Interface")

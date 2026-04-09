@@ -34,6 +34,7 @@ class SettingsRepository(private val context: Context) {
         val COLOR_SEED = stringPreferencesKey("color_seed")
         val TASBEEH_LIST_MODE = booleanPreferencesKey("tasbeeh_list_mode")
         val STARTUP_TAB = stringPreferencesKey("startup_tab")
+        val TASBIH_BEAD_STYLE = stringPreferencesKey("tasbih_bead_style")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data
@@ -60,7 +61,8 @@ class SettingsRepository(private val context: Context) {
                 completionText = preferences[PreferencesKeys.COMPLETION_TEXT] ?: "الحمد لله",
                 colorSeed = preferences[PreferencesKeys.COLOR_SEED] ?: "default",
                 tasbeehListMode = preferences[PreferencesKeys.TASBEEH_LIST_MODE] ?: false,
-                startupTab = preferences[PreferencesKeys.STARTUP_TAB] ?: "salah"
+                startupTab = preferences[PreferencesKeys.STARTUP_TAB] ?: "salah",
+                tasbihBeadStyle = preferences[PreferencesKeys.TASBIH_BEAD_STYLE] ?: "CLASSIC_AMBER"
             )
         }
 
@@ -127,6 +129,10 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateStartupTab(route: String) {
         context.dataStore.edit { it[PreferencesKeys.STARTUP_TAB] = route }
     }
+
+    suspend fun updateTasbihBeadStyle(style: String) {
+        context.dataStore.edit { it[PreferencesKeys.TASBIH_BEAD_STYLE] = style }
+    }
 }
 
 data class UserSettings(
@@ -145,5 +151,6 @@ data class UserSettings(
     val completionText: String,
     val colorSeed: String,
     val tasbeehListMode: Boolean,
-    val startupTab: String
+    val startupTab: String,
+    val tasbihBeadStyle: String,
 )

@@ -32,7 +32,8 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
             completionText = "الحمد لله",
             colorSeed = "default",
             tasbeehListMode = false,
-            startupTab = "salah"
+            startupTab = "salah",
+            tasbihBeadStyle = "CLASSIC_AMBER"
         )
     )
 
@@ -106,6 +107,10 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 
     fun setStartupTab(route: String) {
         viewModelScope.launch { repository.updateStartupTab(route) }
+    }
+
+    fun setTasbihBeadStyle(style: String) {
+        viewModelScope.launch { repository.updateTasbihBeadStyle(style) }
     }
 
     companion object {

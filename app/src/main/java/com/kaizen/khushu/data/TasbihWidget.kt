@@ -163,12 +163,12 @@ fun TasbihWidgetRenderer(
     stringControlYFraction: Float = 0.5f,
     countedBeads: Int = 0,
     totalBeads: Int = 33,
+    beadStyle: BeadStyle = BeadStyle.CLASSIC_AMBER,
     thumbPosition: Offset? = null,
     modifier: Modifier = Modifier,
 ) {
     when (widget) {
         is TasbihWidget.StringBeadWidget -> {
-            val beadStyle = widget.beadStyle
             Canvas(
                 modifier = modifier
                     .fillMaxHeight(0.9f)

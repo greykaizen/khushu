@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.kaizen.khushu.data.BeadStyle
 import com.kaizen.khushu.data.DefaultTasbihPreset
 import com.kaizen.khushu.data.TasbihCanvasPreset
 import com.kaizen.khushu.data.TasbihWidget
@@ -49,6 +50,7 @@ fun TasbihPhysicalScreen(
     collection: TasbeehCollection,
     onExit: () -> Unit,
     preset: TasbihCanvasPreset = DefaultTasbihPreset,
+    beadStyle: BeadStyle = BeadStyle.CLASSIC_AMBER,
 ) {
     val context = LocalContext.current
     val window = (context as? Activity)?.window
@@ -131,6 +133,7 @@ fun TasbihPhysicalScreen(
                         stringControlYFraction = controlYAnim.value,
                         countedBeads = currentCount,
                         totalBeads = currentTarget,
+                        beadStyle = beadStyle,
                         thumbPosition = if (widget is TasbihWidget.StringBeadWidget) {
                             // Translate screen thumb into string-widget-local coords
                             thumbPosition?.let { t ->
