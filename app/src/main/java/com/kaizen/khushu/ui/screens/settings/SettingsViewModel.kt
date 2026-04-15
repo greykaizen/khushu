@@ -1,17 +1,24 @@
 package com.kaizen.khushu.ui.screens.settings
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kaizen.khushu.data.SettingsRepository
 import com.kaizen.khushu.data.UserSettings
+import com.kaizen.khushu.util.AppIconManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val repository: SettingsRepository) : ViewModel() {
+class SettingsViewModel(
+    private val repository: SettingsRepository,
+    private val appContext: Context,
+) : ViewModel() {
 
     val settings: StateFlow<UserSettings> = repository.settingsFlow.stateIn(
         scope = viewModelScope,
@@ -113,12 +120,29 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
         viewModelScope.launch { repository.updateTasbihBeadStyle(style) }
     }
 
-    companion object {
-        fun factory(repository: SettingsRepository) = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return SettingsViewModel(repository) as T
+    fun setLogoStyle(style: String) {
+        val current = settings.value.logoStyle
+        viewModelScope.launch {
+            repository.updateLogoStyle(style)        // DataStore → instant in-app UI update
+            if (style != current) {
+                Toast.makeText(
+                    appContext,
+                    "Updating app icon. Khushu will restart momentarily...",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                delay(1500L)
+                AppIconManager.apply(appContext, style)
             }
         }
+    }
+
+    companion object {
+        fun factory(repository: SettingsRepository, appContext: Context) =
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return SettingsViewModel(repository, appContext) as T
+                }
+            }
     }
 }

@@ -169,7 +169,7 @@ private fun AppBarIconButton(
     }
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(32.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(containerColor)
             .clickable(

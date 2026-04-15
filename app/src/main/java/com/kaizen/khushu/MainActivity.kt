@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -46,7 +47,7 @@ import com.kaizen.khushu.ui.screens.settings.*
 import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
 import com.kaizen.khushu.data.BeadStyle
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbihBeadCustomizerSheet
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbihPhysicalScreen
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehImmersiveScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
 import com.kaizen.khushu.ui.theme.KhushuTheme
@@ -60,11 +61,12 @@ class MainActivity : ComponentActivity() {
     private lateinit var salahCanvasViewModel: SalahCanvasViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         settingsRepository = SettingsRepository(applicationContext)
-        settingsViewModel = SettingsViewModel(settingsRepository)
+        settingsViewModel = SettingsViewModel(settingsRepository, applicationContext)
 
         val dao = TasbeehDatabase.getInstance(applicationContext).tasbeehDao()
         tasbeehViewModel =
@@ -215,7 +217,7 @@ private fun KhushuApp(
                         SalahPickerScreen(
                                 onStartSalah = { rakats, presetId ->
                                     immersiveRakats = rakats
-                                    immersivePresetId = presetId ?: "signature"
+                                    immersivePresetId = presetId ?: "current"
                                 },
                                 onSettingsClick = { showSettingsSheet = true },
                                 hazeState = hazeState,
@@ -474,7 +476,12 @@ private fun KhushuApp(
                                         tween(300)
                                 )
                             },
-                    ) { BrandingSettingsScreen(onBack = { navController.popBackStack() }) }
+                    ) {
+                        BrandingSettingsScreen(
+                                settingsViewModel = settingsViewModel,
+                                onBack = { navController.popBackStack() },
+                        )
+                    }
                 }
             }
         }
@@ -564,7 +571,7 @@ private fun KhushuApp(
 
         activeTasbeehCollection?.let { collection ->
             val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
-            TasbihPhysicalScreen(
+            TasbeehImmersiveScreen(
                 collection = collection,
                 beadStyle = beadStyle,
                 onExit = { activeTasbeehCollection = null },
@@ -583,7 +590,7 @@ private fun KhushuApp(
                     com.kaizen.khushu.data.DhikrItem("اللَّهُ أَكْبَرُ", 34),
                 ),
             )
-            TasbihPhysicalScreen(
+            TasbeehImmersiveScreen(
                 collection = previewCollection,
                 beadStyle = beadStyle,
                 onExit = { showTasbihPreview = false },

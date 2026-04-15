@@ -1,5 +1,6 @@
 package com.kaizen.khushu.ui.screens.settings
 
+import com.kaizen.khushu.ui.components.KhushuLogoBadge
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -59,6 +60,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -75,6 +77,7 @@ fun SettingsSheet(
     onNavigateCustomize: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val settings by viewModel.settings.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var currentView by remember { mutableStateOf(SettingsView.Main) }
 
@@ -108,7 +111,10 @@ fun SettingsSheet(
                 .fillMaxHeight(animatedFraction)
         ) {
             if (currentView == SettingsView.Main) {
-                SettingsBrandingHeader(onDismiss = onDismiss)
+                SettingsBrandingHeader(
+                    logoStyle = settings.logoStyle,
+                    onDismiss = onDismiss,
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
 
@@ -267,7 +273,10 @@ private fun HistoryView(onBack: () -> Unit, onDismiss: () -> Unit) {
 
 
 @Composable
-private fun SettingsBrandingHeader(onDismiss: () -> Unit) {
+private fun SettingsBrandingHeader(
+    logoStyle: String,
+    onDismiss: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,20 +285,7 @@ private fun SettingsBrandingHeader(onDismiss: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_logo),
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
+            KhushuLogoBadge(logoStyle = logoStyle)
             Spacer(modifier = Modifier.width(18.dp))
             Text(
                 text = "Khushu",

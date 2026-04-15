@@ -23,8 +23,8 @@ android {
         applicationId = "com.kaizen.khushu"
         minSdk = 31
         targetSdk = 36
-        versionCode = 13
-        versionName = "0.10.2+$gitHash"
+        versionCode = 14
+        versionName = "0.11.0+$gitHash"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,6 +49,13 @@ android {
     lint {
         disable += "ContextCastToActivity"
     }
+
+    // Configure for Arabic font support
+    sourceSets {
+        getByName("main") {
+            res.srcDirs("src/main/res")
+        }
+    }
 }
 
 configurations.all {
@@ -61,6 +68,7 @@ configurations.all {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
