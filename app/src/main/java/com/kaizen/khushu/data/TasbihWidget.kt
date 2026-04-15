@@ -164,6 +164,8 @@ fun TasbihWidgetRenderer(
     countedBeads: Int = 0,
     totalBeads: Int = 33,
     beadStyle: BeadStyle = BeadStyle.CLASSIC_AMBER,
+    /** 0.0 = bead at top (counted), 1.0 = bead at bottom (uncounted pool). null = not dragging. */
+    activeBeadProgress: Float? = null,
     thumbPosition: Offset? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -208,6 +210,22 @@ fun TasbihWidgetRenderer(
                 val pos = FloatArray(2)
                 val tan = FloatArray(2)
 
+                // Dynamic fisheye radius — scales with screen height, tight around thumb
+                val fisheyeRadius = size.height * 0.12f
+
+                // --- ACTIVE BEAD (being dragged by thumb) ---
+                // Compute Canvas-local position from progress (1.0=bottom, 0.0=top)
+                var activeCenter: Offset? = null
+                if (activeBeadProgress != null) {
+                    val activeDist = (activeBeadProgress * pathLength).coerceIn(0f, pathLength)
+                    if (pm.getPosTan(activeDist, pos, tan)) {
+                        activeCenter = Offset(pos[0], pos[1])
+                    }
+                }
+
+                // Fisheye center: active bead's path position takes priority over raw thumb
+                val fisheyeCenter: Offset? = activeCenter ?: thumbPosition
+
                 // --- TOP CLUSTER (counted beads) ---
                 val topCount = minOf(countedBeads, TOP_GATHERED_MAX)
                 val topSpacing = beadRadius * 2.4f
@@ -215,13 +233,20 @@ fun TasbihWidgetRenderer(
                     val dist = beadRadius + i * topSpacing
                     pm.getPosTan(dist, pos, tan)
                     val center = Offset(pos[0], pos[1])
-                    val fisheyeScale = fisheyeScale(center, thumbPosition, size.width / 2f, 2.5f)
-                    drawBead(center, beadRadius * fisheyeScale, alpha = 1f, style = beadStyle)
+                    val scale = fisheyeScale(center, fisheyeCenter, fisheyeRadius, 2.5f)
+                    drawBead(center, beadRadius * scale, alpha = 1f, style = beadStyle)
                 }
 
-                // --- BOTTOM POOL (uncounted beads) ---
+                // Draw the active (dragged) bead on top of the string
+                if (activeCenter != null) {
+                    val scale = fisheyeScale(activeCenter, fisheyeCenter, fisheyeRadius, 2.5f)
+                    drawBead(activeCenter, beadRadius * scale, alpha = 1f, style = beadStyle)
+                }
+
+                // --- BOTTOM POOL (uncounted beads, minus 1 if one is being dragged) ---
                 val remaining = (totalBeads - countedBeads).coerceAtLeast(0)
-                val visibleBottom = minOf(remaining, BOTTOM_VISIBLE_BEADS)
+                val poolSize = if (activeBeadProgress != null) (remaining - 1).coerceAtLeast(0) else remaining
+                val visibleBottom = minOf(poolSize, BOTTOM_VISIBLE_BEADS)
                 val bottomSpacing = beadRadius * 2.4f
                 for (i in 0 until visibleBottom) {
                     val dist = pathLength - beadRadius - i * bottomSpacing
@@ -230,8 +255,8 @@ fun TasbihWidgetRenderer(
                     val center = Offset(pos[0], pos[1])
                     // Fade out beads deeper in the stack
                     val alpha = if (i < 3) 1f else 1f - ((i - 2f) / (visibleBottom - 2f)) * 0.6f
-                    val fisheyeScale = fisheyeScale(center, thumbPosition, size.width / 2f, 2.5f)
-                    drawBead(center, beadRadius * fisheyeScale, alpha = alpha.coerceIn(0.2f, 1f), style = beadStyle)
+                    val scale = fisheyeScale(center, fisheyeCenter, fisheyeRadius, 2.5f)
+                    drawBead(center, beadRadius * scale, alpha = alpha.coerceIn(0.2f, 1f), style = beadStyle)
                 }
             }
         }
@@ -264,7 +289,8 @@ fun TasbihWidgetRenderer(
 
 /**
  * Fisheye magnification: beads near the thumb swell up to [maxScale]x.
- * Falls off linearly over [radiusPx] distance.
+ * Uses quadratic easing (1 - t²) for a smooth, tight bubble feel.
+ * [radiusPx] should be screenHeight * 0.12f — scales naturally with device.
  */
 private fun fisheyeScale(
     beadCenter: Offset,
@@ -277,5 +303,6 @@ private fun fisheyeScale(
     val dy = beadCenter.y - thumb.y
     val dist = sqrt(dx * dx + dy * dy)
     if (dist >= radiusPx) return 1f
-    return 1f + (maxScale - 1f) * (1f - dist / radiusPx)
+    val t = dist / radiusPx
+    return 1f + (maxScale - 1f) * (1f - t * t)  // quadratic easing
 }
