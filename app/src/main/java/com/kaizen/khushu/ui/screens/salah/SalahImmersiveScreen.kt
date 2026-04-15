@@ -237,6 +237,17 @@ fun SalahImmersiveScreen(
         val screenWidth = constraints.maxWidth.toFloat()
         val screenHeight = constraints.maxHeight.toFloat()
 
+        val widgetsAlpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (isComplete) 0f else 1f,
+            animationSpec = androidx.compose.animation.core.tween(800),
+            label = "widgets_alpha"
+        )
+        val completionAlpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (isComplete) 1f else 0f,
+            animationSpec = androidx.compose.animation.core.tween(800),
+            label = "completion_alpha"
+        )
+
         Box(modifier = Modifier.alpha(contentAlpha)) {
             preset.widgets.sortedBy { it.zIndex }.forEach { widget ->
                 Box(
@@ -247,9 +258,27 @@ fun SalahImmersiveScreen(
                             scaleX = widget.scale
                             scaleY = widget.scale
                             transformOrigin = TransformOrigin.Center
+                            alpha = widgetsAlpha
                         }
                 ) {
-                    WidgetRenderer(widget = widget, currentRakats = count, isComplete = isComplete, completionText = completionText)
+                    WidgetRenderer(widget = widget, currentRakats = count, isComplete = false, completionText = completionText)
+                }
+            }
+
+            // Completion text — always centered regardless of preset layout
+            preset.widgets.filterIsInstance<CanvasWidget.RakatCount>().firstOrNull()?.let { rakatWidget ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(completionAlpha),
+                    contentAlignment = Alignment.Center
+                ) {
+                    WidgetRenderer(
+                        widget = rakatWidget,
+                        currentRakats = count,
+                        isComplete = isComplete,
+                        completionText = completionText
+                    )
                 }
             }
         }

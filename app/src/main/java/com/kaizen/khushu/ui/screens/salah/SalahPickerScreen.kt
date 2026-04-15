@@ -50,7 +50,7 @@ fun SalahPickerScreen(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                    onClick = { onStartSalah(selectedRakat, null) },
+                    onClick = { onStartSalah(selectedRakat, "current") },
                 ),
             contentAlignment = Alignment.Center,
         ) {

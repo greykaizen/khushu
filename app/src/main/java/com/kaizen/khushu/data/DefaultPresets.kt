@@ -4,7 +4,7 @@ object DefaultPresets {
     val defaults = listOf(
         CanvasPreset(
             id = "core",
-            name = "Core",
+            name = "Minimal",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.5f, offsetY = 0.5f, scale = 1.8902512f, color = -1, opacity = 1.0f, fontSizeSp = 122.17562f, fontWeight = 400, isOutline = false, fontName = "Antonio")
@@ -13,7 +13,7 @@ object DefaultPresets {
         ),
         CanvasPreset(
             id = "signature",
-            name = "Signature",
+            name = "Noor",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.5f, offsetY = 0.5f, scale = 1.8902512f, color = -1, opacity = 1.0f, fontSizeSp = 122.17562f, fontWeight = 400, isOutline = true, fontName = "Antonio")
@@ -22,7 +22,7 @@ object DefaultPresets {
         ),
         CanvasPreset(
             id = "horizon",
-            name = "Horizon",
+            name = "Fajr",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.82547814f, offsetY = 0.46540943f, scale = 1.8902512f, color = -1, opacity = 1.0f, fontSizeSp = 122.17562f, fontWeight = 400, isOutline = true, fontName = "Antonio"),
@@ -32,7 +32,7 @@ object DefaultPresets {
         ),
         CanvasPreset(
             id = "eclipse",
-            name = "Eclipse",
+            name = "Layl",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.82547814f, offsetY = 0.46540943f, scale = 1.8902512f, color = -1, opacity = 1.0f, fontSizeSp = 122.17562f, fontWeight = 400, isOutline = false, fontName = "Antonio"),
@@ -42,7 +42,7 @@ object DefaultPresets {
         ),
         CanvasPreset(
             id = "essence",
-            name = "Essence",
+            name = "Ruh",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.6724961f, offsetY = 0.5379764f, scale = 1.8902512f, color = -1, opacity = 1.0f, fontSizeSp = 300.0f, fontWeight = 400, isOutline = false, fontName = "Antonio"),
@@ -52,7 +52,7 @@ object DefaultPresets {
         ),
         CanvasPreset(
             id = "lumina",
-            name = "Lumina",
+            name = "Badr",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.6724961f, offsetY = 0.5379764f, scale = 1.8902512f, color = -1, opacity = 1.0f, fontSizeSp = 300.0f, fontWeight = 400, isOutline = true, fontName = "Antonio"),
@@ -62,7 +62,7 @@ object DefaultPresets {
         ),
         CanvasPreset(
             id = "zenith",
-            name = "Zenith",
+            name = "Dhuha",
             backgroundColor = 0xFF000000.toInt(),
             widgets = listOf(
                 CanvasWidget.RakatCount(offsetX = 0.7321662f, offsetY = 0.62215555f, scale = 1.5458537f, color = -1, opacity = 1.0f, fontSizeSp = 300.0f, fontWeight = 400, isOutline = true, fontName = "Antonio"),
