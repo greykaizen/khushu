@@ -111,11 +111,13 @@ fun LearnReadingScreen(
     settingsViewModel: SettingsViewModel,
     learnAudioViewModel: LearnAudioViewModel,
     onBack: () -> Unit,
+    initialAyahIndex: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val settings by settingsViewModel.settings.collectAsState()
     val audioState by learnAudioViewModel.audioState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     var showSettings by remember { mutableStateOf(false) }
     var showActionSheet by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -130,6 +132,13 @@ fun LearnReadingScreen(
     // Track last read topic
     androidx.compose.runtime.LaunchedEffect(topic.id) {
         settingsViewModel.updateLastReadTopicId(topic.id)
+    }
+
+    // Scroll to initial index if provided
+    androidx.compose.runtime.LaunchedEffect(initialAyahIndex) {
+        if (initialAyahIndex != null) {
+            listState.animateScrollToItem(initialAyahIndex)
+        }
     }
 
     // WakeLock — hold screen on while reading if pref is set
@@ -221,6 +230,7 @@ fun LearnReadingScreen(
         },
     ) { paddingValues ->
         LazyColumn(
+            state = listState,
             contentPadding = paddingValues,
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -238,7 +248,7 @@ fun LearnReadingScreen(
         }
 
         if (showActionSheet) {
-            val isBookmarked = settings.bookmarkedTopicIds.contains(topic.id)
+            val isBookmarked = settings.bookmarkedAyahs.contains("${topic.id}:0")
             val isMastered = settings.masteredTopicIds.contains(topic.id)
 
             AyahActionSheet(
@@ -250,7 +260,7 @@ fun LearnReadingScreen(
                 },
                 onBookmark = {
                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                    settingsViewModel.toggleBookmark(topic.id)
+                    settingsViewModel.toggleBookmark(topic.id, 0)
                     val msg = if (isBookmarked) "Bookmark removed" else "Bookmark added"
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     showActionSheet = false
@@ -274,6 +284,7 @@ fun LearnReadingScreen(
 
         if (showSettings) {
             ReadingSettingsSheet(
+                topic = topic,
                 settings = settings,
                 onDismiss = { showSettings = false },
                 onThemeChange = { settingsViewModel.setReadingTheme(it) },
@@ -283,6 +294,7 @@ fun LearnReadingScreen(
                 onShowTransliterationChange = { settingsViewModel.toggleShowTransliteration(it) },
                 onShowWordByWordChange = { settingsViewModel.toggleShowWordByWord(it) },
                 onKeepScreenOnChange = { settingsViewModel.toggleReadingKeepScreenOn(it) },
+                onShowTajweedChange = { settingsViewModel.toggleShowTajweed(it) },
             )
         }
     }
@@ -311,8 +323,7 @@ private fun AyatBlock(
         // Arabic text block with elevation - Full Width with small padding to show corners
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             color = arabicBg,
             shadowElevation = 8.dp,
@@ -337,23 +348,33 @@ private fun AyatBlock(
                             fg = fg,
                         )
                     }
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(24.dp))
                 }
 
-                Text(
-                    text = topic.arabicText,
-                    fontSize = settings.arabicSizeSp.sp,
-                    lineHeight = (settings.arabicSizeSp * 1.75f).sp,
-                    fontFamily = ScheherazadeNew,
-                    fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Center,
-                    color = fg,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        textDirection = TextDirection.Rtl,
+                if (settings.showTajweed && topic.tajweedMarkup != null) {
+                    TajweedText(
+                        markup = topic.tajweedMarkup,
+                        fontSize = settings.arabicSizeSp.sp,
+                        lineHeight = (settings.arabicSizeSp * 1.75f).sp,
+                        color = fg,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    Text(
+                        text = topic.arabicText,
+                        fontSize = settings.arabicSizeSp.sp,
+                        lineHeight = (settings.arabicSizeSp * 1.75f).sp,
                         fontFamily = ScheherazadeNew,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        color = fg,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            textDirection = TextDirection.Rtl,
+                            fontFamily = ScheherazadeNew,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
 
@@ -628,6 +649,7 @@ private fun ReferenceBadge(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReadingSettingsSheet(
+    topic: LearnTopic,
     settings: UserSettings,
     onDismiss: () -> Unit,
     onThemeChange: (String) -> Unit,
@@ -637,6 +659,7 @@ private fun ReadingSettingsSheet(
     onShowTransliterationChange: (Boolean) -> Unit,
     onShowWordByWordChange: (Boolean) -> Unit,
     onKeepScreenOnChange: (Boolean) -> Unit,
+    onShowTajweedChange: (Boolean) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -722,6 +745,13 @@ private fun ReadingSettingsSheet(
                 checked = settings.readingKeepScreenOn,
                 onCheckedChange = onKeepScreenOnChange,
             )
+            if (topic.tajweedMarkup != null) {
+                SettingToggle(
+                    label = "Tajweed Colors",
+                    checked = settings.showTajweed,
+                    onCheckedChange = onShowTajweedChange,
+                )
+            }
         }
     }
 }

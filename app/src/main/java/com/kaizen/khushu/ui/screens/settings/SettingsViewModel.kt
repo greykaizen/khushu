@@ -40,7 +40,8 @@ class SettingsViewModel(
             colorSeed = "default",
             tasbeehListMode = false,
             startupTab = "salah",
-            tasbihBeadStyle = "CLASSIC_AMBER"
+            tasbihBeadStyle = "CLASSIC_AMBER",
+            showTajweed = false
         )
     )
 
@@ -164,14 +165,27 @@ class SettingsViewModel(
         viewModelScope.launch { repository.updateReadingKeepScreenOn(keep) }
     }
 
+    fun toggleShowContinueReading(show: Boolean) {
+        viewModelScope.launch { repository.updateShowContinueReading(show) }
+    }
+
+    fun toggleShowTajweed(show: Boolean) {
+        viewModelScope.launch { repository.updateShowTajweed(show) }
+    }
+
     fun updateLastReadTopicId(id: String) {
         viewModelScope.launch { repository.updateLastReadTopicId(id) }
     }
 
-    fun toggleBookmark(topicId: String) {
+    fun clearLastReadTopicId() {
+        viewModelScope.launch { repository.updateLastReadTopicId("") }
+    }
+
+    fun toggleBookmark(topicId: String, ayahIndex: Int = 0) {
         viewModelScope.launch {
-            val current = settings.value.bookmarkedTopicIds
-            val updated = if (current.contains(topicId)) current - topicId else current + topicId
+            val key = "$topicId:$ayahIndex"
+            val current = settings.value.bookmarkedAyahs
+            val updated = if (current.contains(key)) current - key else current + key
             repository.updateBookmarkedTopicIds(updated)
         }
     }

@@ -48,6 +48,8 @@ class SettingsRepository(private val context: Context) {
         val LAST_READ_TOPIC_ID = stringPreferencesKey("last_read_topic_id")
         val BOOKMARKED_TOPIC_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("bookmarked_topic_ids")
         val MASTERED_TOPIC_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("mastered_topic_ids")
+        val SHOW_CONTINUE_READING = booleanPreferencesKey("show_continue_reading")
+        val SHOW_TAJWEED = booleanPreferencesKey("show_tajweed")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data
@@ -85,8 +87,10 @@ class SettingsRepository(private val context: Context) {
                 showWordByWord = preferences[PreferencesKeys.SHOW_WORD_BY_WORD] ?: true,
                 readingKeepScreenOn = preferences[PreferencesKeys.READING_KEEP_SCREEN_ON] ?: true,
                 lastReadTopicId = preferences[PreferencesKeys.LAST_READ_TOPIC_ID],
-                bookmarkedTopicIds = preferences[PreferencesKeys.BOOKMARKED_TOPIC_IDS] ?: emptySet(),
+                bookmarkedAyahs = preferences[PreferencesKeys.BOOKMARKED_TOPIC_IDS] ?: emptySet(),
                 masteredTopicIds = preferences[PreferencesKeys.MASTERED_TOPIC_IDS] ?: emptySet(),
+                showContinueReading = preferences[PreferencesKeys.SHOW_CONTINUE_READING] ?: true,
+                showTajweed = preferences[PreferencesKeys.SHOW_TAJWEED] ?: false,
             )
         }
 
@@ -201,6 +205,14 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateMasteredTopicIds(ids: Set<String>) {
         context.dataStore.edit { it[PreferencesKeys.MASTERED_TOPIC_IDS] = ids }
     }
+
+    suspend fun updateShowContinueReading(show: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.SHOW_CONTINUE_READING] = show }
+    }
+
+    suspend fun updateShowTajweed(show: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.SHOW_TAJWEED] = show }
+    }
 }
 
 data class UserSettings(
@@ -230,6 +242,8 @@ data class UserSettings(
     val showWordByWord: Boolean = true,
     val readingKeepScreenOn: Boolean = true,
     val lastReadTopicId: String? = null,
-    val bookmarkedTopicIds: Set<String> = emptySet(),
+    val bookmarkedAyahs: Set<String> = emptySet(),
     val masteredTopicIds: Set<String> = emptySet(),
+    val showContinueReading: Boolean = true,
+    val showTajweed: Boolean = false,
 )

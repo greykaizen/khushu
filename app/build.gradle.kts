@@ -23,8 +23,8 @@ android {
         applicationId = "com.kaizen.khushu"
         minSdk = 31
         targetSdk = 36
-        versionCode = 17
-        versionName = "0.12.0+$gitHash"
+        versionCode = 18
+        versionName = "0.13.0+$gitHash"
 
         buildConfigField("String", "AUDIO_BASE_URL", "\"https://example.com/audio/\"")
 
@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.compose.ui.unit)
+    implementation(libs.androidx.foundation.layout)
     ksp(libs.room.compiler)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.reorderable)
