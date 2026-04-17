@@ -45,7 +45,8 @@ import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeTint
 import kotlin.math.roundToInt
 
 private val PillShape = RoundedCornerShape(50)
@@ -72,6 +73,7 @@ fun PillNavBar(
     Box(
         modifier = modifier
             .clip(PillShape)
+            .background(Color.Black.copy(alpha = 0.2f)) // Stabilize background during transitions
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
@@ -82,13 +84,12 @@ fun PillNavBar(
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .hazeChild(
+                .hazeEffect(
                     state = hazeState,
-                    shape = PillShape,
                     style = HazeStyle(
-                        blurRadius = 35.dp,
-                        tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    ),
+                        blurRadius = 50.dp,
+                        tints = listOf(HazeTint(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))),
+                    )
                 )
         )
 
