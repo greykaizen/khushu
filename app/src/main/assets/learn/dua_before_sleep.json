@@ -1,0 +1,17 @@
+{
+  "id": "dua_before_sleep",
+  "title": "Duas Before Sleep",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Sleeping in Remembrance" },
+    { "type": "paragraph", "text": "Ending the day with the name of Allah brings peace and protection throughout the night." },
+    { "type": "arabic", "text": "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا", "tajweed": null, "translation": "In Your name, O Allah, I die and I live." },
+    { "type": "hadith", "collection": "bukhari", "number": 6324, "display": "Sahih al-Bukhari, 6324", "verified": false },
+    { "type": "heading", "text": "Protection from Shaitan" },
+    { "type": "paragraph", "text": "Reciting Ayatul Kursi before sleep ensures protection from Allah, and no shaitan will come near you until the morning." },
+    { "type": "ayah", "surah": 2, "ayah": 255, "display": "Al-Baqarah 2:255", "verified": false },
+    { "type": "hadith", "collection": "bukhari", "number": 2311, "display": "Sahih al-Bukhari, 2311", "verified": false },
+    { "type": "callout", "style": "tip", "text": "It is also Sunnah to recite the last three Surahs of the Quran (Al-Ikhlas, Al-Falaq, An-Nas) and wipe over your body before sleeping." },
+    { "type": "divider" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "salah_rakaat",
+  "title": "Rakaat Count for Each Prayer",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "The Units of Prayer" },
+    { "type": "paragraph", "text": "Each of the five daily prayers consists of a specific number of obligatory (Fard) units called Rakaat." },
+    { "type": "heading", "text": "The Obligatory Rakaat" },
+    { "type": "paragraph", "text": "1. Fajr: 2 Rakaat\n2. Dhuhr: 4 Rakaat\n3. Asr: 4 Rakaat\n4. Maghrib: 3 Rakaat\n5. Isha: 4 Rakaat" },
+    { "type": "hadith", "collection": "bukhari", "number": 350, "display": "Sahih al-Bukhari, 350", "verified": false },
+    { "type": "heading", "text": "Sunnah and Witr" },
+    { "type": "paragraph", "text": "In addition to Fard, the Prophet (peace be upon him) regularly performed Sunnah prayers, and the Witr prayer after Isha." },
+    { "type": "hadith", "collection": "muslim", "number": 728, "display": "Sahih Muslim, 728", "verified": false },
+    { "type": "callout", "style": "tip", "text": "Consistently performing the Sunnah prayers helps build a house in Jannah and compensates for any shortcomings in the Fard prayers." },
+    { "type": "divider" }
+  ]
+}

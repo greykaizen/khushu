@@ -1,0 +1,15 @@
+{
+  "id": "foundations_sincerity",
+  "title": "Sincerity (Ikhlas) in Worship",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Understanding Ikhlas" },
+    { "type": "paragraph", "text": "Ikhlas means performing acts of worship solely for the pleasure of Allah, free from any desire for show, reputation, or worldly gain." },
+    { "type": "ayah", "surah": 39, "ayah": 2, "display": "Az-Zumar 39:2", "verified": false },
+    { "type": "paragraph", "text": "True sincerity is a shield against 'Riya' (showing off), which can nullify the rewards of our deeds." },
+    { "type": "heading", "text": "The Danger of Hidden Shirk" },
+    { "type": "hadith", "collection": "ibnmajah", "number": 4204, "display": "Sunan Ibn Majah, 4204", "verified": false },
+    { "type": "callout", "style": "warning", "text": "Scholars emphasize that purifying one's intention is a lifelong struggle. Always renew your intention before, during, and after every good deed." },
+    { "type": "divider" }
+  ]
+}

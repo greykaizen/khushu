@@ -1,0 +1,15 @@
+{
+  "id": "dua_morning_evening",
+  "title": "Morning and Evening Adhkar",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Daily Remembrance" },
+    { "type": "paragraph", "text": "Remembring Allah in the morning and evening provides protection, peace, and spiritual strength for the day and night." },
+    { "type": "ayah", "surah": 33, "ayah": 41, "display": "Al-Ahzab 33:41-42", "verified": false },
+    { "type": "heading", "text": "Sayyidul Istighfar (The Master Supplication for Forgiveness)" },
+    { "type": "arabic", "text": "اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لَكَ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لاَ يَغْفِرُ الذُّنُوبَ إِلاَّ أَنْتَ", "tajweed": null, "translation": "O Allah, You are my Lord, there is no god but You. You created me and I am Your servant, and I am faithful to Your covenant and my promise to You as much as I am able. I seek refuge in You from the evil of what I have done. I acknowledge Your favor upon me and I acknowledge my sin, so forgive me, for none forgives sins except You." },
+    { "type": "hadith", "collection": "bukhari", "number": 6306, "display": "Sahih al-Bukhari, 6306", "verified": false },
+    { "type": "callout", "style": "note", "text": "Reciting this with firm belief in the morning and dying before evening, or reciting it in the evening and dying before morning, guarantees Jannah." },
+    { "type": "divider" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "foundations_knowledge",
+  "title": "Seeking Islamic Knowledge",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "The Virtue of Seeking Knowledge" },
+    { "type": "paragraph", "text": "Seeking knowledge is a sacred journey and a religious obligation for every Muslim. It is the path to truly understanding and fearing Allah." },
+    { "type": "hadith", "collection": "ibnmajah", "number": 224, "display": "Sunan Ibn Majah, 224", "verified": false },
+    { "type": "paragraph", "text": "Knowledge should be sought with the right intention—to worship Allah correctly and to benefit the community." },
+    { "type": "heading", "text": "Allah Elevates the Learned" },
+    { "type": "ayah", "surah": 58, "ayah": 11, "display": "Al-Mujadila 58:11", "verified": false },
+    { "type": "callout", "style": "tip", "text": "Knowledge is not just about memorization, but about implementing what you learn. The best knowledge is that which manifests in good character." },
+    { "type": "divider" }
+  ]
+}

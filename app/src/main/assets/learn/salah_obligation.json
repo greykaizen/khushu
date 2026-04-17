@@ -1,0 +1,15 @@
+{
+  "id": "salah_obligation",
+  "title": "The Obligation of Salah",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "The Second Pillar of Islam" },
+    { "type": "paragraph", "text": "Prayer (Salah) is the most important act of worship after the declaration of faith. It is the direct link between the servant and the Creator." },
+    { "type": "ayah", "surah": 20, "ayah": 14, "display": "Taha 20:14", "verified": false },
+    { "type": "paragraph", "text": "Establishing the prayer is an obligation that remains throughout a Muslim's life, from the age of maturity until death." },
+    { "type": "heading", "text": "The First Thing We are Accountable For" },
+    { "type": "hadith", "collection": "tirmidhi", "number": 413, "display": "Jami' at-Tirmidhi, 413", "verified": false },
+    { "type": "callout", "style": "warning", "text": "The Prophet (peace be upon him) emphasized that the boundary between faith and disbelief is the abandonment of prayer." },
+    { "type": "divider" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "purification_istinja",
+  "title": "Istinja and Istijmar",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Cleaning After Relieving Oneself" },
+    { "type": "paragraph", "text": "Istinja refers to cleaning the private parts with water after relieving oneself, while Istijmar refers to using clean stones, tissues, or similar items." },
+    { "type": "hadith", "collection": "abudawud", "number": 40, "display": "Sunan Abi Dawud, 40", "verified": false },
+    { "type": "paragraph", "text": "It is recommended to use the left hand for these cleaning processes." },
+    { "type": "heading", "text": "Etiquettes of the Toilet" },
+    { "type": "hadith", "collection": "bukhari", "number": 142, "display": "Sahih al-Bukhari, 142", "verified": false },
+    { "type": "callout", "style": "warning", "text": "Proper cleanliness is essential as it is a prerequisite for the validity of one's prayer. Negligence in this regard is a serious matter." },
+    { "type": "divider" }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "surah_fatiha",
+  "title": "Surah Al-Fatiha",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "The Opening" },
+    { "type": "paragraph", "text": "Surah Al-Fatiha is the greatest Surah in the Quran and a required recitation in every unit of prayer." },
+    { "type": "ayah", "surah": 1, "ayah": 1, "display": "Al-Fatiha 1:1", "verified": false },
+    { "type": "paragraph", "text": "We begin in the name of Allah, seeking His help and blessings." },
+    { "type": "ayah", "surah": 1, "ayah": 2, "display": "Al-Fatiha 1:2", "verified": false },
+    { "type": "paragraph", "text": "All praise belongs to Allah, the Creator and Sustainer of everything that exists." },
+    { "type": "ayah", "surah": 1, "ayah": 3, "display": "Al-Fatiha 1:3", "verified": false },
+    { "type": "paragraph", "text": "Allah is infinitely merciful and constantly bestows His grace upon His creation." },
+    { "type": "ayah", "surah": 1, "ayah": 4, "display": "Al-Fatiha 1:4", "verified": false },
+    { "type": "paragraph", "text": "He alone is the Sovereign Judge on the Day when all will be held accountable." },
+    { "type": "ayah", "surah": 1, "ayah": 5, "display": "Al-Fatiha 1:5", "verified": false },
+    { "type": "paragraph", "text": "We direct our worship to Him alone and seek only His assistance." },
+    { "type": "ayah", "surah": 1, "ayah": 6, "display": "Al-Fatiha 1:6", "verified": false },
+    { "type": "paragraph", "text": "We ask Him to guide us to the path of truth and righteousness." },
+    { "type": "ayah", "surah": 1, "ayah": 7, "display": "Al-Fatiha 1:7", "verified": false },
+    { "type": "paragraph", "text": "The path of those who earned His favor, avoiding the paths of those who earned His anger or went astray." },
+    { "type": "callout", "style": "tip", "text": "The Prophet (peace be upon him) said: 'There is no prayer for the one who does not recite the Opening of the Book (Al-Fatiha).'" },
+    { "type": "hadith", "collection": "bukhari", "number": 756, "display": "Sahih al-Bukhari, 756", "verified": false },
+    { "type": "divider" }
+  ]
+}

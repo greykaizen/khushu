@@ -1,0 +1,16 @@
+{
+  "id": "salah_khushoo",
+  "title": "Achieving Khushoo in Salah",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "The Essence of Prayer" },
+    { "type": "paragraph", "text": "Khushoo is the state of humility, focus, and presence of heart before Allah during prayer. It is the soul of Salah." },
+    { "type": "ayah", "surah": 23, "ayah": 1, "display": "Al-Mu'minun 23:1-2", "verified": false },
+    { "type": "paragraph", "text": "To achieve Khushoo, one must understand what they are reciting and remember that they are standing before their Lord." },
+    { "type": "heading", "text": "Steps to Improve Focus" },
+    { "type": "paragraph", "text": "1. Perform Wudu carefully.\n2. Arrive at the prayer spot early.\n3. Minimize external distractions.\n4. Pray at a deliberate, slow pace." },
+    { "type": "hadith", "collection": "muslim", "number": 397, "display": "Sahih Muslim, 397", "verified": false },
+    { "type": "callout", "style": "note", "text": "Khushoo is a skill that develops with practice and sincere effort. Don't be discouraged by stray thoughts; gently redirect your heart back to Allah." },
+    { "type": "divider" }
+  ]
+}

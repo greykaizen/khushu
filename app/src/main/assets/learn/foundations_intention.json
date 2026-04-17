@@ -1,0 +1,15 @@
+{
+  "id": "foundations_intention",
+  "title": "The Role of Intention (Niyyah)",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "What is Niyyah?" },
+    { "type": "paragraph", "text": "In Islam, the intention (niyyah) is the foundation of every action. It is the silent determination in the heart to perform an act of worship for the sake of Allah alone." },
+    { "type": "hadith", "collection": "bukhari", "number": 1, "display": "Sahih al-Bukhari, 1", "verified": false },
+    { "type": "paragraph", "text": "The place of the intention is the heart, not the tongue. Verbally articulating the intention is not required for most acts of worship, including prayer and fasting." },
+    { "type": "callout", "style": "note", "text": "While the intention must be present before starting an act of worship, it does not need to be voiced aloud. Simply knowing in your heart what you are about to do is sufficient." },
+    { "type": "heading", "text": "The Importance of Sincerity" },
+    { "type": "ayah", "surah": 98, "ayah": 5, "display": "Al-Bayyinah 98:5", "verified": false },
+    { "type": "divider" }
+  ]
+}

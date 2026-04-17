@@ -1,0 +1,19 @@
+{
+  "id": "purification_types",
+  "title": "Types of Purification in Islam",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Taharah: Internal and External" },
+    { "type": "paragraph", "text": "Purification (Taharah) is half of faith. It includes both purifying the soul from sins and the body from physical impurities." },
+    { "type": "hadith", "collection": "muslim", "number": 223, "display": "Sahih Muslim, 223", "verified": false },
+    { "type": "heading", "text": "1. Wudu (Ablution)" },
+    { "type": "paragraph", "text": "Minor purification required for most acts of worship." },
+    { "type": "heading", "text": "2. Ghusl (Full Bath)" },
+    { "type": "paragraph", "text": "Major ritual purification required after specific conditions." },
+    { "type": "ayah", "surah": 5, "ayah": 6, "display": "Al-Ma'idah 5:6", "verified": false },
+    { "type": "heading", "text": "3. Tayammum (Dry Ablution)" },
+    { "type": "paragraph", "text": "A symbolic purification using clean earth when water is unavailable." },
+    { "type": "callout", "style": "note", "text": "Islam places immense importance on cleanliness, stating that Allah loves those who keep themselves pure." },
+    { "type": "divider" }
+  ]
+}

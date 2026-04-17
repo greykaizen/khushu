@@ -1,0 +1,17 @@
+{
+  "id": "duas_after_fard",
+  "title": "Duas After Obligatory Prayer",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Post-Salah Adhkar" },
+    { "type": "paragraph", "text": "It is a highly recommended Sunnah to remain seated after the obligatory (Fard) prayer and engage in specific remembrances." },
+    { "type": "arabic", "text": "أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ. اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ", "tajweed": null, "translation": "I seek Allah's forgiveness (3 times). O Allah, You are As-Salam (the Source of Peace) and from You comes peace. Blessed are You, O Possessor of Majesty and Honor." },
+    { "type": "hadith", "collection": "muslim", "number": 591, "display": "Sahih Muslim, 591", "verified": false },
+    { "type": "heading", "text": "The Reward of Reciting Ayatul Kursi" },
+    { "type": "paragraph", "text": "Reciting Ayatul Kursi after every obligatory prayer has a unique reward." },
+    { "type": "ayah", "surah": 2, "ayah": 255, "display": "Al-Baqarah 2:255", "verified": false },
+    { "type": "hadith", "collection": "nasai", "number": 9928, "display": "Sunan al-Kubra an-Nasa'i, 9928", "verified": false },
+    { "type": "callout", "style": "tip", "text": "The Prophet (peace be upon him) said: 'Whoever recites Ayatul Kursi after every prescribed prayer, nothing will prevent him from entering Paradise except death.'" },
+    { "type": "divider" }
+  ]
+}

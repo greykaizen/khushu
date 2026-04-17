@@ -1,0 +1,15 @@
+{
+  "id": "salah_times",
+  "title": "The Five Prayer Times",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Prayers at Prescribed Times" },
+    { "type": "paragraph", "text": "Allah has established five daily prayers, each with its own specific time window." },
+    { "type": "ayah", "surah": 4, "ayah": 103, "display": "An-Nisa 4:103", "verified": false },
+    { "type": "heading", "text": "The Five Daily Prayers" },
+    { "type": "paragraph", "text": "1. Fajr: From dawn until sunrise.\n2. Dhuhr: From the sun's meridian until the beginning of Asr.\n3. Asr: From mid-afternoon until sunset.\n4. Maghrib: From sunset until the end of twilight.\n5. Isha: From nightfall until dawn." },
+    { "type": "hadith", "collection": "muslim", "number": 612, "display": "Sahih Muslim, 612", "verified": false },
+    { "type": "callout", "style": "note", "text": "Performing prayers at their earliest times is highly recommended and beloved to Allah." },
+    { "type": "divider" }
+  ]
+}

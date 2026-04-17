@@ -1,0 +1,18 @@
+{
+  "id": "wudu_step_by_step",
+  "title": "Step-by-Step Wudu",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Preparation" },
+    { "type": "paragraph", "text": "Before starting Wudu, make the intention (niyyah) in your heart and say 'Bismillah' (In the name of Allah)." },
+    { "type": "hadith", "collection": "abudawud", "number": 101, "display": "Sunan Abi Dawud, 101", "verified": false },
+    { "type": "heading", "text": "The Steps of Wudu" },
+    { "type": "paragraph", "text": "1. Wash hands three times up to the wrists.\n2. Rinse the mouth three times.\n3. Sniff water into the nose and blow it out three times.\n4. Wash the entire face three times.\n5. Wash the right arm up to and including the elbow three times, then the left arm.\n6. Wipe the head with wet hands (once).\n7. Wipe the ears (once).\n8. Wash the right foot up to and including the ankles three times, then the left foot." },
+    { "type": "ayah", "surah": 5, "ayah": 6, "display": "Al-Ma'idah 5:6", "verified": false },
+    { "type": "heading", "text": "Dua After Wudu" },
+    { "type": "arabic", "text": "أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ", "tajweed": null, "translation": "I bear witness that there is no god but Allah alone, without partner, and I bear witness that Muhammad is His servant and Messenger." },
+    { "type": "hadith", "collection": "muslim", "number": 234, "display": "Sahih Muslim, 234", "verified": false },
+    { "type": "callout", "style": "tip", "text": "Performing Wudu perfectly and then reciting the Shahadah opens all eight gates of Paradise for the believer." },
+    { "type": "divider" }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "wudu_invalidators",
+  "title": "What Breaks Wudu",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "Actions that Nullify Wudu" },
+    { "type": "paragraph", "text": "Specific actions and conditions break the state of Wudu, requiring it to be performed again before prayer." },
+    { "type": "heading", "text": "1. Relieving Oneself" },
+    { "type": "paragraph", "text": "Anything that exits from the two private parts (urine, feces, gas) breaks Wudu." },
+    { "type": "hadith", "collection": "bukhari", "number": 135, "display": "Sahih al-Bukhari, 135", "verified": false },
+    { "type": "heading", "text": "2. Deep Sleep" },
+    { "type": "paragraph", "text": "Deep sleep where one loses consciousness of their surroundings breaks Wudu." },
+    { "type": "hadith", "collection": "abudawud", "number": 203, "display": "Sunan Abi Dawud, 203", "verified": false },
+    { "type": "heading", "text": "3. Loss of Consciousness" },
+    { "type": "paragraph", "text": "Fainting or any form of loss of consciousness breaks the state of purification." },
+    { "type": "callout", "style": "note", "text": "Minor bleeding or vomiting does not break Wudu according to the majority of scholars, though some schools of thought have different views." },
+    { "type": "divider" }
+  ]
+}

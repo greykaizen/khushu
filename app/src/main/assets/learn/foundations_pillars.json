@@ -1,0 +1,23 @@
+{
+  "id": "foundations_pillars",
+  "title": "The Five Pillars of Islam",
+  "version": 1,
+  "blocks": [
+    { "type": "heading", "text": "The Core Foundation" },
+    { "type": "paragraph", "text": "Islam is built upon five fundamental acts of worship that define the life of a believer." },
+    { "type": "hadith", "collection": "bukhari", "number": 8, "display": "Sahih al-Bukhari, 8", "verified": false },
+    { "type": "heading", "text": "1. Shahadah (Faith)" },
+    { "type": "paragraph", "text": "The declaration of faith: 'There is no god but Allah, and Muhammad is the Messenger of Allah.'" },
+    { "type": "heading", "text": "2. Salah (Prayer)" },
+    { "type": "paragraph", "text": "Establishing the five daily prayers at their prescribed times." },
+    { "type": "ayah", "surah": 2, "ayah": 43, "display": "Al-Baqarah 2:43", "verified": false },
+    { "type": "heading", "text": "3. Zakat (Almsgiving)" },
+    { "type": "paragraph", "text": "The obligation to give a specific portion of one's wealth to those in need." },
+    { "type": "heading", "text": "4. Sawm (Fasting)" },
+    { "type": "paragraph", "text": "Fasting during the holy month of Ramadan from dawn until sunset." },
+    { "type": "heading", "text": "5. Hajj (Pilgrimage)" },
+    { "type": "paragraph", "text": "The pilgrimage to Makkah once in a lifetime for those who are able." },
+    { "type": "callout", "style": "note", "text": "These pillars are not just tasks, but the framework for a balanced and meaningful spiritual life." },
+    { "type": "divider" }
+  ]
+}
