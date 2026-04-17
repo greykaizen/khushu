@@ -192,7 +192,7 @@ private fun SectionCards(
     HorizontalPager(
         state = pagerState,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        pageSpacing = 12.dp,
+        pageSpacing = 8.dp,
         pageSize = object : PageSize {
             override fun Density.calculateMainAxisPageSize(
                 availableSpace: Int,
@@ -263,11 +263,11 @@ internal fun LearnCard(
 ) {
     Box(
         modifier = modifier
-            .height(200.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .height(140.dp)
+            .clip(RoundedCornerShape(28.dp))
             .background(color)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(12.dp),
+            .padding(18.dp),
     ) {
         if (isMastered) {
             Icon(
