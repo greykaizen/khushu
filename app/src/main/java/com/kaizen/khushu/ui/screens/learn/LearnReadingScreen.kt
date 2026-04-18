@@ -85,15 +85,36 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.draw.alpha
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kaizen.khushu.data.repository.TranslationRepository
+import com.kaizen.khushu.data.model.AVAILABLE_TRANSLATIONS
+import com.kaizen.khushu.data.model.TranslationMeta
 import com.kaizen.khushu.data.model.ContentBlock
+import com.kaizen.khushu.data.model.AyahBlock
+import com.kaizen.khushu.data.model.HadithBlock
+import com.kaizen.khushu.data.model.HeadingBlock
+import com.kaizen.khushu.data.model.ArabicBlock
 import com.kaizen.khushu.data.model.LearnTopic
 import com.kaizen.khushu.data.model.WordData
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.ui.screens.settings.SettingsViewModel
+import com.kaizen.khushu.ui.theme.Antonio
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import com.kaizen.khushu.ui.theme.ScheherazadeNew
+
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Link
+
+import androidx.compose.foundation.lazy.itemsIndexed
+
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Tune
+
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.foundation.BorderStroke
 
 // ── Translation helpers ────────────────────────────────────────────────────────
 
@@ -153,7 +174,15 @@ fun LearnReadingScreen(
         val listState = androidx.compose.foundation.lazy.rememberLazyListState()
         var showSettings by remember { mutableStateOf(false) }
         var showActionSheet by remember { mutableStateOf(false) }
+        var showTranslationPicker by remember { mutableStateOf(false) }
+        
+        val translationMap by learnReadingViewModel.translationMap
         val context = androidx.compose.ui.platform.LocalContext.current
+
+        // Load initial translation
+        androidx.compose.runtime.LaunchedEffect(settings.selectedTranslationLang) {
+            learnReadingViewModel.loadTranslation(context, settings.selectedTranslationLang)
+        }
         val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
         val bg = bgColor(settings.readingTheme)
@@ -173,9 +202,10 @@ fun LearnReadingScreen(
         }
 
         // Scroll to initial index if provided
-        androidx.compose.runtime.LaunchedEffect(initialAyahIndex) {
-            if (initialAyahIndex != null) {
-                listState.animateScrollToItem(initialAyahIndex)
+        androidx.compose.runtime.LaunchedEffect(initialAyahIndex, blocks) {
+            if (initialAyahIndex != null && blocks != null) {
+                val offset = if (blocks!!.isNotEmpty()) 1 else 0
+                listState.animateScrollToItem(initialAyahIndex + offset)
             }
         }
 
@@ -271,13 +301,6 @@ fun LearnReadingScreen(
                                 }
                             }
                         }
-                        IconButton(onClick = { showSettings = true }) {
-                            Icon(
-                                Icons.Default.Settings,
-                                contentDescription = "Reading settings",
-                                tint = fg.copy(alpha = 0.7f),
-                            )
-                        }
                     },
                     scrollBehavior = scrollBehavior,
                     colors = TopAppBarDefaults.largeTopAppBarColors(
@@ -289,6 +312,57 @@ fun LearnReadingScreen(
                 )
             },
         ) { paddingValues ->
+            var activeBlock by remember { mutableStateOf<Pair<ContentBlock, Int>?>(null) }
+
+            // Row for Reading Settings Trigger
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Translation Selector Chip
+                val currentMeta = com.kaizen.khushu.data.model.AVAILABLE_TRANSLATIONS.find { it.id == settings.selectedTranslationLang }
+                val chipLabel = currentMeta?.let { "${it.langCode.uppercase()} • ${it.translatorName.split(" ").first()}" } ?: "Translation"
+                
+                Surface(
+                    onClick = { showTranslationPicker = true },
+                    shape = RoundedCornerShape(50),
+                    color = fg.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, fg.copy(alpha = 0.1f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Translate, null, modifier = Modifier.size(16.dp), tint = fg.copy(alpha = 0.6f))
+                        Text(
+                            text = chipLabel,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontFamily = BeVietnamPro,
+                            color = fg.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.weight(1f))
+
+                IconButton(
+                    onClick = { showSettings = true },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(fg.copy(alpha = 0.08f), CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.Tune,
+                        contentDescription = "Reading settings",
+                        tint = fg.copy(alpha = 0.7f),
+                    )
+                }
+            }
+
             LazyColumn(
                 state = listState,
                 contentPadding = paddingValues,
@@ -298,13 +372,15 @@ fun LearnReadingScreen(
                 if (resolvedBlocks != null && resolvedBlocks.isNotEmpty()) {
                     // Block-based rendering from JSON assets
                     item { Spacer(Modifier.height(8.dp)) }
-                    items(resolvedBlocks) { block ->
+                    itemsIndexed(resolvedBlocks!!) { index, block ->
                         BlockRenderer(
                             block = block,
                             settings = settings,
                             fg = fg,
                             bg = bg,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                            translationMap = translationMap,
+                            onBlockClick = { activeBlock = it to index },
+                            modifier = Modifier.padding(vertical = 6.dp),
                         )
                     }
                     item { Spacer(Modifier.height(80.dp)) }
@@ -322,6 +398,46 @@ fun LearnReadingScreen(
                         Spacer(Modifier.height(24.dp))
                     }
                 }
+            }
+
+            if (showTranslationPicker) {
+                TranslationPickerSheet(
+                    selectedId = settings.selectedTranslationLang,
+                    isDownloading = learnReadingViewModel.isDownloading.value,
+                    progress = learnReadingViewModel.downloadProgress.floatValue,
+                    onSelect = { meta ->
+                        if (TranslationRepository.isDownloaded(context, meta.id)) {
+                            settingsViewModel.setSelectedTranslationLang(meta.id)
+                            showTranslationPicker = false
+                        } else {
+                            learnReadingViewModel.downloadTranslation(context, meta) {
+                                settingsViewModel.setSelectedTranslationLang(meta.id)
+                                showTranslationPicker = false
+                            }
+                        }
+                    },
+                    onDismiss = { showTranslationPicker = false }
+                )
+            }
+
+            if (activeBlock != null) {
+                val (block, index) = activeBlock!!
+                val isBookmarked = settings.bookmarkedAyahs.contains("${topic.id}:$index")
+                
+                BlockActionSheet(
+                    block = block,
+                    topicId = topic.id,
+                    settings = settings,
+                    isBookmarked = isBookmarked,
+                    onDismiss = { activeBlock = null },
+                    onBookmark = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        settingsViewModel.toggleBookmark(topic.id, index)
+                        val msg = if (isBookmarked) "Bookmark removed" else "Bookmark added"
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        activeBlock = null
+                    }
+                )
             }
 
             if (showActionSheet) {
@@ -412,16 +528,14 @@ private fun AyatBlock(
                 // 1. Arabic text card (Elevated)
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(0.dp), // Full-bleed
                     color = arabicBg,
-                    shadowElevation = 8.dp,
-                    tonalElevation = 8.dp,
                     onClick = onTap
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 20.dp),
+                            .padding(horizontal = 20.dp, vertical = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         // Per-Ayah Reference at top right
@@ -436,7 +550,7 @@ private fun AyatBlock(
                             )
                         }
 
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(24.dp))
 
                         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                             FlowRow(
@@ -500,14 +614,12 @@ private fun AyatBlock(
         } else {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(0.dp), // Full-bleed
                 color = arabicBg,
-                shadowElevation = 8.dp,
-                tonalElevation = 8.dp,
                 onClick = onTap
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (topic.arabicText.contains(marker)) {
@@ -614,6 +726,97 @@ private fun AyahActionSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BlockActionSheet(
+    block: ContentBlock,
+    topicId: String,
+    settings: UserSettings,
+    isBookmarked: Boolean,
+    onDismiss: () -> Unit,
+    onBookmark: () -> Unit,
+) {
+    val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState()
+    
+    val (title, contentToCopy, referenceToCopy) = when (block) {
+        is AyahBlock -> Triple("Ayah Actions", block.textUthmani ?: "", block.display)
+        is HadithBlock -> Triple("Hadith Actions", block.textEn ?: "", block.display)
+        is HeadingBlock -> Triple("Section Actions", block.text, null)
+        is ArabicBlock -> Triple("Arabic Text Actions", block.text, null)
+        else -> Triple("Actions", "", null)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            ActionRow(
+                icon = Icons.Default.Share,
+                label = "Share",
+                onClick = {
+                    val shareIntent = android.content.Intent().apply {
+                        action = android.content.Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, "$contentToCopy\n\n— $referenceToCopy")
+                    }
+                    context.startActivity(android.content.Intent.createChooser(shareIntent, "Share via"))
+                    onDismiss()
+                }
+            )
+
+            ActionRow(
+                icon = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                label = if (isBookmarked) "Remove Bookmark" else "Add Bookmark",
+                onClick = onBookmark
+            )
+
+            if (contentToCopy.isNotBlank()) {
+                ActionRow(
+                    icon = Icons.Default.ContentCopy,
+                    label = "Copy Text",
+                    onClick = {
+                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        val clip = android.content.ClipData.newPlainText("Khushu Text", contentToCopy)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, "Text copied to clipboard", Toast.LENGTH_SHORT).show()
+                        onDismiss()
+                    }
+                )
+            }
+
+            if (referenceToCopy != null) {
+                ActionRow(
+                    icon = Icons.Default.Link,
+                    label = "Copy Reference",
+                    onClick = {
+                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        val clip = android.content.ClipData.newPlainText("Khushu Reference", referenceToCopy)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, "Reference copied: $referenceToCopy", Toast.LENGTH_SHORT).show()
+                        onDismiss()
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun ActionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
     Row(
@@ -665,48 +868,333 @@ private fun ReferenceBadge(source: String?, number: String?, fg: Color, modifier
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReadingSettingsSheet(
-    topic: LearnTopic, settings: UserSettings, onDismiss: () -> Unit, onThemeChange: (String) -> Unit, onArabicSizeChange: (Float) -> Unit, onTranslationSizeChange: (Float) -> Unit,
-    onShowTranslationChange: (Boolean) -> Unit, onShowTransliterationChange: (Boolean) -> Unit, onShowWordByWordChange: (Boolean) -> Unit, onKeepScreenOnChange: (Boolean) -> Unit,
-    onShowTajweedChange: (Boolean) -> Unit, onTranslationLangChange: (String) -> Unit
+    topic: LearnTopic,
+    settings: UserSettings,
+    onDismiss: () -> Unit,
+    onThemeChange: (String) -> Unit,
+    onArabicSizeChange: (Float) -> Unit,
+    onTranslationSizeChange: (Float) -> Unit,
+    onShowTranslationChange: (Boolean) -> Unit,
+    onShowTransliterationChange: (Boolean) -> Unit,
+    onShowWordByWordChange: (Boolean) -> Unit,
+    onKeepScreenOnChange: (Boolean) -> Unit,
+    onShowTajweedChange: (Boolean) -> Unit,
+    onTranslationLangChange: (String) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, dragHandle = { BottomSheetDefaults.DragHandle() }) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Text("Reading Settings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            SettingLabel("Display Theme")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("DARK" to "Dark", "PAPER" to "Paper", "LIGHT" to "Light").forEach { (value, label) ->
-                    ThemeChip(label = label, selected = settings.readingTheme == value, onClick = { onThemeChange(value) })
+    var selectedTab by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    val tabs = listOf("Display", "Text", "Audio")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "Reading Settings",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = BeVietnamPro,
+                    fontWeight = FontWeight.Normal
+                ),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+            )
+
+            androidx.compose.material3.PrimaryTabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.Transparent,
+                divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)) },
+                indicator = {
+                    androidx.compose.material3.TabRowDefaults.PrimaryIndicator(
+                        modifier = Modifier.tabIndicatorOffset(selectedTab),
+                        width = 64.dp,
+                        shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
+                    )
+                }
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    androidx.compose.material3.Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontFamily = BeVietnamPro,
+                                color = if (selectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
             }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            if (settings.showTranslation && topic.translations.size > 1) {
-                SettingLabel("Translation Language")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    topic.translations.keys.forEach { lang ->
-                        ThemeChip(label = lang.uppercase(), selected = settings.selectedTranslationLang == lang, onClick = { onTranslationLangChange(lang) })
+
+            Spacer(Modifier.height(28.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                when (selectedTab) {
+                    0 -> { // Display
+                        SettingLabel("Background Theme")
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            listOf(
+                                Triple("DARK", "Dark", Color.Black to Color.White),
+                                Triple("PAPER", "Paper", Color(0xFFF5E6C8) to Color.Black),
+                                Triple("LIGHT", "Light", Color.White to Color.Black)
+                            ).forEach { (value, label, colors) ->
+                                ThemePreviewCard(
+                                    label = label,
+                                    selected = settings.readingTheme == value,
+                                    bgColor = colors.first,
+                                    fgColor = colors.second,
+                                    onClick = { onThemeChange(value) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+
+                        SettingToggle(label = "Keep Screen On", checked = settings.readingKeepScreenOn, onCheckedChange = onKeepScreenOnChange)
+                    }
+                    1 -> { // Text
+                        SettingLabel("Arabic Size: ${settings.arabicSizeSp.toInt()}sp")
+                        Slider(
+                            value = settings.arabicSizeSp,
+                            onValueChange = onArabicSizeChange,
+                            valueRange = 24f..64f,
+                            steps = 9
+                        )
+
+                        if (settings.showTranslation) {
+                            SettingLabel("Translation Size: ${settings.translationSizeSp.toInt()}sp")
+                            Slider(
+                                value = settings.translationSizeSp,
+                                onValueChange = onTranslationSizeChange,
+                                valueRange = 14f..28f,
+                                steps = 6
+                            )
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                        SettingToggle(label = "Tajweed Colors", checked = settings.showTajweed, onCheckedChange = onShowTajweedChange)
+                        SettingToggle(label = "Show Translation", checked = settings.showTranslation, onCheckedChange = onShowTranslationChange)
+                        SettingToggle(label = "Show Transliteration", checked = settings.showTransliteration, onCheckedChange = onShowTransliterationChange)
+                        SettingToggle(label = "Show Word-by-Word", checked = settings.showWordByWord, onCheckedChange = onShowWordByWordChange)
+
+                        if (settings.showTranslation && topic.translations.size > 1) {
+                            SettingLabel("Translation Language")
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                topic.translations.keys.forEach { lang ->
+                                    ThemeChip(
+                                        label = lang.uppercase(),
+                                        selected = settings.selectedTranslationLang == lang,
+                                        onClick = { onTranslationLangChange(lang) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    2 -> { // Audio
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .padding(20.dp)
+                        ) {
+                            Text(
+                                text = "Audio settings will appear here during playback. Control playback using the toolbar icons.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontFamily = BeVietnamPro,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(0.6f)
+                                .padding(horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Playback Speed", fontFamily = BeVietnamPro, style = MaterialTheme.typography.bodyLarge)
+                            Text("1.0x", fontWeight = FontWeight.Bold, fontFamily = Antonio, fontSize = 20.sp)
+                        }
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            }
-            SettingLabel("Arabic Size  ${settings.arabicSizeSp.toInt()}sp")
-            Slider(value = settings.arabicSizeSp, onValueChange = onArabicSizeChange, valueRange = 20f..60f, steps = 7, colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.primary, activeTrackColor = MaterialTheme.colorScheme.primary))
-            if (settings.showTranslation) {
-                SettingLabel("Translation Size  ${settings.translationSizeSp.toInt()}sp")
-                Slider(value = settings.translationSizeSp, onValueChange = onTranslationSizeChange, valueRange = 12f..24f, steps = 5, colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.primary, activeTrackColor = MaterialTheme.colorScheme.primary))
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            SettingToggle(label = "Show Translation", checked = settings.showTranslation, onCheckedChange = onShowTranslationChange)
-            SettingToggle(label = "Show Transliteration", checked = settings.showTransliteration, onCheckedChange = onShowTransliterationChange)
-            SettingToggle(label = "Show Word-by-Word", checked = settings.showWordByWord, onCheckedChange = onShowWordByWordChange)
-            SettingToggle(label = "Keep Screen On", checked = settings.readingKeepScreenOn, onCheckedChange = onKeepScreenOnChange)
-            if (topic.tajweedMarkup != null) {
-                SettingToggle(label = "Tajweed Colors", checked = settings.showTajweed, onCheckedChange = onShowTajweedChange)
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TranslationPickerSheet(
+    selectedId: String,
+    isDownloading: Boolean,
+    progress: Float,
+    onSelect: (com.kaizen.khushu.data.model.TranslationMeta) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
+    
+    val grouped = remember {
+        com.kaizen.khushu.data.model.AVAILABLE_TRANSLATIONS.groupBy { it.langName }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                "Translations",
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = Antonio),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            if (isDownloading) {
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+                    Text(
+                        "Downloading translation...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = BeVietnamPro,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                grouped.forEach { (lang, translations) ->
+                    item {
+                        Text(
+                            text = lang,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontFamily = BeVietnamPro,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                    items(translations) { meta ->
+                        val isDownloaded = TranslationRepository.isDownloaded(context, meta.id)
+                        val isSelected = selectedId == meta.id
+
+                        Surface(
+                            onClick = { if (!isDownloading) onSelect(meta) },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
+                            border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        meta.translatorName,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontFamily = BeVietnamPro,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    Text(
+                                        "${meta.langCode.uppercase()} • ${meta.sizeKb}KB",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontFamily = BeVietnamPro,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                if (isSelected) {
+                                    Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
+                                } else if (!isDownloaded) {
+                                    Icon(Icons.Default.Download, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemePreviewCard(
+    label: String,
+    selected: Boolean,
+    bgColor: Color,
+    fgColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent
+    
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .border(2.dp, borderColor, RoundedCornerShape(10.dp)),
+            shape = RoundedCornerShape(10.dp),
+            color = bgColor,
+            shadowElevation = 2.dp
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = "بِسْمِ اللَّهِ",
+                    color = fgColor,
+                    fontFamily = ScheherazadeNew,
+                    fontSize = 18.sp
+                )
+            }
+        }
+        
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontFamily = BeVietnamPro,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
     }
 }
 

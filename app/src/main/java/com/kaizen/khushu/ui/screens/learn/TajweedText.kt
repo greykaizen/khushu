@@ -72,10 +72,10 @@ private fun parseTajweed(markup: String, defaultColor: Color) = buildAnnotatedSt
 }
 
 private fun tajweedColor(rule: String, default: Color): Color = when (rule) {
-    "madd"     -> Color(0xFFB5800E) // Gold — prolongation
+    "madd"     -> Color(0xFFFF5252) // Vibrant Red — prolongation
     "ghunna"   -> Color(0xFF4CAF50) // Green — nasalization
-    "qalqalah" -> Color(0xFF2196F3) // Blue — echo
+    "qalqalah" -> Color(0xFF40C4FF) // Light Blue — echo
     "ikhfa"    -> Color(0xFF9E9E9E) // Gray — concealment
-    "idgham"   -> Color(0xFFFF5722) // Orange — assimilation
+    "idgham"   -> Color(0xFFFF9800) // Orange — assimilation
     else       -> default
 }

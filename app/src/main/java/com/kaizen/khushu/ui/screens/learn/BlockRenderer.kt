@@ -1,15 +1,18 @@
 package com.kaizen.khushu.ui.screens.learn
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatQuote
@@ -58,16 +61,21 @@ fun BlockRenderer(
     settings: UserSettings,
     fg: Color,
     bg: Color,
+    translationMap: Map<String, String> = emptyMap(),
+    onBlockClick: (ContentBlock) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // Standard horizontal padding for text-only blocks
+    val textPadding = Modifier.padding(horizontal = 20.dp)
+    
     when (block) {
-        is HeadingBlock  -> HeadingBlockView(block, fg, modifier)
-        is ParagraphBlock -> ParagraphBlockView(block, settings, fg, modifier)
-        is AyahBlock     -> AyahBlockView(block, settings, fg, bg, modifier)
-        is HadithBlock   -> HadithBlockView(block, settings, fg, bg, modifier)
-        is CalloutBlock  -> CalloutBlockView(block, fg, modifier)
-        is DividerBlock  -> DividerBlockView(fg, modifier)
-        is ArabicBlock   -> ArabicBlockView(block, settings, fg, bg, modifier)
+        is HeadingBlock   -> HeadingBlockView(block, fg, modifier.then(textPadding).clickable { onBlockClick(block) })
+        is ParagraphBlock -> ParagraphBlockView(block, settings, fg, modifier.then(textPadding))
+        is AyahBlock      -> AyahBlockView(block, settings, fg, bg, translationMap, modifier.clickable { onBlockClick(block) })
+        is HadithBlock    -> HadithBlockView(block, settings, fg, bg, modifier.clickable { onBlockClick(block) })
+        is CalloutBlock   -> CalloutBlockView(block, fg, modifier.then(textPadding))
+        is DividerBlock   -> DividerBlockView(fg, modifier.then(textPadding))
+        is ArabicBlock    -> ArabicBlockView(block, settings, fg, bg, modifier.clickable { onBlockClick(block) })
     }
 }
 
@@ -80,11 +88,13 @@ private fun HeadingBlockView(block: HeadingBlock, fg: Color, modifier: Modifier 
         style = MaterialTheme.typography.titleLarge.copy(
             fontFamily = BeVietnamPro,
             fontWeight = FontWeight.SemiBold,
+            fontSize = 20.sp,
+            lineHeight = 28.sp,
         ),
         color = fg,
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 2.dp),
+            .padding(top = 16.dp, bottom = 4.dp),
     )
 }
 
@@ -105,7 +115,9 @@ private fun ParagraphBlockView(
             lineHeight = (settings.translationSizeSp * 1.65f).sp,
         ),
         color = fg.copy(alpha = 0.85f),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
     )
 }
 
@@ -117,6 +129,7 @@ private fun AyahBlockView(
     settings: UserSettings,
     fg: Color,
     bg: Color,
+    translationMap: Map<String, String>,
     modifier: Modifier = Modifier,
 ) {
     val arabicBg = when {
@@ -127,15 +140,13 @@ private fun AyahBlockView(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(0.dp), // Zero corners for full-bleed
         color = arabicBg,
-        shadowElevation = 4.dp,
-        tonalElevation = 4.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Reference badge top-right
@@ -143,7 +154,7 @@ private fun AyahBlockView(
                 AyahRefBadge(display = block.display, fg = fg)
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(24.dp))
 
             // Arabic text — prefer tajweed markup when enabled
             val useMarkup = settings.showTajweed && block.tajweedMarkup != null
@@ -170,31 +181,39 @@ private fun AyahBlockView(
                         ),
                         modifier = Modifier.fillMaxWidth(),
                     )
-                } else {
-                    Text(
-                        text = block.display,
-                        fontFamily = BeVietnamPro,
-                        fontSize = 14.sp,
-                        color = fg.copy(alpha = 0.5f),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
                 }
             }
 
-            if (block.translationEn != null) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = block.translationEn,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = BeVietnamPro,
-                        fontSize = settings.translationSizeSp.sp,
-                        lineHeight = (settings.translationSizeSp * 1.65f).sp,
-                        fontStyle = FontStyle.Italic,
-                        textAlign = TextAlign.Center,
-                    ),
-                    color = fg.copy(alpha = 0.75f),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            // Dynamic translation lookup
+            val translationText = when {
+                !settings.showTranslation -> null
+                translationMap.isNotEmpty() -> com.kaizen.khushu.data.repository.TranslationRepository.getTranslation(translationMap, block.surah, block.ayah)
+                    ?: block.translationEn
+                else -> block.translationEn
+            }
+
+            // Determine if selected lang is RTL
+            val isTranslationRtl = com.kaizen.khushu.data.model.AVAILABLE_TRANSLATIONS
+                .find { it.id == settings.selectedTranslationLang }?.isRtl ?: false
+
+            if (translationText != null) {
+                Spacer(Modifier.height(16.dp))
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides if (isTranslationRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+                ) {
+                    Text(
+                        text = translationText,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+                            fontSize = settings.translationSizeSp.sp,
+                            lineHeight = (settings.translationSizeSp * 1.65f).sp,
+                            fontStyle = FontStyle.Italic,
+                            textAlign = if (isTranslationRtl) TextAlign.Right else TextAlign.Center,
+                        ),
+                        color = fg.copy(alpha = 0.75f),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
     }
@@ -237,26 +256,47 @@ private fun HadithBlockView(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(0.dp), // Full-bleed
         color = hadithBg,
-        shadowElevation = 4.dp,
-        tonalElevation = 4.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Quote icon header
-            Icon(
-                imageVector = Icons.Default.FormatQuote,
-                contentDescription = null,
-                tint = fg.copy(alpha = 0.3f),
-                modifier = Modifier.size(24.dp),
-            )
+            // Header: Grade and Reference
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (block.grade != null) {
+                    GradePill(grade = block.grade, fg = fg)
+                } else {
+                    Spacer(Modifier.width(1.dp))
+                }
 
-            // Arabic text (nullable — may not be in DB)
+                // Reference top-right
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = fg.copy(alpha = 0.06f),
+                ) {
+                    Text(
+                        text = block.display,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = BeVietnamPro,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        color = fg.copy(alpha = 0.45f),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp)) // Extra space under header row
+
+            // Arabic text
             if (block.textArabic != null) {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                     Text(
@@ -289,56 +329,18 @@ private fun HadithBlockView(
                     color = fg.copy(alpha = 0.9f),
                     modifier = Modifier.fillMaxWidth(),
                 )
-            } else {
-                // No DB entry yet — show reference as placeholder
-                Text(
-                    text = block.display,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = BeVietnamPro),
-                    color = fg.copy(alpha = 0.5f),
-                )
             }
 
-            // Grade + narrator line
-            if (block.grade != null || block.narrator != null) {
-                HorizontalDivider(
-                    color = fg.copy(alpha = 0.1f),
-                    thickness = 1.dp,
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    if (block.grade != null) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            GradePill(grade = block.grade, fg = fg)
-                        }
-                    }
-                    if (block.narrator != null) {
-                        Text(
-                            text = "Narrated by ${block.narrator}",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontFamily = BeVietnamPro,
-                            ),
-                            color = fg.copy(alpha = 0.55f),
-                        )
-                    }
-                }
-            }
-
-            // Source reference (bottom-right)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = fg.copy(alpha = 0.06f),
-                ) {
+            // Narrator (bottom-right)
+            if (block.narrator != null) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Text(
-                        text = block.display,
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        text = "— ${block.narrator}",
+                        style = MaterialTheme.typography.labelMedium.copy(
                             fontFamily = BeVietnamPro,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                         ),
-                        color = fg.copy(alpha = 0.45f),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        color = fg.copy(alpha = 0.6f),
                     )
                 }
             }
@@ -351,24 +353,26 @@ private fun GradePill(grade: String, fg: Color) {
     val pillColor = when (grade.lowercase()) {
         "sahih", "صحيح" -> Color(0xFF2E7D32) // Green for authentic
         "hasan", "حسن"  -> Color(0xFF1565C0) // Blue for good
-        else             -> fg.copy(alpha = 0.4f)
+        else             -> fg.copy(alpha = 0.6f)
     }
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(pillColor.copy(alpha = 0.15f))
-            .padding(horizontal = 10.dp, vertical = 3.dp),
+            .clip(RoundedCornerShape(6.dp))
+            .background(pillColor.copy(alpha = 0.2f))
+            .padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
         Text(
-            text = grade,
+            text = grade.uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontFamily = BeVietnamPro,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp
             ),
             color = pillColor,
         )
     }
 }
+
 
 // ── Callout ────────────────────────────────────────────────────────────────────
 
@@ -384,32 +388,46 @@ private fun CalloutBlockView(
         else      -> MaterialTheme.colorScheme.secondary to Icons.Default.Info // "note"
     }
 
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(accentColor.copy(alpha = 0.1f))
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = accentColor,
+        // Left accent bar
+        Box(
             modifier = Modifier
-                .size(20.dp)
-                .padding(top = 2.dp),
+                .width(4.dp)
+                .height(IntrinsicSize.Max)
+                .align(Alignment.CenterStart)
+                .background(accentColor)
         )
-        Text(
-            text = block.text,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontFamily = BeVietnamPro,
-                lineHeight = 22.sp,
-            ),
-            color = fg.copy(alpha = 0.85f),
-            modifier = Modifier.weight(1f),
-        )
+        
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(start = 4.dp), // Space for accent bar
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier
+                    .size(20.dp)
+                    .padding(top = 2.dp),
+            )
+            Text(
+                text = block.text,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = BeVietnamPro,
+                    lineHeight = 22.sp,
+                ),
+                color = fg.copy(alpha = 0.85f),
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -444,15 +462,13 @@ private fun ArabicBlockView(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(0.dp), // Full-bleed
         color = arabicBg,
-        shadowElevation = 4.dp,
-        tonalElevation = 4.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
