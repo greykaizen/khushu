@@ -16,9 +16,21 @@ import kotlinx.coroutines.launch
 
 class SalahCanvasViewModel(private val dao: CanvasDao) : ViewModel() {
 
+    private fun getInitialLayout(): SalahCanvasLayout {
+        val fajr = DefaultPresets.defaults.find { it.id == "horizon" }
+        return if (fajr != null) {
+            SalahCanvasLayout(
+                backgroundColorInt = fajr.backgroundColor,
+                widgets = fajr.widgets
+            )
+        } else {
+            SalahCanvasLayout()
+        }
+    }
+
     val layout: StateFlow<SalahCanvasLayout> = dao.getDefault()
-        .map { it ?: SalahCanvasLayout() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SalahCanvasLayout())
+        .map { it ?: getInitialLayout() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), getInitialLayout())
 
     val customPresets = dao.getAllPresets()
         .map { entities -> entities.map { it.toDomain() } }
@@ -54,6 +66,12 @@ class SalahCanvasViewModel(private val dao: CanvasDao) : ViewModel() {
             }
         }
         viewModelScope.launch {
+            // Check if we need to initialize the default layout
+            val existing = dao.getDefault().first()
+            if (existing == null) {
+                dao.save(getInitialLayout())
+            }
+
             dao.deleteAllPresets()
             DefaultPresets.defaults.forEach { preset ->
                 dao.insertPreset(preset.toEntity())
