@@ -293,7 +293,7 @@ internal fun LearnCard(
         "quran" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
         "foundations" -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
         "purification" -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
-        "prayer" -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) to MaterialTheme.colorScheme.onPrimaryContainer
+        "prayer", "hadith" -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) to MaterialTheme.colorScheme.onPrimaryContainer
         "duas_adhkar", "recitations", "daily_fortification" -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
         else -> MaterialTheme.colorScheme.surfaceContainerHigh to MaterialTheme.colorScheme.onSurface
     }
@@ -439,6 +439,7 @@ private fun getSectionIcon(sectionId: String): ImageVector? {
         "foundations" -> Icons.Default.MenuBook
         "purification" -> Icons.Default.WaterDrop
         "prayer" -> Icons.Default.Mosque
+        "hadith" -> Icons.Default.AutoStories
         "recitations" -> Icons.Default.AutoStories
         "duas_adhkar" -> Icons.Default.Shield
         "daily_fortification" -> Icons.Default.Shield
