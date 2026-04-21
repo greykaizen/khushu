@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
@@ -81,22 +82,22 @@ class MainActivity : ComponentActivity() {
 
         val dao = TasbeehDatabase.getInstance(applicationContext).tasbeehDao()
         tasbeehViewModel =
-                ViewModelProvider(this as ViewModelStoreOwner, TasbeehViewModel.factory(dao))[
-                        TasbeehViewModel::class.java]
+            ViewModelProvider(this as ViewModelStoreOwner, TasbeehViewModel.factory(dao))[
+                TasbeehViewModel::class.java]
 
         val canvasDao = CanvasDatabase.getInstance(applicationContext).canvasDao()
         salahCanvasViewModel =
-                ViewModelProvider(
-                        this as ViewModelStoreOwner,
-                        SalahCanvasViewModel.factory(canvasDao)
-                )[SalahCanvasViewModel::class.java]
+            ViewModelProvider(
+                this as ViewModelStoreOwner,
+                SalahCanvasViewModel.factory(canvasDao)
+            )[SalahCanvasViewModel::class.java]
 
         val audioRepository = AudioRepository(applicationContext)
         learnAudioViewModel =
-                ViewModelProvider(
-                        this as ViewModelStoreOwner,
-                        LearnAudioViewModel.factory(audioRepository, applicationContext)
-                )[LearnAudioViewModel::class.java]
+            ViewModelProvider(
+                this as ViewModelStoreOwner,
+                LearnAudioViewModel.factory(audioRepository, applicationContext)
+            )[LearnAudioViewModel::class.java]
 
         quranViewModel = ViewModelProvider(this)[com.kaizen.khushu.ui.screens.quran.QuranViewModel::class.java]
         hadithViewModel = ViewModelProvider(this)[com.kaizen.khushu.ui.screens.hadith.HadithViewModel::class.java]
@@ -111,11 +112,11 @@ class MainActivity : ComponentActivity() {
 
             val settings by settingsViewModel.settings.collectAsState()
             val darkTheme =
-                    when (settings.themeMode) {
-                        "Light" -> false
-                        "Dark" -> true
-                        else -> isSystemInDarkTheme()
-                    }
+                when (settings.themeMode) {
+                    "Light" -> false
+                    "Dark" -> true
+                    else -> isSystemInDarkTheme()
+                }
 
             // Handle Status Bar / Insets logic globally here or compute it for KhushuApp
             val view = LocalView.current
@@ -141,19 +142,19 @@ class MainActivity : ComponentActivity() {
 
             ThemeTransitionProvider {
                 KhushuTheme(
-                        darkTheme = darkTheme,
-                        dynamicColor = settings.dynamicColor,
-                        pureBlack = settings.pureBlack,
-                        colorSeed = settings.colorSeed
+                    darkTheme = darkTheme,
+                    dynamicColor = settings.dynamicColor,
+                    pureBlack = settings.pureBlack,
+                    colorSeed = settings.colorSeed
                 ) {
                     KhushuApp(
-                            settingsViewModel = settingsViewModel,
-                            tasbeehViewModel = tasbeehViewModel,
-                            salahCanvasViewModel = salahCanvasViewModel,
-                            learnAudioViewModel = learnAudioViewModel,
-                            quranViewModel = quranViewModel,
-                            hadithViewModel = hadithViewModel,
-                            darkTheme = darkTheme
+                        settingsViewModel = settingsViewModel,
+                        tasbeehViewModel = tasbeehViewModel,
+                        salahCanvasViewModel = salahCanvasViewModel,
+                        learnAudioViewModel = learnAudioViewModel,
+                        quranViewModel = quranViewModel,
+                        hadithViewModel = hadithViewModel,
+                        darkTheme = darkTheme
                     )
                 }
             }
@@ -163,8 +164,8 @@ class MainActivity : ComponentActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         val settings = settingsViewModel.settings.value
         if (settings.volumeCounting &&
-                        (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
-                                keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+            (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+                    keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
         ) {
             tasbeehViewModel.incrementActiveCount()
             return true // Consume the event to prevent volume UI from showing
@@ -176,13 +177,13 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun KhushuApp(
-        settingsViewModel: SettingsViewModel,
-        tasbeehViewModel: TasbeehViewModel,
-        salahCanvasViewModel: SalahCanvasViewModel,
-        learnAudioViewModel: LearnAudioViewModel,
-        quranViewModel: com.kaizen.khushu.ui.screens.quran.QuranViewModel,
-        hadithViewModel: com.kaizen.khushu.ui.screens.hadith.HadithViewModel,
-        darkTheme: Boolean
+    settingsViewModel: SettingsViewModel,
+    tasbeehViewModel: TasbeehViewModel,
+    salahCanvasViewModel: SalahCanvasViewModel,
+    learnAudioViewModel: LearnAudioViewModel,
+    quranViewModel: com.kaizen.khushu.ui.screens.quran.QuranViewModel,
+    hadithViewModel: com.kaizen.khushu.ui.screens.hadith.HadithViewModel,
+    darkTheme: Boolean
 ) {
     var immersiveRakats by remember { mutableStateOf<Int?>(null) }
     var immersivePresetId by remember { mutableStateOf("signature") }
@@ -224,102 +225,102 @@ private fun KhushuApp(
     }
 
     Box(
-            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
-                    modifier = Modifier.fillMaxSize().hazeSource(hazeState),
+                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
             ) {
                 NavHost(
-                        navController = navController,
-                        startDestination = startRoute,
-                        modifier = Modifier.fillMaxSize(),
+                    navController = navController,
+                    startDestination = startRoute,
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     composable(
-                            route = AppDestinations.SALAH.route,
-                            enterTransition = { tabEnter() },
-                            exitTransition = { tabExit() },
-                            popEnterTransition = { tabEnter() },
-                            popExitTransition = { tabExit() },
+                        route = AppDestinations.SALAH.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = { tabExit() },
+                        popEnterTransition = { tabEnter() },
+                        popExitTransition = { tabExit() },
                     ) {
                         SalahPickerScreen(
-                                onStartSalah = { rakats, presetId ->
-                                    immersiveRakats = rakats
-                                    immersivePresetId = presetId ?: "current"
-                                },
-                                onSettingsClick = { showSettingsSheet = true },
-                                hazeState = hazeState,
+                            onStartSalah = { rakats, presetId ->
+                                immersiveRakats = rakats
+                                immersivePresetId = presetId ?: "current"
+                            },
+                            onSettingsClick = { showSettingsSheet = true },
+                            hazeState = hazeState,
                         )
                     }
 
                     composable(
-                            route = AppDestinations.TASBEEH.route,
-                            enterTransition = { tabEnter() },
-                            exitTransition = { tabExit() },
-                            popEnterTransition = { tabEnter() },
-                            popExitTransition = { tabExit() },
+                        route = AppDestinations.TASBEEH.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = { tabExit() },
+                        popEnterTransition = { tabEnter() },
+                        popExitTransition = { tabExit() },
                     ) {
                         TasbeehScreen(
-                                viewModel = tasbeehViewModel,
-                                settingsViewModel = settingsViewModel,
-                                onCollectionTap = { collection ->
-                                    activeTasbeehCollection = collection
-                                },
-                                onSettingsClick = { showSettingsSheet = true },
-                                hazeState = hazeState,
-                                contentPadding =
-                                        PaddingValues(
-                                                start = 0.dp,
-                                                top = topClearance,
-                                                end = 0.dp,
-                                                bottom = pillClearance
-                                                )
+                            viewModel = tasbeehViewModel,
+                            settingsViewModel = settingsViewModel,
+                            onCollectionTap = { collection ->
+                                activeTasbeehCollection = collection
+                            },
+                            onSettingsClick = { showSettingsSheet = true },
+                            hazeState = hazeState,
+                            contentPadding =
+                                PaddingValues(
+                                    start = 0.dp,
+                                    top = topClearance,
+                                    end = 0.dp,
+                                    bottom = pillClearance
+                                )
                         )
                     }
 
                     composable(
-                            route = AppDestinations.LEARN.route,
-                            enterTransition = { tabEnter() },
-                            exitTransition = {
-                                if (targetState.destination.route?.startsWith("learn_detail") == true)
-                                        scaleOut(targetScale = 0.95f, animationSpec = tween(300)) +
-                                                fadeOut(tween(90))
-                                else tabExit()
-                            },
-                            popEnterTransition = {
-                                fadeIn(tween(300)) +
-                                        scaleIn(initialScale = 0.95f, animationSpec = tween(300))
-                            },
-                            popExitTransition = { tabExit() },
+                        route = AppDestinations.LEARN.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = {
+                            if (targetState.destination.route?.startsWith("learn_detail") == true)
+                                scaleOut(targetScale = 0.85f, animationSpec = spring(dampingRatio = 0.8f, stiffness = 400f)) +
+                                        fadeOut(animationSpec = spring(stiffness = 800f))
+                            else tabExit()
+                        },
+                        popEnterTransition = {
+                            fadeIn(animationSpec = spring(stiffness = 800f)) +
+                                    scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = 0.8f, stiffness = 400f))
+                        },
+                        popExitTransition = { tabExit() },
                     ) {
                         LearnScreen(
-                                onSectionTap = { title ->
-                                    navController.navigate("learn_detail/$title")
-                                },
-                                onCardTap = { topicId ->
-                                    if (topicId == "quran_browser") {
-                                        navController.navigate("quran")
-                                    } else if (topicId.startsWith("quran_surah_")) {
-                                        val surahId = topicId.removePrefix("quran_surah_")
-                                        navController.navigate("quran/$surahId")
-                                    } else if (topicId.startsWith("hadith_book_")) {
-                                        val bookId = topicId.removePrefix("hadith_book_")
-                                        navController.navigate("hadith/$bookId")
-                                    } else {
-                                        navController.navigate("learn_card/$topicId")
-                                    }
-                                },
-                                onSettingsClick = { showSettingsSheet = true },
-                                hazeState = hazeState,
-                                contentPadding = PaddingValues(top = topClearance, bottom = pillClearance),
-                                settingsViewModel = settingsViewModel
+                            onSectionTap = { title ->
+                                navController.navigate("learn_detail/$title")
+                            },
+                            onCardTap = { topicId ->
+                                if (topicId == "quran_browser") {
+                                    navController.navigate("quran")
+                                } else if (topicId.startsWith("quran_surah_")) {
+                                    val surahId = topicId.removePrefix("quran_surah_")
+                                    navController.navigate("quran/$surahId")
+                                } else if (topicId.startsWith("hadith_book_")) {
+                                    val bookId = topicId.removePrefix("hadith_book_")
+                                    navController.navigate("hadith/$bookId")
+                                } else {
+                                    navController.navigate("learn_card/$topicId")
+                                }
+                            },
+                            onSettingsClick = { showSettingsSheet = true },
+                            hazeState = hazeState,
+                            contentPadding = PaddingValues(top = topClearance, bottom = pillClearance),
+                            settingsViewModel = settingsViewModel
                         )
                     }
 
                     composable(
                         route = "quran",
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
+                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, spring(dampingRatio = 0.8f, stiffness = 400f)) },
+                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, spring(dampingRatio = 0.8f, stiffness = 400f)) },
                     ) {
                         com.kaizen.khushu.ui.screens.quran.QuranSurahListScreen(
                             onSurahTap = { num -> navController.navigate("quran/$num") },
@@ -330,8 +331,8 @@ private fun KhushuApp(
                     composable(
                         route = "quran/{surahNumber}",
                         arguments = listOf(navArgument("surahNumber") { type = NavType.IntType }),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
+                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, spring(dampingRatio = 0.8f, stiffness = 400f)) },
+                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, spring(dampingRatio = 0.8f, stiffness = 400f)) },
                     ) { backStackEntry ->
                         val surahNumber = backStackEntry.arguments?.getInt("surahNumber") ?: 1
                         com.kaizen.khushu.ui.screens.quran.QuranReaderScreen(
@@ -345,16 +346,16 @@ private fun KhushuApp(
                     composable(
                         route = "hadith/{bookId}",
                         arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
+                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, spring(dampingRatio = 0.8f, stiffness = 400f)) },
+                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, spring(dampingRatio = 0.8f, stiffness = 400f)) },
                     ) { backStackEntry ->
                         val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
                         val book = com.kaizen.khushu.data.model.BUNDLED_HADITH_BOOKS.find { it.id == bookId }
                         if (book != null) {
                             com.kaizen.khushu.ui.screens.hadith.HadithSectionListScreen(
                                 book = book,
-                                onSectionTap = { num, title -> 
-                                    navController.navigate("hadith/$bookId/$num/$title") 
+                                onSectionTap = { num, title ->
+                                    navController.navigate("hadith/$bookId/$num/$title")
                                 },
                                 onBack = { navController.popBackStack() },
                                 viewModel = hadithViewModel
@@ -369,14 +370,14 @@ private fun KhushuApp(
                             navArgument("sectionNum") { type = NavType.IntType },
                             navArgument("sectionTitle") { type = NavType.StringType }
                         ),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
+                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, spring(dampingRatio = 0.8f, stiffness = 400f)) },
+                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, spring(dampingRatio = 0.8f, stiffness = 400f)) },
                     ) { backStackEntry ->
                         val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
                         val sectionNum = backStackEntry.arguments?.getInt("sectionNum") ?: 0
                         val sectionTitle = backStackEntry.arguments?.getString("sectionTitle") ?: ""
                         val book = com.kaizen.khushu.data.model.BUNDLED_HADITH_BOOKS.find { it.id == bookId }
-                        
+
                         com.kaizen.khushu.ui.screens.hadith.HadithReaderScreen(
                             bookId = bookId,
                             sectionNumber = sectionNum,
@@ -389,60 +390,60 @@ private fun KhushuApp(
                     }
 
                     composable(
-                            route = LEARN_DETAIL_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = LEARN_DETAIL_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) { backStackEntry ->
                         val sectionTitle = backStackEntry.arguments?.getString("sectionTitle") ?: ""
                         LearnSectionDetailScreen(
-                                sectionTitle = sectionTitle,
-                                onBack = { navController.popBackStack() },
-                                onCardTap = { topicId ->
-                                    if (topicId.startsWith("quran_surah_")) {
-                                        val surahId = topicId.removePrefix("quran_surah_")
-                                        navController.navigate("quran/$surahId")
-                                    } else if (topicId.startsWith("hadith_book_")) {
-                                        val bookId = topicId.removePrefix("hadith_book_")
-                                        navController.navigate("hadith/$bookId")
-                                    } else {
-                                        navController.navigate("learn_card/$topicId")
-                                    }
-                                },
+                            sectionTitle = sectionTitle,
+                            onBack = { navController.popBackStack() },
+                            onCardTap = { topicId ->
+                                if (topicId.startsWith("quran_surah_")) {
+                                    val surahId = topicId.removePrefix("quran_surah_")
+                                    navController.navigate("quran/$surahId")
+                                } else if (topicId.startsWith("hadith_book_")) {
+                                    val bookId = topicId.removePrefix("hadith_book_")
+                                    navController.navigate("hadith/$bookId")
+                                } else {
+                                    navController.navigate("learn_card/$topicId")
+                                }
+                            },
                         )
                     }
 
                     composable(
-                            route = "learn_card/{topicId}?ayah={ayah}",
-                            arguments = listOf(
-                                navArgument("topicId") { type = NavType.StringType },
-                                navArgument("ayah") { 
-                                    type = NavType.StringType
-                                    nullable = true
-                                    defaultValue = null
-                                }
-                            ),
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = "learn_card/{topicId}?ayah={ayah}",
+                        arguments = listOf(
+                            navArgument("topicId") { type = NavType.StringType },
+                            navArgument("ayah") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        ),
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) { backStackEntry ->
                         val context = androidx.compose.ui.platform.LocalContext.current
                         val topicId = backStackEntry.arguments?.getString("topicId") ?: ""
@@ -461,181 +462,181 @@ private fun KhushuApp(
                     }
 
                     composable(
-                            route = SETTINGS_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = SETTINGS_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         BackHandler {
                             navController.popBackStack()
                             showSettingsSheet = true
                         }
                         SettingsScreen(
-                                viewModel = settingsViewModel,
-                                onNavigateCounter = {
-                                    navController.navigate(SETTINGS_COUNTER_ROUTE)
-                                },
-                                onNavigateAppearance = {
-                                    navController.navigate(SETTINGS_APPEARANCE_ROUTE)
-                                },
-                                onBack = {
-                                    navController.popBackStack()
-                                    showSettingsSheet = true
-                                }
+                            viewModel = settingsViewModel,
+                            onNavigateCounter = {
+                                navController.navigate(SETTINGS_COUNTER_ROUTE)
+                            },
+                            onNavigateAppearance = {
+                                navController.navigate(SETTINGS_APPEARANCE_ROUTE)
+                            },
+                            onBack = {
+                                navController.popBackStack()
+                                showSettingsSheet = true
+                            }
                         )
                     }
 
                     composable(
-                            route = SETTINGS_COUNTER_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = SETTINGS_COUNTER_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         CounterSettingsScreen(
-                                viewModel = settingsViewModel,
-                                onBack = { navController.popBackStack() }
+                            viewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
                     composable(
-                            route = SETTINGS_APPEARANCE_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = SETTINGS_APPEARANCE_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         AppearanceSettingsScreen(
-                                viewModel = settingsViewModel,
-                                onBack = { navController.popBackStack() }
+                            viewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
                     composable(
-                            route = CUSTOMIZE_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = CUSTOMIZE_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         BackHandler {
                             navController.popBackStack()
                             showSettingsSheet = true
                         }
                         CustomizeScreen(
-                                onNavigateBranding = {
-                                    navController.navigate(CUSTOMIZE_BRANDING_ROUTE)
-                                },
-                                onNavigateSalah = { navController.navigate(CUSTOMIZE_SALAH_ROUTE) },
-                                onNavigateTasbeeh = {
-                                    navController.navigate(CUSTOMIZE_TASBEEH_ROUTE)
-                                },
-                                onBack = {
-                                    navController.popBackStack()
-                                    showSettingsSheet = true
-                                }
+                            onNavigateBranding = {
+                                navController.navigate(CUSTOMIZE_BRANDING_ROUTE)
+                            },
+                            onNavigateSalah = { navController.navigate(CUSTOMIZE_SALAH_ROUTE) },
+                            onNavigateTasbeeh = {
+                                navController.navigate(CUSTOMIZE_TASBEEH_ROUTE)
+                            },
+                            onBack = {
+                                navController.popBackStack()
+                                showSettingsSheet = true
+                            }
                         )
                     }
 
                     composable(
-                            route = CUSTOMIZE_SALAH_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = CUSTOMIZE_SALAH_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         SalahCustomizeScreen(
-                                viewModel = settingsViewModel,
-                                onCustomizeLayout = { rakats ->
-                                    canvasEditorRakats = rakats
-                                    showCanvasEditor = true
-                                },
-                                onBack = { navController.popBackStack() }
+                            viewModel = settingsViewModel,
+                            onCustomizeLayout = { rakats ->
+                                canvasEditorRakats = rakats
+                                showCanvasEditor = true
+                            },
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
                     composable(
-                            route = CUSTOMIZE_TASBEEH_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = CUSTOMIZE_TASBEEH_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         TasbeehCustomizeScreen(
-                                viewModel = settingsViewModel,
-                                onPreview = { showTasbihPreview = true },
-                                onCustomizeBeads = { showBeadCustomizer = true },
-                                onBack = { navController.popBackStack() }
+                            viewModel = settingsViewModel,
+                            onPreview = { showTasbihPreview = true },
+                            onCustomizeBeads = { showBeadCustomizer = true },
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
                     composable(
-                            route = CUSTOMIZE_BRANDING_ROUTE,
-                            enterTransition = {
-                                slideIntoContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Left,
-                                        tween(300)
-                                )
-                            },
-                            popExitTransition = {
-                                slideOutOfContainer(
-                                        AnimatedContentTransitionScope.SlideDirection.Right,
-                                        tween(300)
-                                )
-                            },
+                        route = CUSTOMIZE_BRANDING_ROUTE,
+                        enterTransition = {
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Left,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Right,
+                                spring(dampingRatio = 0.8f, stiffness = 400f)
+                            )
+                        },
                     ) {
                         BrandingSettingsScreen(
-                                settingsViewModel = settingsViewModel,
-                                onBack = { navController.popBackStack() },
+                            settingsViewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() },
                         )
                     }
                 }
@@ -644,44 +645,44 @@ private fun KhushuApp(
 
         // Persistent global nav bar — outside NavHost so it never participates in page transitions
         AnimatedVisibility(
-                visible = showNavBar,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
-                modifier =
-                        Modifier.align(Alignment.BottomCenter)
-                                .navigationBarsPadding()
-                                .padding(bottom = 30.dp),
+            visible = showNavBar,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier =
+                Modifier.align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 30.dp),
         ) {
             PillNavBar(
-                    currentDestination = currentDestination,
-                    onDestinationSelected = onNavigateTab,
-                    hazeState = hazeState,
+                currentDestination = currentDestination,
+                onDestinationSelected = onNavigateTab,
+                hazeState = hazeState,
             )
         }
 
         // FAB — visible only on Tasbeeh tab, animates in/out with scale+fade
         AnimatedVisibility(
-                visible = currentRoute == AppDestinations.TASBEEH.route,
-                enter = scaleIn() + fadeIn(),
-                exit = scaleOut() + fadeOut(),
-                modifier =
-                        Modifier.align(Alignment.BottomEnd)
-                                .padding(
-                                        end = 16.dp,
-                                        bottom = fabBottomPadding + 16.dp
-                                ), // 16dp standard
+            visible = currentRoute == AppDestinations.TASBEEH.route,
+            enter = scaleIn() + fadeIn(),
+            exit = scaleOut() + fadeOut(),
+            modifier =
+                Modifier.align(Alignment.BottomEnd)
+                    .padding(
+                        end = 16.dp,
+                        bottom = fabBottomPadding + 16.dp
+                    ), // 16dp standard
         ) {
             FloatingActionButton(
-                    onClick = { showCreateSheet = true },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = MaterialShapes.Square.toShape(),
-                    elevation = FloatingActionButtonDefaults.elevation(),
+                onClick = { showCreateSheet = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = MaterialShapes.Square.toShape(),
+                elevation = FloatingActionButtonDefaults.elevation(),
             ) {
                 Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Create Tasbih",
-                        modifier = Modifier.size(24.dp), // M3 spec
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Create Tasbih",
+                    modifier = Modifier.size(24.dp), // M3 spec
                 )
             }
         }
@@ -692,22 +693,22 @@ private fun KhushuApp(
 
             // 2. Wrap it dynamically so the Immersive screen can read it
             val currentCanvasPreset =
-                    CanvasPreset(
-                            id = "current",
-                            name = "Current Canvas",
-                            backgroundColor = activeLayout.backgroundColorInt,
-                            widgets = activeLayout.widgets,
-                            isDeletable = false
-                    )
+                CanvasPreset(
+                    id = "current",
+                    name = "Current Canvas",
+                    backgroundColor = activeLayout.backgroundColorInt,
+                    widgets = activeLayout.widgets,
+                    isDeletable = false
+                )
 
             // 3. Use the Current canvas by default, UNLESS they picked a specific DB preset
             var finalPresetToRender = currentCanvasPreset
 
             if (immersivePresetId != "current") {
                 val dbPreset by
-                        salahCanvasViewModel
-                                .getPresetFlow(immersivePresetId)
-                                .collectAsStateWithLifecycle(initialValue = null)
+                salahCanvasViewModel
+                    .getPresetFlow(immersivePresetId)
+                    .collectAsStateWithLifecycle(initialValue = null)
                 if (dbPreset != null) {
                     finalPresetToRender = dbPreset!!
                 }
@@ -715,13 +716,13 @@ private fun KhushuApp(
 
             // 4. Render it
             SalahImmersiveScreen(
-                    targetRakats = rakats,
-                    preset = finalPresetToRender,
-                    showExitButton = settings.showExitButton,
-                    showCompletionText = settings.showCompletionText,
-                    completionText = settings.completionText.ifBlank { "الحمد لله" },
-                    onComplete = { immersiveRakats = null },
-                    onExit = { immersiveRakats = null }
+                targetRakats = rakats,
+                preset = finalPresetToRender,
+                showExitButton = settings.showExitButton,
+                showCompletionText = settings.showCompletionText,
+                completionText = settings.completionText.ifBlank { "الحمد لله" },
+                onComplete = { immersiveRakats = null },
+                onExit = { immersiveRakats = null }
             )
         }
 
@@ -767,60 +768,44 @@ private fun KhushuApp(
 
         if (showCanvasEditor) {
             SalahCanvasScreen(
-                    targetRakats = canvasEditorRakats,
-                    viewModel = salahCanvasViewModel,
-                    onSave = { showCanvasEditor = false },
-                    onExit = { showCanvasEditor = false }
+                targetRakats = canvasEditorRakats,
+                viewModel = salahCanvasViewModel,
+                onSave = { showCanvasEditor = false },
+                onExit = { showCanvasEditor = false }
             )
         }
     }
 
     if (showCreateSheet) {
         CreateCollectionSheet(
-                viewModel = tasbeehViewModel,
-                onDismiss = { showCreateSheet = false },
+            viewModel = tasbeehViewModel,
+            settingsViewModel = settingsViewModel,
+            onDismiss = { showCreateSheet = false },
         )
     }
 
     if (showSettingsSheet) {
         SettingsSheet(
-                viewModel = settingsViewModel,
-                onNavigateSettings = {
-                    showSettingsSheet = false
-                    navController.navigate(SETTINGS_ROUTE)
-                },
-                onNavigateCustomize = {
-                    showSettingsSheet = false
-                    navController.navigate(CUSTOMIZE_ROUTE)
-                },
-                onDismiss = { showSettingsSheet = false }
+            viewModel = settingsViewModel,
+            onNavigateSettings = {
+                showSettingsSheet = false
+                navController.navigate(SETTINGS_ROUTE)
+            },
+            onNavigateCustomize = {
+                showSettingsSheet = false
+                navController.navigate(CUSTOMIZE_ROUTE)
+            },
+            onDismiss = { showSettingsSheet = false }
         )
     }
 }
 
-// blur scale in/out animation
-// private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabEnter(): EnterTransition =
-//    fadeIn(tween(300, easing = LinearOutSlowInEasing)) +
-//    scaleIn(initialScale = 0.92f, animationSpec = tween(300, easing = LinearOutSlowInEasing))
-//
-// private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabExit(): ExitTransition =
-//    fadeOut(tween(150, easing = FastOutLinearInEasing)) +
-//    scaleOut(targetScale = 0.92f, animationSpec = tween(150, easing = FastOutLinearInEasing))
-
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabEnter(): EnterTransition =
-        androidx.compose.animation.fadeIn(
-                animationSpec =
-                        androidx.compose.animation.core.tween(
-                                durationMillis = 300,
-                                easing = androidx.compose.animation.core.LinearOutSlowInEasing
-                        )
-        )
+    fadeIn(animationSpec = spring(stiffness = 800f)) +
+            scaleIn(
+                initialScale = 0.92f,
+                animationSpec = spring(dampingRatio = 0.8f, stiffness = 400f)
+            )
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabExit(): ExitTransition =
-        androidx.compose.animation.fadeOut(
-                animationSpec =
-                        androidx.compose.animation.core.tween(
-                                durationMillis = 150,
-                                easing = androidx.compose.animation.core.FastOutLinearInEasing
-                        )
-        )
+    fadeOut(animationSpec = spring(stiffness = 800f))
