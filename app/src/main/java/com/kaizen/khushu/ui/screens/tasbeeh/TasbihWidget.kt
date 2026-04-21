@@ -1,26 +1,24 @@
 package com.kaizen.khushu.ui.screens.tasbeeh
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.asAndroidPath
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.serialization.Serializable
 import com.kaizen.khushu.data.model.DhikrItem
+import kotlinx.serialization.Serializable
 import kotlin.math.sqrt
 
 enum class BeadStyle { CLASSIC_AMBER, DARK_ONYX }
@@ -28,30 +26,36 @@ enum class BeadStyle { CLASSIC_AMBER, DARK_ONYX }
 @Serializable
 sealed interface TasbihWidget {
     val id: String
-    val offsetX: Float  // 0.0–1.0 normalized — multiplied by screen width at render time
-    val offsetY: Float  // 0.0–1.0 normalized — multiplied by screen height at render time
+    val offsetX: Float
+    val offsetY: Float
     val scale: Float
     val zIndex: Float
+    val width: Float
+    val height: Float
 
-    /** The string + bead simulation. Renders on the right side of screen. */
+    /** The vertical string of beads. Renders center-right. */
     @Serializable
     data class StringBeadWidget(
-        override val id: String = "string_bead",
+        override val id: String = "string",
         override val offsetX: Float = 0.88f,
         override val offsetY: Float = 0.5f,
         override val scale: Float = 1f,
         override val zIndex: Float = 0f,
+        override val width: Float = 0f,
+        override val height: Float = 0f,
         val beadStyle: BeadStyle = BeadStyle.CLASSIC_AMBER,
     ) : TasbihWidget
 
-    /** Shows current dhikr name (Arabic text). Renders top-left. */
+    /** Shows the name of the current dhikr. Renders top-left. */
     @Serializable
     data class DhikrNameWidget(
-        override val id: String = "dhikr_name",
+        override val id: String = "name",
         override val offsetX: Float = 0.2f,
         override val offsetY: Float = 0.15f,
         override val scale: Float = 1f,
         override val zIndex: Float = 1f,
+        override val width: Float = 0f,
+        override val height: Float = 0f,
     ) : TasbihWidget
 
     /** Shows count + "out of N". Renders center-left. */
@@ -62,6 +66,33 @@ sealed interface TasbihWidget {
         override val offsetY: Float = 0.5f,
         override val scale: Float = 1f,
         override val zIndex: Float = 1f,
+        override val width: Float = 0f,
+        override val height: Float = 0f,
+    ) : TasbihWidget
+
+    /** A circular progress indicator. Renders around counter. */
+    @Serializable
+    data class ProgressCircleWidget(
+        override val id: String = "progress_circle",
+        override val offsetX: Float = 0.15f,
+        override val offsetY: Float = 0.5f,
+        override val scale: Float = 1f,
+        override val zIndex: Float = 0.5f,
+        override val width: Float = 0f,
+        override val height: Float = 0f,
+        val color: Long? = null,
+    ) : TasbihWidget
+
+    /** Shows current dhikr meaning/translation. Renders below name. */
+    @Serializable
+    data class MeaningWidget(
+        override val id: String = "meaning",
+        override val offsetX: Float = 0.2f,
+        override val offsetY: Float = 0.22f,
+        override val scale: Float = 1f,
+        override val zIndex: Float = 1f,
+        override val width: Float = 0f,
+        override val height: Float = 0f,
     ) : TasbihWidget
 }
 
@@ -81,80 +112,10 @@ val DefaultTasbihPreset = TasbihCanvasPreset(
     )
 )
 
-private const val BEAD_RADIUS = 18f          // dp-independent px — scaled by density in DrawScope
-private const val BOTTOM_VISIBLE_BEADS = 7   // how many uncounted beads show at the bottom
-private const val TOP_GATHERED_MAX = 3        // max beads shown in top cluster
+private const val BEAD_RADIUS = 18f
+private const val BOTTOM_VISIBLE_BEADS = 7
+private const val TOP_GATHERED_MAX = 3
 
-/**
- * Draws a single faux-3D bead using radial gradient lighting.
- * The light source is simulated from top-left, giving a convex sphere illusion.
- */
-private fun DrawScope.drawBead(
-    center: Offset,
-    radius: Float,
-    alpha: Float,
-    style: BeadStyle = BeadStyle.CLASSIC_AMBER,
-) {
-    when (style) {
-        BeadStyle.CLASSIC_AMBER -> {
-            // Warm resin/amber sphere — orange-gold with soft warm highlight
-            val lightCenter = center + Offset(-radius * 0.28f, -radius * 0.28f)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFFFFBF4D).copy(alpha = alpha),   // warm highlight
-                        Color(0xFFD4850A).copy(alpha = alpha),   // mid amber
-                        Color(0xFF7A4000).copy(alpha = alpha),   // deep shadow
-                    ),
-                    center = lightCenter,
-                    radius = radius * 1.6f,
-                ),
-                radius = radius,
-                center = center,
-            )
-            // Specular dot
-            drawCircle(
-                color = Color.White.copy(alpha = alpha * 0.65f),
-                radius = radius * 0.22f,
-                center = lightCenter + Offset(radius * 0.04f, radius * 0.04f),
-            )
-        }
-        BeadStyle.DARK_ONYX -> {
-            // Deep charcoal — sharp bright specular, slight oval via y-scale trick
-            val lightCenter = center + Offset(-radius * 0.3f, -radius * 0.3f)
-            // Slightly oval: draw as ellipse (taller than wide)
-            drawOval(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF555555).copy(alpha = alpha),   // lifted highlight
-                        Color(0xFF1A1A1A).copy(alpha = alpha),   // base onyx
-                        Color(0xFF000000).copy(alpha = alpha),   // deep shadow
-                    ),
-                    center = lightCenter,
-                    radius = radius * 1.5f,
-                ),
-                topLeft = center + Offset(-radius, -radius * 1.08f),
-                size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2.16f),
-            )
-            // Sharp bright specular — smaller and brighter than amber
-            drawCircle(
-                color = Color.White.copy(alpha = alpha * 0.85f),
-                radius = radius * 0.18f,
-                center = lightCenter + Offset(radius * 0.05f, radius * 0.05f),
-            )
-        }
-    }
-}
-
-/**
- * Renders a single TasbihWidget. Mirrors WidgetRenderer in CanvasWidget.kt.
- *
- * [stringControlXOffset] — px deflection of the Bezier control point from string center (0 = straight).
- * [stringControlYFraction] — 0.0–1.0, where along the string height the apex sits (0.5 = midpoint).
- * [countedBeads] — how many beads have been swiped up (drives top cluster + bottom remaining).
- * [totalBeads] — total count for the current dhikr item.
- * [thumbPosition] — current thumb position in Canvas-local coordinates, null when not touching.
- */
 @Composable
 fun TasbihWidgetRenderer(
     widget: TasbihWidget,
@@ -165,7 +126,6 @@ fun TasbihWidgetRenderer(
     countedBeads: Int = 0,
     totalBeads: Int = 33,
     beadStyle: BeadStyle = BeadStyle.CLASSIC_AMBER,
-    /** 0.0 = bead at top (counted), 1.0 = bead at bottom (uncounted pool). null = not dragging. */
     activeBeadProgress: Float? = null,
     thumbPosition: Offset? = null,
     modifier: Modifier = Modifier,
@@ -184,13 +144,11 @@ fun TasbihWidgetRenderer(
                 val controlX = cx + stringControlXOffset
                 val controlY = size.height * stringControlYFraction
 
-                // Build Bezier path
                 val path = Path().apply {
                     moveTo(cx, 0f)
                     quadraticTo(controlX, controlY, cx, size.height)
                 }
 
-                // Draw string
                 drawPath(
                     path = path,
                     color = Color.White.copy(alpha = 0.35f),
@@ -201,8 +159,6 @@ fun TasbihWidgetRenderer(
                     )
                 )
 
-                // Measure path for bead placement — use android.graphics.PathMeasure
-                // which supports getPosTan, converting via asAndroidPath()
                 val androidPath = path.asAndroidPath()
                 val pm = android.graphics.PathMeasure(androidPath, false)
                 val pathLength = pm.length
@@ -210,12 +166,8 @@ fun TasbihWidgetRenderer(
 
                 val pos = FloatArray(2)
                 val tan = FloatArray(2)
-
-                // Dynamic fisheye radius — scales with screen height, tight around thumb
                 val fisheyeRadius = size.height * 0.12f
 
-                // --- ACTIVE BEAD (being dragged by thumb) ---
-                // Compute Canvas-local position from progress (1.0=bottom, 0.0=top)
                 var activeCenter: Offset? = null
                 if (activeBeadProgress != null) {
                     val activeDist = (activeBeadProgress * pathLength).coerceIn(0f, pathLength)
@@ -224,10 +176,8 @@ fun TasbihWidgetRenderer(
                     }
                 }
 
-                // Fisheye center: active bead's path position takes priority over raw thumb
                 val fisheyeCenter: Offset? = activeCenter ?: thumbPosition
 
-                // --- TOP CLUSTER (counted beads) ---
                 val topCount = minOf(countedBeads, TOP_GATHERED_MAX)
                 val topSpacing = beadRadius * 2.4f
                 for (i in 0 until topCount) {
@@ -238,13 +188,11 @@ fun TasbihWidgetRenderer(
                     drawBead(center, beadRadius * scale, alpha = 1f, style = beadStyle)
                 }
 
-                // Draw the active (dragged) bead on top of the string
                 if (activeCenter != null) {
                     val scale = fisheyeScale(activeCenter, fisheyeCenter, fisheyeRadius, 2.5f)
                     drawBead(activeCenter, beadRadius * scale, alpha = 1f, style = beadStyle)
                 }
 
-                // --- BOTTOM POOL (uncounted beads, minus 1 if one is being dragged) ---
                 val remaining = (totalBeads - countedBeads).coerceAtLeast(0)
                 val poolSize = if (activeBeadProgress != null) (remaining - 1).coerceAtLeast(0) else remaining
                 val visibleBottom = minOf(poolSize, BOTTOM_VISIBLE_BEADS)
@@ -254,7 +202,6 @@ fun TasbihWidgetRenderer(
                     if (dist <= 0f) break
                     pm.getPosTan(dist, pos, tan)
                     val center = Offset(pos[0], pos[1])
-                    // Fade out beads deeper in the stack
                     val alpha = if (i < 3) 1f else 1f - ((i - 2f) / (visibleBottom - 2f)) * 0.6f
                     val scale = fisheyeScale(center, fisheyeCenter, fisheyeRadius, 2.5f)
                     drawBead(center, beadRadius * scale, alpha = alpha.coerceIn(0.2f, 1f), style = beadStyle)
@@ -264,10 +211,10 @@ fun TasbihWidgetRenderer(
 
         is TasbihWidget.DhikrNameWidget -> {
             Text(
-                text = currentItem?.name ?: "",
-                style = MaterialTheme.typography.headlineMedium,
+                text = currentItem?.name ?: "سُبْحَانَ اللَّهِ",
+                style = MaterialTheme.typography.headlineLarge,
                 color = Color.White,
-                modifier = modifier,
+                modifier = modifier
             )
         }
 
@@ -285,14 +232,88 @@ fun TasbihWidgetRenderer(
                 )
             }
         }
+
+        is TasbihWidget.ProgressCircleWidget -> {
+            val progress = currentCount.toFloat() / (currentItem?.targetCount?.toFloat() ?: 1f)
+            Canvas(modifier = modifier.size(240.dp)) {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.05f),
+                    radius = size.minDimension / 2f,
+                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                )
+                drawArc(
+                    color = widget.color?.let { Color(it) } ?: Color.White.copy(alpha = 0.3f),
+                    startAngle = -90f,
+                    sweepAngle = 360f * progress,
+                    useCenter = false,
+                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                )
+            }
+        }
+
+        is TasbihWidget.MeaningWidget -> {
+            Text(
+                text = "Glorified is Allah", 
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.6f),
+                modifier = modifier,
+            )
+        }
     }
 }
 
-/**
- * Fisheye magnification: beads near the thumb swell up to [maxScale]x.
- * Uses quadratic easing (1 - t²) for a smooth, tight bubble feel.
- * [radiusPx] should be screenHeight * 0.12f — scales naturally with device.
- */
+private fun DrawScope.drawBead(
+    center: Offset,
+    radius: Float,
+    alpha: Float,
+    style: BeadStyle = BeadStyle.CLASSIC_AMBER,
+) {
+    when (style) {
+        BeadStyle.CLASSIC_AMBER -> {
+            val lightCenter = center + Offset(-radius * 0.28f, -radius * 0.28f)
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFFFFBF4D).copy(alpha = alpha),
+                        Color(0xFFD4850A).copy(alpha = alpha),
+                        Color(0xFF7A4000).copy(alpha = alpha),
+                    ),
+                    center = lightCenter,
+                    radius = radius * 1.6f,
+                ),
+                radius = radius,
+                center = center,
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = alpha * 0.65f),
+                radius = radius * 0.22f,
+                center = lightCenter + Offset(radius * 0.04f, radius * 0.04f),
+            )
+        }
+        BeadStyle.DARK_ONYX -> {
+            val lightCenter = center + Offset(-radius * 0.3f, -radius * 0.3f)
+            drawOval(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF555555).copy(alpha = alpha),
+                        Color(0xFF1A1A1A).copy(alpha = alpha),
+                        Color(0xFF000000).copy(alpha = alpha),
+                    ),
+                    center = lightCenter,
+                    radius = radius * 1.5f,
+                ),
+                topLeft = center + Offset(-radius, -radius * 1.08f),
+                size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2.16f),
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = alpha * 0.85f),
+                radius = radius * 0.18f,
+                center = lightCenter + Offset(radius * 0.05f, radius * 0.05f),
+            )
+        }
+    }
+}
+
 private fun fisheyeScale(
     beadCenter: Offset,
     thumb: Offset?,
@@ -305,5 +326,5 @@ private fun fisheyeScale(
     val dist = sqrt(dx * dx + dy * dy)
     if (dist >= radiusPx) return 1f
     val t = dist / radiusPx
-    return 1f + (maxScale - 1f) * (1f - t * t)  // quadratic easing
+    return 1f + (maxScale - 1f) * (1f - t * t)
 }

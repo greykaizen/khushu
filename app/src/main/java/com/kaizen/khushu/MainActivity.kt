@@ -52,12 +52,7 @@ import com.kaizen.khushu.ui.screens.salah.SalahCanvasViewModel
 import com.kaizen.khushu.ui.screens.salah.SalahImmersiveScreen
 import com.kaizen.khushu.ui.screens.salah.SalahPickerScreen
 import com.kaizen.khushu.ui.screens.settings.*
-import com.kaizen.khushu.ui.screens.tasbeeh.CreateCollectionSheet
-import com.kaizen.khushu.ui.screens.tasbeeh.BeadStyle
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbihBeadCustomizerSheet
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehImmersiveScreen
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehScreen
-import com.kaizen.khushu.ui.screens.tasbeeh.TasbeehViewModel
+import com.kaizen.khushu.ui.screens.tasbeeh.*
 import com.kaizen.khushu.ui.theme.KhushuTheme
 import com.kaizen.khushu.ui.theme.ThemeTransitionProvider
 import dev.chrisbanes.haze.HazeState
@@ -68,6 +63,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var tasbeehViewModel: TasbeehViewModel
     private lateinit var salahCanvasViewModel: SalahCanvasViewModel
+    private lateinit var tasbeehCanvasViewModel: TasbeehCanvasViewModel
     private lateinit var learnAudioViewModel: LearnAudioViewModel
     private lateinit var quranViewModel: com.kaizen.khushu.ui.screens.quran.QuranViewModel
     private lateinit var hadithViewModel: com.kaizen.khushu.ui.screens.hadith.HadithViewModel
@@ -91,6 +87,12 @@ class MainActivity : ComponentActivity() {
                 this as ViewModelStoreOwner,
                 SalahCanvasViewModel.factory(canvasDao)
             )[SalahCanvasViewModel::class.java]
+
+        tasbeehCanvasViewModel =
+            ViewModelProvider(
+                this as ViewModelStoreOwner,
+                TasbeehCanvasViewModel.factory(canvasDao)
+            )[TasbeehCanvasViewModel::class.java]
 
         val audioRepository = AudioRepository(applicationContext)
         learnAudioViewModel =
@@ -118,7 +120,6 @@ class MainActivity : ComponentActivity() {
                     else -> isSystemInDarkTheme()
                 }
 
-            // Handle Status Bar / Insets logic globally here or compute it for KhushuApp
             val view = LocalView.current
             if (!view.isInEditMode) {
                 val window = (view.context as Activity).window
@@ -130,7 +131,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // Handle Keep Screen Awake
             DisposableEffect(settings.keepScreenAwake) {
                 if (settings.keepScreenAwake) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -151,6 +151,7 @@ class MainActivity : ComponentActivity() {
                         settingsViewModel = settingsViewModel,
                         tasbeehViewModel = tasbeehViewModel,
                         salahCanvasViewModel = salahCanvasViewModel,
+                        tasbeehCanvasViewModel = tasbeehCanvasViewModel,
                         learnAudioViewModel = learnAudioViewModel,
                         quranViewModel = quranViewModel,
                         hadithViewModel = hadithViewModel,
@@ -168,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
         ) {
             tasbeehViewModel.incrementActiveCount()
-            return true // Consume the event to prevent volume UI from showing
+            return true
         }
         return super.onKeyDown(keyCode, event)
     }
@@ -180,6 +181,7 @@ private fun KhushuApp(
     settingsViewModel: SettingsViewModel,
     tasbeehViewModel: TasbeehViewModel,
     salahCanvasViewModel: SalahCanvasViewModel,
+    tasbeehCanvasViewModel: TasbeehCanvasViewModel,
     learnAudioViewModel: LearnAudioViewModel,
     quranViewModel: com.kaizen.khushu.ui.screens.quran.QuranViewModel,
     hadithViewModel: com.kaizen.khushu.ui.screens.hadith.HadithViewModel,
@@ -188,16 +190,14 @@ private fun KhushuApp(
     var immersiveRakats by remember { mutableStateOf<Int?>(null) }
     var immersivePresetId by remember { mutableStateOf("signature") }
     var activeTasbeehCollection by remember { mutableStateOf<TasbeehCollection?>(null) }
-    var showTasbihPreview by remember { mutableStateOf(false) }
     var showBeadCustomizer by remember { mutableStateOf(false) }
+    var showTasbihCanvasEditor by remember { mutableStateOf(false) }
     var showCanvasEditor by remember { mutableStateOf(false) }
     var canvasEditorRakats by remember { mutableIntStateOf(4) }
     var showCreateSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     val navController = rememberNavController()
     val settings by settingsViewModel.settings.collectAsState()
-
-    // ViewModel removed from here as it's passed in from MainActivity
 
     val density = LocalDensity.current
     val navBarBottomDp = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -614,7 +614,7 @@ private fun KhushuApp(
                     ) {
                         TasbeehCustomizeScreen(
                             viewModel = settingsViewModel,
-                            onPreview = { showTasbihPreview = true },
+                            onPreview = { showTasbihCanvasEditor = true },
                             onCustomizeBeads = { showBeadCustomizer = true },
                             onBack = { navController.popBackStack() }
                         )
@@ -644,7 +644,6 @@ private fun KhushuApp(
             }
         }
 
-        // Persistent global nav bar — outside NavHost so it never participates in page transitions
         AnimatedVisibility(
             visible = showNavBar,
             enter = slideInVertically { it } + fadeIn(),
@@ -661,7 +660,6 @@ private fun KhushuApp(
             )
         }
 
-        // FAB — visible only on Tasbeeh tab, animates in/out with scale+fade
         AnimatedVisibility(
             visible = currentRoute == AppDestinations.TASBEEH.route,
             enter = scaleIn() + fadeIn(),
@@ -671,7 +669,7 @@ private fun KhushuApp(
                     .padding(
                         end = 16.dp,
                         bottom = fabBottomPadding + 16.dp
-                    ), // 16dp standard
+                    ),
         ) {
             FloatingActionButton(
                 onClick = { showCreateSheet = true },
@@ -683,16 +681,14 @@ private fun KhushuApp(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Create Tasbih",
-                    modifier = Modifier.size(24.dp), // M3 spec
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
 
         immersiveRakats?.let { rakats ->
-            // 1. Get the LIVE canvas layout you just edited
             val activeLayout by salahCanvasViewModel.layout.collectAsStateWithLifecycle()
 
-            // 2. Wrap it dynamically so the Immersive screen can read it
             val currentCanvasPreset =
                 CanvasPreset(
                     id = "current",
@@ -702,7 +698,6 @@ private fun KhushuApp(
                     isDeletable = false
                 )
 
-            // 3. Use the Current canvas by default, UNLESS they picked a specific DB preset
             var finalPresetToRender = currentCanvasPreset
 
             if (immersivePresetId != "current") {
@@ -715,7 +710,6 @@ private fun KhushuApp(
                 }
             }
 
-            // 4. Render it
             SalahImmersiveScreen(
                 targetRakats = rakats,
                 preset = finalPresetToRender,
@@ -730,28 +724,18 @@ private fun KhushuApp(
         activeTasbeehCollection?.let { collection ->
             val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
             TasbeehImmersiveScreen(
+                viewModel = tasbeehViewModel,
+                canvasViewModel = tasbeehCanvasViewModel,
                 collection = collection,
                 beadStyle = beadStyle,
                 onExit = { activeTasbeehCollection = null },
             )
         }
 
-        if (showTasbihPreview) {
-            val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
-            val previewCollection = TasbeehCollection(
-                id = -1L,
-                title = "Preview",
-                colorInt = 0xFF6650A4.toInt(),
-                items = listOf(
-                    DhikrItem("سُبْحَانَ اللَّهِ", 33),
-                    DhikrItem("الْحَمْدُ لِلَّهِ", 33),
-                    DhikrItem("اللَّهُ أَكْبَرُ", 34),
-                ),
-            )
-            TasbeehImmersiveScreen(
-                collection = previewCollection,
-                beadStyle = beadStyle,
-                onExit = { showTasbihPreview = false },
+        if (showTasbihCanvasEditor) {
+            TasbeehCanvasScreen(
+                viewModel = tasbeehCanvasViewModel,
+                onExit = { showTasbihCanvasEditor = false }
             )
         }
 

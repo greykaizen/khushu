@@ -42,8 +42,8 @@ fun TasbeehCustomizeScreen(
             Spacer(Modifier.height(8.dp))
             SectionHeader("Preview")
             MenuSectionItem(
-                title = "Preview Physical Screen",
-                detail = "See the new tasbih bead counter",
+                title = "Open Tasbeeh Screen Editor",
+                detail = "Customize your tasbih counter layout",
                 onClick = onPreview
             )
             MenuSectionItem(
