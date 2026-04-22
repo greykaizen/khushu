@@ -181,6 +181,36 @@ fun TasbihBeadCustomizerSheet(
 
                 Spacer(Modifier.height(24.dp))
 
+                SectionHeader("Quick Presets")
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 8.dp)
+                ) {
+                    items(BeadPreset.entries.filter { it != BeadPreset.NONE }, key = { it.name }) { preset ->
+                        val previewStyle = remember(preset, workingStyle.shapeType) {
+                            previewStyleForPreset(preset, workingStyle.shapeType)
+                        }
+                        val thumbShape = allShapes[workingStyle.shapeType] ?: CircleShape
+                        val isSelected = workingStyle.preset == preset
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .border(
+                                    2.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                    RoundedCornerShape(14.dp)
+                                )
+                                .clickable { workingStyle = workingStyle.applyPreset(preset) }
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            BeadRenderer(style = previewStyle, shape = thumbShape, size = 52f)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+
                 SectionHeader("Saved Designs")
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -281,6 +311,71 @@ fun TasbihBeadCustomizerSheet(
                                 .clickable { workingStyle = workingStyle.copy(baseColor = colorInt) }
                         )
                     }
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                SectionHeader("Effects")
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    FilterChip(
+                        selected = workingStyle.chromaticAberration,
+                        onClick = {
+                            workingStyle = workingStyle.copy(
+                                chromaticAberration = !workingStyle.chromaticAberration,
+                                preset = BeadPreset.NONE
+                            )
+                        },
+                        label = { Text("Chromatic", fontFamily = BeVietnamPro) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FilterChip(
+                        selected = workingStyle.metallicSheen,
+                        onClick = {
+                            workingStyle = workingStyle.copy(
+                                metallicSheen = !workingStyle.metallicSheen,
+                                preset = BeadPreset.NONE
+                            )
+                        },
+                        label = { Text("Metallic", fontFamily = BeVietnamPro) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FilterChip(
+                        selected = workingStyle.is3dEnabled,
+                        onClick = {
+                            workingStyle = workingStyle.copy(
+                                is3dEnabled = !workingStyle.is3dEnabled,
+                                preset = BeadPreset.NONE
+                            )
+                        },
+                        label = { Text("3D Depth", fontFamily = BeVietnamPro) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Light",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.width(40.dp)
+                    )
+                    Slider(
+                        value = workingStyle.specularity,
+                        onValueChange = {
+                            workingStyle = workingStyle.copy(specularity = it, preset = BeadPreset.NONE)
+                        },
+                        valueRange = 0f..1f,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -435,6 +530,9 @@ private fun SectionHeader(title: String) {
         modifier = Modifier.padding(bottom = 12.dp)
     )
 }
+
+private fun previewStyleForPreset(preset: BeadPreset, shapeType: BeadShapeType): CustomBeadStyle =
+    CustomBeadStyle(id = "preview_${preset.name}", name = "").applyPreset(preset).copy(shapeType = shapeType)
 
 @Composable
 private fun BeadPreview(
