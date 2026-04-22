@@ -5,8 +5,6 @@ import android.graphics.Shader
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -73,9 +71,7 @@ fun createBeadPath(
     return Path().apply {
         when (outline) {
             is Outline.Generic   -> addPath(outline.path)
-            is Outline.Rectangle -> addRect(
-                Rect(outline.rect.left, outline.rect.top, outline.rect.right, outline.rect.bottom)
-            )
+            is Outline.Rectangle -> addRect(outline.rect)
             is Outline.Rounded   -> addRoundRect(outline.roundRect)
         }
     }
@@ -134,15 +130,14 @@ fun DrawScope.drawBeadBaseColor(path: Path, style: CustomBeadStyle) {
 fun DrawScope.drawBeadTexture(
     path: Path,
     style: CustomBeadStyle,
-    noiseShader: Shader?,
+    noiseBrush: ShaderBrush?,
 ) {
-    if (style.textureStyle == BeadTextureStyle.SOLID || noiseShader == null) return
+    if (style.textureStyle == BeadTextureStyle.SOLID || noiseBrush == null) return
     val noiseAlpha = when (style.textureStyle) {
         BeadTextureStyle.FROSTED -> 0.22f
         BeadTextureStyle.RESIN   -> 0.38f
         else -> return
     }
-    val noiseBrush = ShaderBrush(noiseShader)
     withTransform({ clipPath(path) }) {
         drawRect(brush = noiseBrush, alpha = noiseAlpha, blendMode = BlendMode.Overlay)
         if (style.textureStyle == BeadTextureStyle.FROSTED) {
@@ -156,21 +151,10 @@ fun DrawScope.drawBeadTexture(
 // Off-centre radial gradient simulates a top-left light source.
 // ---------------------------------------------------------------------------
 
-fun DrawScope.drawBeadSpecular(path: Path, style: CustomBeadStyle, bounds: Rect) {
-    if (style.specularity <= 0f) return
-    val alpha = (style.specularity * 0.65f).coerceIn(0f, 0.65f)
-    val center = Offset(
-        x = bounds.left + bounds.width * 0.28f,
-        y = bounds.top + bounds.height * 0.22f,
-    )
+fun DrawScope.drawBeadSpecular(path: Path, specularBrush: Brush?) {
+    if (specularBrush == null) return
     withTransform({ clipPath(path) }) {
-        drawRect(
-            brush = Brush.radialGradient(
-                colors = listOf(Color.White.copy(alpha = alpha), Color.Transparent),
-                center = center,
-                radius = bounds.width * 0.72f,
-            )
-        )
+        drawRect(brush = specularBrush)
     }
 }
 
@@ -195,28 +179,9 @@ fun DrawScope.drawBeadChromaticAberration(path: Path, style: CustomBeadStyle) {
 // Sweep gradient with alternating light/dark bands clipped to path.
 // ---------------------------------------------------------------------------
 
-fun DrawScope.drawBeadMetallicSheen(path: Path, style: CustomBeadStyle, bounds: Rect) {
-    if (!style.metallicSheen) return
-    val base = Color(style.baseColor)
-    val light = base.copy(
-        red   = (base.red   * 1.55f).coerceAtMost(1f),
-        green = (base.green * 1.55f).coerceAtMost(1f),
-        blue  = (base.blue  * 1.55f).coerceAtMost(1f),
-    )
-    val dark = base.copy(
-        red   = base.red   * 0.5f,
-        green = base.green * 0.5f,
-        blue  = base.blue  * 0.5f,
-    )
-    val center = Offset(bounds.left + bounds.width / 2f, bounds.top + bounds.height / 2f)
+fun DrawScope.drawBeadMetallicSheen(path: Path, metallicBrush: Brush?) {
+    if (metallicBrush == null) return
     withTransform({ clipPath(path) }) {
-        drawRect(
-            brush = Brush.sweepGradient(
-                colors = listOf(dark, light, dark, light, dark, light, dark),
-                center = center,
-            ),
-            blendMode = BlendMode.Overlay,
-            alpha = 0.75f,
-        )
+        drawRect(brush = metallicBrush, blendMode = BlendMode.Overlay, alpha = 0.75f)
     }
 }
