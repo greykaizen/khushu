@@ -123,8 +123,13 @@ class SettingsViewModel(
     }
 
     fun toggleTasbeehVolumeEnabled(enabled: Boolean) {
-        viewModelScope.launch { repository.updateTasbeehVolumeEnabled(enabled) }
+        viewModelScope.launch { repository.setTasbeehVolumeEnabled(enabled) }
     }
+
+    fun setOnboardingCompleted(completed: Boolean) {
+        viewModelScope.launch { repository.setOnboardingCompleted(completed) }
+    }
+
 
     fun setStringElasticity(value: Float) {
         viewModelScope.launch { repository.updateStringElasticity(value) }

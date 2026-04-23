@@ -55,6 +55,7 @@ import com.kaizen.khushu.data.model.DhikrItem
 import com.kaizen.khushu.data.local.TasbeehDatabase
 import com.kaizen.khushu.ui.components.PillNavBar
 import com.kaizen.khushu.ui.navigation.*
+import com.kaizen.khushu.ui.screens.onboarding.OnboardingScreen
 import com.kaizen.khushu.ui.screens.learn.LearnScreen
 import com.kaizen.khushu.ui.screens.learn.LearnSectionDetailScreen
 import com.kaizen.khushu.ui.screens.learn.LearnAudioViewModel
@@ -71,6 +72,10 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        const val DEBUG_FORCE_ONBOARDING = false // SET TO FALSE FOR RELEASE
+    }
+
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var tasbeehViewModel: TasbeehViewModel
@@ -248,12 +253,14 @@ private fun KhushuApp(
         val saved = settingsViewModel.settings.value.startupTab
         AppDestinations.fromRoute(saved)?.route ?: AppDestinations.SALAH.route
     }
-
+    
     val onNavigateTab: (AppDestinations) -> Unit = { dest ->
-        navController.navigate(dest.route) {
-            popUpTo(startRoute) { saveState = true }
-            launchSingleTop = true
-            restoreState = true
+        if (currentRoute != dest.route) {
+            navController.navigate(dest.route) {
+                popUpTo(startRoute) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
         }
     }
 
@@ -270,6 +277,23 @@ private fun KhushuApp(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     composable(
+                        route = ONBOARDING_ROUTE,
+                        enterTransition = { fadeIn(tween(M3Duration)) },
+                        exitTransition = { fadeOut(tween(M3Duration)) },
+                    ) {
+                        // We will create this screen next
+                        OnboardingScreen(
+                            settingsViewModel = settingsViewModel,
+                            onComplete = {
+                                settingsViewModel.setOnboardingCompleted(true)
+                                navController.navigate(AppDestinations.SALAH.route) {
+                                    popUpTo(ONBOARDING_ROUTE) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
+                    composable(
                         route = AppDestinations.SALAH.route,
                         enterTransition = { tabEnter() },
                         exitTransition = { tabExit() },
@@ -280,7 +304,7 @@ private fun KhushuApp(
                             onStartSalah = { rakats, presetId ->
                                 navController.navigate("salah/immersive/$rakats/${presetId ?: "signature"}")
                             },
-                            onSettingsClick = { navController.navigate(SETTINGS_ROUTE) },
+                            onSettingsClick = { showSettingsSheet = true },
                             hazeState = hazeState
                         )
                     }
@@ -314,14 +338,8 @@ private fun KhushuApp(
                     composable(
                         route = AppDestinations.LEARN.route,
                         enterTransition = { tabEnter() },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
+                        exitTransition = { tabExit() },
+                        popEnterTransition = { tabEnter() },
                         popExitTransition = { tabExit() },
                     ) {
                         LearnScreen(
@@ -341,7 +359,7 @@ private fun KhushuApp(
                                     navController.navigate("learn_card/$topicId")
                                 }
                             },
-                            onSettingsClick = { navController.navigate(SETTINGS_ROUTE) },
+                            onSettingsClick = { showSettingsSheet = true },
                             hazeState = hazeState,
                             contentPadding = PaddingValues(top = topClearance, bottom = pillClearance),
                             settingsViewModel = settingsViewModel
@@ -350,16 +368,10 @@ private fun KhushuApp(
 
                     composable(
                         route = "quran",
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         com.kaizen.khushu.ui.screens.quran.QuranSurahListScreen(
                             onSurahTap = { num -> navController.navigate("quran/$num") },
@@ -370,16 +382,10 @@ private fun KhushuApp(
                     composable(
                         route = "quran/{surahNumber}",
                         arguments = listOf(navArgument("surahNumber") { type = NavType.IntType }),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val surahNumber = backStackEntry.arguments?.getInt("surahNumber") ?: 1
                         com.kaizen.khushu.ui.screens.quran.QuranReaderScreen(
@@ -394,16 +400,10 @@ private fun KhushuApp(
                     composable(
                         route = "hadith/{bookId}",
                         arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
                         val book = com.kaizen.khushu.data.model.BUNDLED_HADITH_BOOKS.find { it.id == bookId }
@@ -426,16 +426,10 @@ private fun KhushuApp(
                             navArgument("sectionNum") { type = NavType.IntType },
                             navArgument("sectionTitle") { type = NavType.StringType }
                         ),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
                         val sectionNum = backStackEntry.arguments?.getInt("sectionNum") ?: 0
@@ -455,26 +449,10 @@ private fun KhushuApp(
 
                     composable(
                         route = LEARN_DETAIL_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val sectionTitle = backStackEntry.arguments?.getString("sectionTitle") ?: ""
                         LearnSectionDetailScreen(
@@ -504,26 +482,10 @@ private fun KhushuApp(
                                 defaultValue = null
                             }
                         ),
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val context = androidx.compose.ui.platform.LocalContext.current
                         val topicId = backStackEntry.arguments?.getString("topicId") ?: ""
@@ -544,26 +506,10 @@ private fun KhushuApp(
 
                     composable(
                         route = SETTINGS_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         SettingsScreen(
                             viewModel = settingsViewModel,
@@ -581,26 +527,10 @@ private fun KhushuApp(
 
                     composable(
                         route = SETTINGS_COUNTER_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         CounterSettingsScreen(
                             viewModel = settingsViewModel,
@@ -610,26 +540,10 @@ private fun KhushuApp(
 
                     composable(
                         route = SETTINGS_APPEARANCE_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         AppearanceSettingsScreen(
                             viewModel = settingsViewModel,
@@ -639,26 +553,10 @@ private fun KhushuApp(
 
                     composable(
                         route = CUSTOMIZE_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         CustomizeScreen(
                             onNavigateBranding = {
@@ -676,26 +574,10 @@ private fun KhushuApp(
 
                     composable(
                         route = CUSTOMIZE_SALAH_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         SalahCustomizeScreen(
                             viewModel = settingsViewModel,
@@ -708,26 +590,10 @@ private fun KhushuApp(
 
                     composable(
                         route = CUSTOMIZE_TASBEEH_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         TasbeehCustomizeScreen(
                             viewModel = settingsViewModel,
@@ -739,26 +605,10 @@ private fun KhushuApp(
 
                     composable(
                         route = CUSTOMIZE_BRANDING_ROUTE,
-                        enterTransition = {
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Left,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-                                    scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing))
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Right,
-                                tween(M3Duration, easing = EmphasizedEasing)
-                            )
-                        },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         BrandingSettingsScreen(
                             settingsViewModel = settingsViewModel,
@@ -771,8 +621,10 @@ private fun KhushuApp(
                     composable(
                         route = TASBEEH_IMMERSIVE_ROUTE,
                         arguments = listOf(navArgument("collectionId") { type = NavType.StringType }),
-                        enterTransition = { fadeIn(tween(M3Duration, easing = EmphasizedEasing)) + scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = { fadeOut(tween(M3Duration, easing = EmphasizedEasing)) + scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val collectionId = backStackEntry.arguments?.getString("collectionId") ?: ""
                         val collection = tasbeehViewModel.collections.value.find { it.id.toString() == collectionId }
@@ -795,8 +647,10 @@ private fun KhushuApp(
                             navArgument("rakats") { type = NavType.IntType },
                             navArgument("presetId") { type = NavType.StringType }
                         ),
-                        enterTransition = { fadeIn(tween(M3Duration, easing = EmphasizedEasing)) + scaleIn(initialScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = { fadeOut(tween(M3Duration, easing = EmphasizedEasing)) + scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val rakats = backStackEntry.arguments?.getInt("rakats") ?: 2
                         val presetId = backStackEntry.arguments?.getString("presetId") ?: "signature"
@@ -829,9 +683,10 @@ private fun KhushuApp(
                     composable(
                         route = SALAH_CANVAS_ROUTE,
                         arguments = listOf(navArgument("rakats") { type = NavType.IntType }),
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = { fadeOut(tween(M3Duration, easing = EmphasizedEasing)) + scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val rakats = backStackEntry.arguments?.getInt("rakats") ?: 4
                         SalahCanvasScreen(
@@ -844,9 +699,10 @@ private fun KhushuApp(
 
                     composable(
                         route = TASBEEH_CANVAS_ROUTE,
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = { fadeOut(tween(M3Duration, easing = EmphasizedEasing)) + scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         TasbeehCanvasScreen(
                             viewModel = tasbeehCanvasViewModel,
@@ -857,9 +713,10 @@ private fun KhushuApp(
 
                     composable(
                         route = BEAD_CUSTOMIZER_ROUTE,
-                        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(M3Duration, easing = EmphasizedEasing)) },
-                        exitTransition = { fadeOut(tween(M3Duration, easing = EmphasizedEasing)) + scaleOut(targetScale = 0.92f, animationSpec = tween(M3Duration, easing = EmphasizedEasing)) },
-                        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(M3Duration, easing = EmphasizedEasing)) },
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
                     ) {
                         TasbihBeadCustomizerSheet(
                             settingsViewModel = settingsViewModel,
@@ -912,45 +769,102 @@ private fun KhushuApp(
                 )
             }
         }
-    }
 
-    if (showCreateSheet) {
-        CreateCollectionSheet(
-            viewModel = tasbeehViewModel,
-            settingsViewModel = settingsViewModel,
-            onDismiss = { showCreateSheet = false },
-        )
-    }
+        if (showCreateSheet) {
+            CreateCollectionSheet(
+                viewModel = tasbeehViewModel,
+                settingsViewModel = settingsViewModel,
+                onDismiss = { showCreateSheet = false },
+            )
+        }
 
-    if (showSettingsSheet) {
-        SettingsSheet(
-            viewModel = settingsViewModel,
-            onNavigateSettings = {
-                showSettingsSheet = false
-                navController.navigate(SETTINGS_ROUTE)
-            },
-            onNavigateCustomize = {
-                showSettingsSheet = false
-                navController.navigate(CUSTOMIZE_ROUTE)
-            },
-            onDismiss = { showSettingsSheet = false }
-        )
+        if (showSettingsSheet) {
+            SettingsSheet(
+                viewModel = settingsViewModel,
+                onNavigateSettings = {
+                    showSettingsSheet = false
+                    navController.navigate(SETTINGS_ROUTE)
+                },
+                onNavigateCustomize = {
+                    showSettingsSheet = false
+                    navController.navigate(CUSTOMIZE_ROUTE)
+                },
+                onDismiss = { showSettingsSheet = false }
+            )
+        }
     }
 }
 
 private val EmphasizedEasing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
 private const val M3Duration = 500
 
+// --- LATERAL TAB ANIMATIONS ---
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabEnter(): EnterTransition =
-    fadeIn(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-            scaleIn(
-                initialScale = 0.92f,
-                animationSpec = tween(M3Duration, easing = EmphasizedEasing)
-            )
+    fadeIn(
+        animationSpec = tween(
+            durationMillis = 350,
+            delayMillis = 150,
+            easing = CubicBezierEasing(0.0f, 0.0f, 0.2f, 1.0f)
+        )
+    ) + scaleIn(
+        initialScale = 0.92f,
+        animationSpec = tween(M3Duration, easing = EmphasizedEasing)
+    )
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabExit(): ExitTransition =
-    fadeOut(animationSpec = tween(M3Duration, easing = EmphasizedEasing)) +
-            scaleOut(
-                targetScale = 0.92f,
-                animationSpec = tween(M3Duration, easing = EmphasizedEasing)
-            )
+    fadeOut(
+        animationSpec = tween(
+            durationMillis = 150,
+            easing = CubicBezierEasing(0.4f, 0.0f, 1.0f, 1.0f)
+        )
+    ) + scaleOut(
+        targetScale = 0.92f,
+        animationSpec = tween(M3Duration, easing = EmphasizedEasing)
+    )
+
+// --- VERTICAL SUB-SCREEN ANIMATIONS ---
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.subScreenEnter(): EnterTransition =
+    fadeIn(
+        animationSpec = tween(
+            durationMillis = 350,
+            delayMillis = 100,
+            easing = CubicBezierEasing(0.0f, 0.0f, 0.2f, 1.0f)
+        )
+    ) + scaleIn(
+        initialScale = 0.85f,
+        animationSpec = tween(M3Duration, easing = EmphasizedEasing)
+    )
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.subScreenExit(): ExitTransition =
+    fadeOut(
+        animationSpec = tween(
+            durationMillis = 150,
+            easing = CubicBezierEasing(0.4f, 0.0f, 1.0f, 1.0f)
+        )
+    ) + scaleOut(
+        targetScale = 0.95f,
+        animationSpec = tween(M3Duration, easing = EmphasizedEasing)
+    )
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.subScreenPopEnter(): EnterTransition =
+    fadeIn(
+        animationSpec = tween(
+            durationMillis = 350,
+            delayMillis = 100,
+            easing = CubicBezierEasing(0.0f, 0.0f, 0.2f, 1.0f)
+        )
+    ) + scaleIn(
+        initialScale = 0.95f,
+        animationSpec = tween(M3Duration, easing = EmphasizedEasing)
+    )
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.subScreenPopExit(): ExitTransition =
+    fadeOut(
+        animationSpec = tween(
+            durationMillis = 150,
+            easing = CubicBezierEasing(0.4f, 0.0f, 1.0f, 1.0f)
+        )
+    ) + scaleOut(
+        targetScale = 0.85f,
+        animationSpec = tween(M3Duration, easing = EmphasizedEasing)
+    )

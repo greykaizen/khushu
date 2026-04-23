@@ -1,5 +1,6 @@
 package com.kaizen.khushu.ui.screens.hadith
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,10 +8,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -27,27 +30,45 @@ import com.kaizen.khushu.ui.theme.BeVietnamPro
 
 private val ThemePaper = Color(0xFFF5E6C8)
 private val ThemeLight = Color.White
+private val ThemeDark = Color.Black
 
 @Composable
-private fun bgColor(theme: String) = when (theme) {
-    "PAPER" -> ThemePaper
-    "LIGHT" -> ThemeLight
-    else -> MaterialTheme.colorScheme.background
+private fun bgColor(theme: String) : Color {
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    return when (theme) {
+        "DARK" -> ThemeDark
+        "PAPER" -> ThemePaper
+        "LIGHT" -> ThemeLight
+        else -> if (isSystemDark) ThemeDark else ThemeLight
+    }
 }
 
-private fun contentColor(theme: String) = when (theme) {
-    "PAPER", "LIGHT" -> Color.Black
-    else -> Color.White
+@Composable
+private fun contentColor(theme: String) : Color {
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    return when (theme) {
+        "DARK" -> Color.White
+        "PAPER", "LIGHT" -> Color.Black
+        else -> if (isSystemDark) Color.White else Color.Black
+    }
 }
 
 @Composable
 private fun readingColorScheme(readingTheme: String, dynamicColor: Boolean): ColorScheme {
     val context = LocalContext.current
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when(readingTheme) {
+        "DARK" -> true
+        "LIGHT" -> false
+        "PAPER" -> false
+        else -> isSystemDark
+    }
+    
     return when {
-        readingTheme == "DARK" && dynamicColor -> dynamicDarkColorScheme(context)
-        readingTheme == "DARK"                 -> darkColorScheme()
-        dynamicColor                           -> dynamicLightColorScheme(context)
-        else                                   -> lightColorScheme()
+        isDark && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicDarkColorScheme(context)
+        isDark -> darkColorScheme()
+        !isDark && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
+        else -> lightColorScheme()
     }
 }
 
@@ -84,6 +105,7 @@ fun HadithReaderScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .clip(RoundedCornerShape(32.dp))
                 .background(bg)
         ) {
             Scaffold(
@@ -136,26 +158,33 @@ fun HadithReaderScreen(
                     )
                 }
             ) { paddingValues ->
-                if (isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                } else {
-                    LazyColumn(
-                        contentPadding = paddingValues,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(hadiths) { block ->
-                            BlockRenderer(
-                                block = block,
-                                settings = settings,
-                                fg = fg,
-                                bg = bg,
-                                onBlockClick = { /* Actions can be added later */ },
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            )
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = paddingValues.calculateTopPadding()),
+                    color = if (settings.readingTheme == "DARK") Color.Black else if (settings.readingTheme == "PAPER") Color(0xFFFBF4E9) else MaterialTheme.colorScheme.surface,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+                ) {
+                    if (isLoading) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
-                        item { Spacer(Modifier.height(100.dp)) }
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(bottom = 100.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(hadiths) { block ->
+                                BlockRenderer(
+                                    block = block,
+                                    settings = settings,
+                                    fg = fg,
+                                    bg = bg,
+                                    onBlockClick = { /* Actions can be added later */ },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }

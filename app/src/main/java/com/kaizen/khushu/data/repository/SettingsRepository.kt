@@ -65,6 +65,7 @@ class SettingsRepository(private val context: Context) {
         // Tasbeeh Interaction
         val TASBEEH_STEALTH_MODE_ALLOWED = booleanPreferencesKey("tasbeeh_stealth_mode_allowed")
         val TASBEEH_VOLUME_ENABLED = booleanPreferencesKey("tasbeeh_volume_enabled")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data
@@ -132,9 +133,14 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[PreferencesKeys.TASBEEH_STEALTH_MODE_ALLOWED] = enabled }
     }
 
-    suspend fun updateTasbeehVolumeEnabled(enabled: Boolean) {
+    suspend fun setTasbeehVolumeEnabled(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.TASBEEH_VOLUME_ENABLED] = enabled }
     }
+
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.ONBOARDING_COMPLETED] = completed }
+    }
+
 
     suspend fun updateCustomBeadStyles(styles: List<CustomBeadStyle>) {
         val json = Json.encodeToString(styles)
@@ -340,5 +346,6 @@ data class UserSettings(
     val customBeadStyles: List<CustomBeadStyle> = emptyList(),
     val activeBeadStyleId: String = "CLASSIC_AMBER",
     val tasbeehStealthModeAllowed: Boolean = false,
-    val tasbeehVolumeEnabled: Boolean = true
+    val tasbeehVolumeEnabled: Boolean = true,
+    val onboardingCompleted: Boolean = false
 )

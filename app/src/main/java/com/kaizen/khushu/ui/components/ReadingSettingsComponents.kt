@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -127,7 +128,9 @@ fun ReadingSettingsSheet(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
+                                    val systemIsDark = isSystemInDarkTheme()
                                     listOf(
+                                        Triple("SYSTEM", "Auto", (if (systemIsDark) Color.Black else Color.White) to (if (systemIsDark) Color.White else Color.Black)),
                                         Triple("DARK", "Dark", Color.Black to Color.White),
                                         Triple("PAPER", "Paper", Color(0xFFF5E6C8) to Color.Black),
                                         Triple("LIGHT", "Light", Color.White to Color.Black)

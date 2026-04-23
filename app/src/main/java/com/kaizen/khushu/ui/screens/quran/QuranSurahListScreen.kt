@@ -7,8 +7,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +37,7 @@ fun QuranSurahListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .clip(RoundedCornerShape(32.dp))
             .background(MaterialTheme.colorScheme.background)
     ) {
         Scaffold(
@@ -84,6 +88,7 @@ fun QuranSurahListScreen(
                             subtitle = surah.nameArabic,
                             color = MaterialTheme.colorScheme.primaryContainer,
                             sectionId = "quran",
+                            shape = RoundedCornerShape(28.dp), // Consistent rounding
                             onClick = { onSurahTap(surah.id) }
                         )
                     }

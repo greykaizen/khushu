@@ -9,9 +9,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
@@ -52,8 +55,8 @@ fun HadithSectionListScreen(
                         Text(
                             text = book.name,
                             fontFamily = BeVietnamPro,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+//                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     },
@@ -104,6 +107,7 @@ fun HadithSectionListScreen(
                                 title = section.title,
                                 color = MaterialTheme.colorScheme.secondaryContainer,
                                 sectionId = "hadith",
+                                shape = RoundedCornerShape(28.dp), // Consistent rounding
                                 onClick = { onSectionTap(section.number, section.title) }
                             )
                         }

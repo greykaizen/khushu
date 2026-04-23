@@ -1,11 +1,13 @@
 package com.kaizen.khushu.ui.screens.quran
 
 import android.widget.Toast
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
@@ -15,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -45,25 +48,42 @@ private val ThemePaper = Color(0xFFF5E6C8)
 private val ThemeLight = Color.White
 
 @Composable
-private fun bgColor(theme: String) = when (theme) {
-    "PAPER" -> ThemePaper
-    "LIGHT" -> ThemeLight
-    else -> MaterialTheme.colorScheme.background
+private fun bgColor(theme: String) : Color {
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    return when (theme) {
+        "DARK" -> ThemeDark
+        "PAPER" -> ThemePaper
+        "LIGHT" -> ThemeLight
+        else -> if (isSystemDark) ThemeDark else ThemeLight
+    }
 }
 
-private fun contentColor(theme: String) = when (theme) {
-    "PAPER", "LIGHT" -> Color.Black
-    else -> Color.White
+@Composable
+private fun contentColor(theme: String) : Color {
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    return when (theme) {
+        "DARK" -> Color.White
+        "PAPER", "LIGHT" -> Color.Black
+        else -> if (isSystemDark) Color.White else Color.Black
+    }
 }
 
 @Composable
 private fun readingColorScheme(readingTheme: String, dynamicColor: Boolean): ColorScheme {
     val context = LocalContext.current
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when(readingTheme) {
+        "DARK" -> true
+        "LIGHT" -> false
+        "PAPER" -> false
+        else -> isSystemDark
+    }
+    
     return when {
-        readingTheme == "DARK" && dynamicColor -> dynamicDarkColorScheme(context)
-        readingTheme == "DARK"                 -> darkColorScheme()
-        dynamicColor                           -> dynamicLightColorScheme(context)
-        else                                   -> lightColorScheme()
+        isDark && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicDarkColorScheme(context)
+        isDark -> darkColorScheme()
+        !isDark && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
+        else -> lightColorScheme()
     }
 }
 
@@ -152,6 +172,7 @@ fun QuranReaderScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(32.dp))
                 .background(bg)
         ) {
             val titleFraction = scrollBehavior.state.collapsedFraction
@@ -232,79 +253,86 @@ fun QuranReaderScreen(
                     )
                 }
             ) { paddingValues ->
-                if (isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                } else {
-                    var activeBlock by remember { mutableStateOf<Pair<ContentBlock, Int>?>(null) }
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = paddingValues.calculateTopPadding()),
+                    color = if (settings.readingTheme == "DARK") Color.Black else if (settings.readingTheme == "PAPER") Color(0xFFFBF4E9) else MaterialTheme.colorScheme.surface,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+                ) {
+                    if (isLoading) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        }
+                    } else {
+                        var activeBlock by remember { mutableStateOf<Pair<ContentBlock, Int>?>(null) }
 
-                    LazyColumn(
-                        state = listState,
-                        contentPadding = paddingValues,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        if (surahNumber != 9 && surahNumber != 1) {
-                            item {
-                                Text(
-                                    text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = ScheherazadeNew,
-                                    fontSize = 28.sp,
-                                    color = fg,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 32.dp)
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(bottom = 100.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (surahNumber != 9 && surahNumber != 1) {
+                                item {
+                                    Text(
+                                        text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+                                        textAlign = TextAlign.Center,
+                                        fontFamily = ScheherazadeNew,
+                                        fontSize = 28.sp,
+                                        color = fg,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 32.dp)
+                                    )
+                                }
+                            }
+
+                            itemsIndexed(blocks) { index, block ->
+                                val translationMap = remember(translations) {
+                                    translations.mapKeys { it.key.toString() }
+                                }
+                                BlockRenderer(
+                                    block = block,
+                                    settings = settings,
+                                    fg = fg,
+                                    bg = bg,
+                                    translationMap = translationMap,
+                                    scriptMap = scriptMap,
+                                    isHighlighted = playingAyahIndex == index,
+                                    onBlockClick = { activeBlock = it to index },
+                                    modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
                         }
 
-                        itemsIndexed(blocks) { index, block ->
-                            val translationMap = remember(translations) { 
-                                translations.mapKeys { it.key.toString() } 
-                            }
-                            BlockRenderer(
+                        if (activeBlock != null) {
+                            val (block, index) = activeBlock!!
+                            val topicId = "quran_surah_$surahNumber"
+                            val isBookmarked = settings.bookmarkedAyahs.contains("$topicId:$index")
+
+                            BlockActionSheet(
                                 block = block,
+                                topicId = topicId,
                                 settings = settings,
-                                fg = fg,
-                                bg = bg,
-                                translationMap = translationMap,
-                                scriptMap = scriptMap,
-                                isHighlighted = playingAyahIndex == index,
-                                onBlockClick = { activeBlock = it to index },
-                                modifier = Modifier.padding(vertical = 4.dp)
+                                isBookmarked = isBookmarked,
+                                onDismiss = { activeBlock = null },
+                                onBookmark = {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                    settingsViewModel.toggleBookmark(topicId, index)
+                                    val msg = if (isBookmarked) "Bookmark removed" else "Bookmark added"
+                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                    activeBlock = null
+                                },
+                                onPlayAyah = {
+                                    quranAudioViewModel.playAyah(surahNumber, index, blocks, settings.selectedReciterId, sequence = false)
+                                    activeBlock = null
+                                },
+                                onPlayFromHere = {
+                                    quranAudioViewModel.playAyah(surahNumber, index, blocks, settings.selectedReciterId, sequence = true)
+                                    activeBlock = null
+                                }
                             )
                         }
-                        item { Spacer(Modifier.height(100.dp)) }
-                    }
-
-                    if (activeBlock != null) {
-                        val (block, index) = activeBlock!!
-                        val topicId = "quran_surah_$surahNumber"
-                        val isBookmarked = settings.bookmarkedAyahs.contains("$topicId:$index")
-
-                        BlockActionSheet(
-                            block = block,
-                            topicId = topicId,
-                            settings = settings,
-                            isBookmarked = isBookmarked,
-                            onDismiss = { activeBlock = null },
-                            onBookmark = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                settingsViewModel.toggleBookmark(topicId, index)
-                                val msg = if (isBookmarked) "Bookmark removed" else "Bookmark added"
-                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                activeBlock = null
-                            },
-                            onPlayAyah = {
-                                quranAudioViewModel.playAyah(surahNumber, index, blocks, settings.selectedReciterId, sequence = false)
-                                activeBlock = null
-                            },
-                            onPlayFromHere = {
-                                quranAudioViewModel.playAyah(surahNumber, index, blocks, settings.selectedReciterId, sequence = true)
-                                activeBlock = null
-                            }
-                        )
                     }
                 }
             }
