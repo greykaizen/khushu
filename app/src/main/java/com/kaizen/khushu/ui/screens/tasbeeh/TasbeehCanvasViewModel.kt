@@ -25,7 +25,15 @@ class TasbeehCanvasViewModel(private val dao: CanvasDao) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), getInitialLayout())
 
     val presets: StateFlow<List<TasbeehCanvasPresetDomain>> = dao.getAllTasbeehPresets()
-        .map { list -> list.map { it.toDomain() } }
+        .map { list -> 
+            val dbPresets = list.map { it.toDomain() }
+            val builtIn = listOf(
+                TasbeehCanvasPresetDomain("traditional", "Traditional", 0xFF000000.toInt(), TraditionalTasbihPreset.widgets, false),
+                TasbeehCanvasPresetDomain("minimal", "Minimal", 0xFF000000.toInt(), MinimalTasbihPreset.widgets, false),
+                TasbeehCanvasPresetDomain("classic", "Classic", 0xFF000000.toInt(), ClassicTasbihPreset.widgets, false)
+            )
+            builtIn + dbPresets 
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _selectedWidgetId = MutableStateFlow<String?>(null)

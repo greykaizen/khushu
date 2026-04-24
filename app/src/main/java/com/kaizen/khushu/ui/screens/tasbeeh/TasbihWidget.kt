@@ -153,17 +153,41 @@ data class TasbihCanvasPreset(
         val widgets: List<TasbihWidget>,
 )
 
-val DefaultTasbihPreset =
+val TraditionalTasbihPreset =
         TasbihCanvasPreset(
-                id = "default",
-                name = "Default",
+                id = "traditional",
+                name = "Traditional",
                 widgets =
                         listOf(
-                                TasbihWidget.StringBeadWidget(),
-                                TasbihWidget.DhikrNameWidget(),
-                                TasbihWidget.CounterWidget(),
+                            TasbihWidget.StringBeadWidget(offsetX = 0.69905907f, offsetY = 0.5f, scale = 1.0f, color = 4294967295L, alpha = 1.0f, beadSizeScale = 1.0f, stringElasticity = 1.8f, wobbleStiffness = 140.0f, wobbleDampingRatio = 0.25f, topStackLimit = 3, bottomStackLimit = 5, beadMicroScale = 1.5f),
+                            TasbihWidget.DhikrNameWidget(offsetX = 0.36011463f, offsetY = 0.25379494f, scale = 1.0f, color = 4294967295L, alpha = 1.0f, isBold = true, hasOutline = false),
+                            TasbihWidget.CounterWidget(offsetX = 0.3675481f, offsetY = 0.36597243f, scale = 1.0f, color = 4294967295L, alpha = 1.0f, isBold = false, hasOutline = false),
                         )
         )
+
+val MinimalTasbihPreset =
+        TasbihCanvasPreset(
+                id = "minimal",
+                name = "Minimal",
+                widgets =
+                        listOf(
+                            TasbihWidget.DhikrNameWidget(offsetX = 0.5f, offsetY = 0.365011f, scale = 1.0f, color = 4294967295L, alpha = 1.0f, isBold = true, hasOutline = false),
+                            TasbihWidget.CounterWidget(offsetX = 0.5f, offsetY = 0.5f, scale = 1.0f, color = 4294967295L, alpha = 1.0f, isBold = false, hasOutline = false),
+                        )
+        )
+
+val ClassicTasbihPreset =
+        TasbihCanvasPreset(
+                id = "classic",
+                name = "Classic",
+                widgets =
+                        listOf(
+                            TasbihWidget.DhikrNameWidget(offsetX = 0.35759184f, offsetY = 0.13177647f, scale = 1.5542458f, color = 4294967295L, alpha = 1.0f, isBold = true, hasOutline = false),
+                            TasbihWidget.CounterWidget(offsetX = 0.60522205f, offsetY = 0.3098072f, scale = 1.437889f, color = 4294967295L, alpha = 1.0f, isBold = false, hasOutline = false),
+                        )
+        )
+
+val DefaultTasbihPreset = TraditionalTasbihPreset
 
 internal const val BEAD_RADIUS_BASE = 18f
 
