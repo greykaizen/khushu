@@ -62,19 +62,19 @@ fun beadShapeTypeToShape(type: BeadShapeType): Shape = when (type) {
  * Converts a Compose Shape into a Path at the given pixel size.
  * Call inside remember(shapeType, size) { } — never on every frame.
  */
-fun createBeadPath(
+fun updateBeadPath(
     shape: Shape,
     size: Size,
     layoutDirection: LayoutDirection,
     density: Density,
-): Path {
+    outPath: Path
+) {
     val outline = shape.createOutline(size, layoutDirection, density)
-    return Path().apply {
-        when (outline) {
-            is Outline.Generic   -> addPath(outline.path)
-            is Outline.Rectangle -> addRect(outline.rect)
-            is Outline.Rounded   -> addRoundRect(outline.roundRect)
-        }
+    outPath.reset()
+    when (outline) {
+        is Outline.Generic   -> outPath.addPath(outline.path)
+        is Outline.Rectangle -> outPath.addRect(outline.rect)
+        is Outline.Rounded   -> outPath.addRoundRect(outline.roundRect)
     }
 }
 
@@ -86,18 +86,24 @@ fun createBeadPath(
  * Creates a tileable greyscale noise Bitmap and wraps it in a GPU BitmapShader.
  * Works on all API levels (21+). Call inside remember { } — baked once per screen.
  */
-fun createNoiseShader(size: Int = 128): Shader {
-    val bitmap = android.graphics.Bitmap.createBitmap(
-        size, size, android.graphics.Bitmap.Config.ARGB_8888
-    )
-    val rng = Random(seed = 7)
-    for (y in 0 until size) {
-        for (x in 0 until size) {
-            val v = rng.nextInt(80) + 88  // 88–167: mid-grey bias
-            bitmap.setPixel(x, y, android.graphics.Color.argb(v, v, v, v))
+object GlobalNoiseShader {
+    val value: Shader by lazy {
+        val size = 128
+        val bitmap = android.graphics.Bitmap.createBitmap(
+            size, size, android.graphics.Bitmap.Config.ARGB_8888
+        )
+        val rng = Random(seed = 7)
+        val pixels = IntArray(size * size)
+        var i = 0
+        for (y in 0 until size) {
+            for (x in 0 until size) {
+                val v = rng.nextInt(80) + 88  // 88–167: mid-grey bias
+                pixels[i++] = android.graphics.Color.argb(v, v, v, v)
+            }
         }
+        bitmap.setPixels(pixels, 0, size, 0, 0, size, size)
+        BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
     }
-    return BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
 }
 
 // ---------------------------------------------------------------------------

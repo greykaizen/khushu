@@ -79,10 +79,7 @@ fun LearnScreen(
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                top = contentPadding.calculateTopPadding(),
-                bottom = contentPadding.calculateBottomPadding(),
-            ),
+            contentPadding = contentPadding,
         ) {
             item(key = "search") {
                 SearchBar(

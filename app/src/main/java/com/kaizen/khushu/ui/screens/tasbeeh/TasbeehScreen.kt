@@ -36,6 +36,7 @@ import com.kaizen.khushu.ui.components.KhushuAppBar
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import com.kaizen.khushu.ui.screens.settings.SettingsViewModel
 import com.kaizen.khushu.ui.theme.BeVietnamPro
+import com.kaizen.khushu.ui.util.add
 import com.kaizen.khushu.ui.util.rememberMorphShape
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
@@ -92,12 +93,7 @@ fun TasbeehScreen(
     Box(modifier = modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (isListMode) 1 else 2),
-            contentPadding = PaddingValues(
-                start = 20.dp,
-                top = contentPadding.calculateTopPadding(),
-                end = 20.dp,
-                bottom = contentPadding.calculateBottomPadding(),
-            ),
+            contentPadding = contentPadding.add(start = 20.dp, end = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxSize(),
@@ -681,7 +677,7 @@ private fun PreviewBead(
     customStyle: com.kaizen.khushu.data.model.CustomBeadStyle?,
     modifier: Modifier = Modifier
 ) {
-    val noiseShader = remember { createNoiseShader() }
+    val noiseShader = GlobalNoiseShader.value
     val noiseBrush = remember(noiseShader) { ShaderBrush(noiseShader) }
     // Override color with card's onContainer color; strip engraving for card display
     val resolvedStyle = customStyle?.copy(

@@ -550,7 +550,7 @@ private fun BeadPreview(
             path
         }
         
-        val noiseShader = remember { createNoiseShader() }
+        val noiseShader = GlobalNoiseShader.value
         val noiseBrush = remember(noiseShader) { ShaderBrush(noiseShader) }
         
         // Hit-test: check if engraving center has left the shape bounds
@@ -615,7 +615,7 @@ private fun BeadRenderer(style: CustomBeadStyle, shape: Shape, size: Float) {
         }
         path
     }
-    val noiseShader = remember { createNoiseShader() }
+    val noiseShader = GlobalNoiseShader.value
     val noiseBrush = remember(noiseShader) { ShaderBrush(noiseShader) }
 
     Canvas(modifier = Modifier.size(size.dp)) {

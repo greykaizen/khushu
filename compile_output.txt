@@ -1,0 +1,112 @@
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:kspDebugKotlin UP-TO-DATE
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:56:40 Unresolved reference 'PillNavBar'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:58:48 Unresolved reference 'OnboardingScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:59:43 Unresolved reference 'LearnScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:60:43 Unresolved reference 'LearnSectionDetailScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:62:43 Unresolved reference 'LearnReadingScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:63:43 Unresolved reference 'SalahCanvasScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:65:43 Unresolved reference 'SalahImmersiveScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:66:43 Unresolved reference 'SalahPickerScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:69:35 Unresolved reference 'KhushuTheme'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:70:35 Unresolved reference 'ThemeTransitionProvider'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:186:13 Unresolved reference 'ThemeTransitionProvider'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:187:17 Unresolved reference 'KhushuTheme'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:193:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:279:33 Unresolved reference 'ONBOARDING_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:284:25 Unresolved reference 'OnboardingScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:289:45 Unresolved reference 'ONBOARDING_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:289:65 Cannot access 'var inclusive: Boolean': it is private in 'androidx/navigation/NavOptionsBuilder'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:302:25 Unresolved reference 'SalahPickerScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:303:46 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:303:54 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:318:25 Unresolved reference 'TasbeehScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:321:49 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:322:88 Unresolved reference 'id'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:344:25 Unresolved reference 'LearnScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:345:46 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:348:43 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:375:60 Unresolved reference 'QuranSurahListScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:376:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:390:60 Unresolved reference 'QuranReaderScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:393:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:413:65 Unresolved reference 'BUNDLED_HADITH_BOOKS'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:413:93 Unresolved reference 'it'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:415:65 Unresolved reference 'HadithSectionListScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:417:50 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:417:55 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:441:65 Unresolved reference 'BUNDLED_HADITH_BOOKS'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:441:93 Unresolved reference 'it'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:443:61 Unresolved reference 'HadithReaderScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:447:46 Unresolved reference 'name'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:455:33 Unresolved reference 'LEARN_DETAIL_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:462:25 Unresolved reference 'LearnSectionDetailScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:465:43 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:500:29 Unresolved reference 'LearnReadingScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:512:33 Unresolved reference 'SETTINGS_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:518:25 Unresolved reference 'SettingsScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:521:56 Unresolved reference 'SETTINGS_COUNTER_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:524:56 Unresolved reference 'SETTINGS_APPEARANCE_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:533:33 Unresolved reference 'SETTINGS_COUNTER_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:539:25 Unresolved reference 'CounterSettingsScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:546:33 Unresolved reference 'SETTINGS_APPEARANCE_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:552:25 Unresolved reference 'AppearanceSettingsScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:559:33 Unresolved reference 'CUSTOMIZE_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:565:25 Unresolved reference 'CustomizeScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:567:56 Unresolved reference 'CUSTOMIZE_BRANDING_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:569:72 Unresolved reference 'CUSTOMIZE_SALAH_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:571:56 Unresolved reference 'CUSTOMIZE_TASBEEH_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:580:33 Unresolved reference 'CUSTOMIZE_SALAH_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:586:25 Unresolved reference 'SalahCustomizeScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:588:51 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:596:33 Unresolved reference 'CUSTOMIZE_TASBEEH_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:602:25 Unresolved reference 'TasbeehCustomizeScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:604:66 Unresolved reference 'TASBEEH_CANVAS_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:605:73 Unresolved reference 'BEAD_CUSTOMIZER_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:611:33 Unresolved reference 'CUSTOMIZE_BRANDING_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:617:25 Unresolved reference 'BrandingSettingsScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:626:33 Unresolved reference 'TASBEEH_IMMERSIVE_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:639:29 Unresolved reference 'TasbeehImmersiveScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:652:33 Unresolved reference 'SALAH_IMMERSIVE_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:679:25 Unresolved reference 'SalahImmersiveScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:691:33 Unresolved reference 'SALAH_CANVAS_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:699:25 Unresolved reference 'SalahCanvasScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:708:33 Unresolved reference 'TASBEEH_CANVAS_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:714:25 Unresolved reference 'TasbeehCanvasScreen'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:722:33 Unresolved reference 'BEAD_CUSTOMIZER_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:728:25 Unresolved reference 'TasbihBeadCustomizerSheet'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:746:13 Unresolved reference 'PillNavBar'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:781:13 Unresolved reference 'CreateCollectionSheet'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:789:13 Unresolved reference 'SettingsSheet'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:793:44 Unresolved reference 'SETTINGS_ROUTE'.
+e: file:///home/kaizen/AndroidStudioProjects/Khushu5/app/src/main/java/com/kaizen/khushu/MainActivity.kt:797:44 Unresolved reference 'CUSTOMIZE_ROUTE'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4s
+8 actionable tasks: 1 executed, 7 up-to-date

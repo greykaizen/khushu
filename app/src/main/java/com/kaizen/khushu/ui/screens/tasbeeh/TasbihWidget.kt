@@ -167,6 +167,14 @@ val DefaultTasbihPreset =
 
 internal const val BEAD_RADIUS_BASE = 18f
 
+private val SharedScratchPath = androidx.compose.ui.graphics.Path()
+private val SharedEngravingPaint = android.graphics.Paint().apply {
+    color = android.graphics.Color.argb(210, 255, 255, 255)
+    textAlign = android.graphics.Paint.Align.CENTER
+    isAntiAlias = true
+    typeface = android.graphics.Typeface.DEFAULT_BOLD
+}
+
 @Composable
 fun TasbihWidgetRenderer(
         widget: TasbihWidget,
@@ -192,7 +200,7 @@ fun TasbihWidgetRenderer(
     val baseModifier = modifier.graphicsLayer { alpha = widget.alpha }
 
     // Shader/Brush cache for custom beads
-    val noiseShader = remember { createNoiseShader() }
+    val noiseShader = GlobalNoiseShader.value
     val noiseBrush = remember(noiseShader) { ShaderBrush(noiseShader) }
 
     // beadShapeTypeToShape is @Composable — call it at composable scope directly (Compose caches
@@ -505,15 +513,15 @@ internal fun DrawScope.drawBeadWrapper(
 ) {
     if (customStyle != null && customShape != null) {
         val sizePx = radius * 2f
-        val path =
-                createBeadPath(
-                        customShape,
-                        androidx.compose.ui.geometry.Size(sizePx, sizePx),
-                        layoutDirection,
-                        androidx.compose.ui.unit.Density(density)
-                )
+        updateBeadPath(
+                customShape,
+                androidx.compose.ui.geometry.Size(sizePx, sizePx),
+                layoutDirection,
+                androidx.compose.ui.unit.Density(density),
+                SharedScratchPath
+        )
         translate(left = center.x - radius, top = center.y - radius) {
-            drawPremiumBead(path, customStyle, noiseBrush)
+            drawPremiumBead(SharedScratchPath, customStyle, noiseBrush)
         }
     } else {
         drawBead(center, radius, 1f, legacyStyle)
@@ -553,20 +561,13 @@ fun DrawScope.drawPremiumBead(
     // Skip in preview mode; BeadPreview composable renders its own Text layer with gesture support
     if (drawEngraving && style.engravingText.isNotBlank()) {
         val textSize = bounds.width * 0.38f
-        val paint =
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.argb(210, 255, 255, 255)
-                    this.textSize = textSize
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    isAntiAlias = true
-                    typeface = android.graphics.Typeface.DEFAULT_BOLD
-                }
+        SharedEngravingPaint.textSize = textSize
         // Apply user scale and offset (stored as dp-equivalent values)
         val cx = bounds.left + bounds.width / 2f + (style.textOffsetX * density)
         val cy = bounds.top + bounds.height / 2f + (style.textOffsetY * density) + textSize * 0.35f
         drawContext.canvas.nativeCanvas.save()
         drawContext.canvas.nativeCanvas.scale(style.textScale, style.textScale, cx, cy)
-        drawContext.canvas.nativeCanvas.drawText(style.engravingText, cx, cy, paint)
+        drawContext.canvas.nativeCanvas.drawText(style.engravingText, cx, cy, SharedEngravingPaint)
         drawContext.canvas.nativeCanvas.restore()
     }
 }

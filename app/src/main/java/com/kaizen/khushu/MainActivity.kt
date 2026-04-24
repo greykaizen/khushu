@@ -68,6 +68,7 @@ import com.kaizen.khushu.ui.screens.settings.*
 import com.kaizen.khushu.ui.screens.tasbeeh.*
 import com.kaizen.khushu.ui.theme.KhushuTheme
 import com.kaizen.khushu.ui.theme.ThemeTransitionProvider
+import com.kaizen.khushu.ui.util.add
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -236,12 +237,8 @@ private fun KhushuApp(
     var showSettingsSheet by remember { mutableStateOf(false) }
     val navController = rememberNavController()
     val settings by settingsViewModel.settings.collectAsState()
-
-    val density = LocalDensity.current
-    val navBarBottomDp = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    val pillClearance = navBarBottomDp + 30.dp + 56.dp
-    val fabBottomPadding = navBarBottomDp + 30.dp + 56.dp + 20.dp
-    val topClearance = with(density) { WindowInsets.statusBars.getTop(density).toDp() } + 64.dp
+    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+    val screenContentPadding = systemBarsPadding.add(top = 64.dp, bottom = 86.dp)
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -325,13 +322,7 @@ private fun KhushuApp(
                             onEditCollection = { showCreateSheet = true },
                             onSettingsClick = { showSettingsSheet = true },
                             hazeState = hazeState,
-                            contentPadding =
-                                PaddingValues(
-                                    start = 0.dp,
-                                    top = topClearance,
-                                    end = 0.dp,
-                                    bottom = pillClearance
-                                )
+                            contentPadding = screenContentPadding
                         )
                     }
 
@@ -361,7 +352,7 @@ private fun KhushuApp(
                             },
                             onSettingsClick = { showSettingsSheet = true },
                             hazeState = hazeState,
-                            contentPadding = PaddingValues(top = topClearance, bottom = pillClearance),
+                            contentPadding = screenContentPadding,
                             settingsViewModel = settingsViewModel
                         )
                     }
@@ -757,10 +748,8 @@ private fun KhushuApp(
             exit = scaleOut() + fadeOut(),
             modifier =
                 Modifier.align(Alignment.BottomEnd)
-                    .padding(
-                        end = 16.dp,
-                        bottom = fabBottomPadding + 16.dp
-                    ),
+                    .padding(end = 16.dp, bottom = 122.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars),
         ) {
             FloatingActionButton(
                 onClick = { showCreateSheet = true },
