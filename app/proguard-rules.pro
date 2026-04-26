@@ -1,21 +1,41 @@
 # Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve line numbers for debugging stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Kotlin Serialization
+-keepattributes *Annotation*, EnclosingMethod, InnerClasses, Signature
+-keep,includedescriptorclasses class **$$serializer { *; }
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable *;
+}
+-keepclassmembers class **$companion { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Room Database
+-keep class * extends androidx.room.RoomDatabase
+-keep class * extends androidx.room.Entity
+-keep class * extends androidx.room.Dao
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Database class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+
+# Keep our data models intact
+-keep class com.kaizen.khushu.data.entity.** { *; }
+-keep class com.kaizen.khushu.data.model.** { *; }
+
+# Haze (Blur effect library)
+-keep class dev.chrisbanes.haze.** { *; }
+
+# Retrofit & OkHttp
+-keepattributes Signature, InnerClasses, EnclosingMethod
+-keep @retrofit2.http.* interface * { *; }
+-keep class retrofit2.** { *; }
+-keep class okhttp3.** { *; }
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+
+# AlAdhan API Models (in PrayerTimeRepository)
+-keep class com.kaizen.khushu.data.repository.AlAdhanResponse { *; }
+-keep class com.kaizen.khushu.data.repository.AlAdhanData { *; }

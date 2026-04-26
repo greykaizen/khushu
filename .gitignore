@@ -18,8 +18,10 @@ local.properties
 *.apk
 *.aab
 *.ap_
-*.jks
-*.keystore
+*.p12
+key_base64.txt
+
+
 google-services.json
 
 # Claude Code

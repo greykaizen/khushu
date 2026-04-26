@@ -1,0 +1,218 @@
+[
+  {
+    "id": 381,
+    "name": "Tafsir Fathul Majid",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/381/{surah}.json"
+  },
+  {
+    "id": 169,
+    "name": "Tafsir Ibn Kathir (abridged)",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/169/{surah}.json"
+  },
+  {
+    "id": 14,
+    "name": "Tafsir Ibn Kathir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/14/{surah}.json"
+  },
+  {
+    "id": 164,
+    "name": "Tafseer ibn Kathir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/164/{surah}.json"
+  },
+  {
+    "id": 165,
+    "name": "Tafsir Ahsanul Bayaan",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/165/{surah}.json"
+  },
+  {
+    "id": 166,
+    "name": "Tafsir Abu Bakr Zakaria",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/166/{surah}.json"
+  },
+  {
+    "id": 168,
+    "name": "Maarif-ul-Quran",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/168/{surah}.json"
+  },
+  {
+    "id": 170,
+    "name": "Tafseer Al Saddi",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/170/{surah}.json"
+  },
+  {
+    "id": 91,
+    "name": "Tafseer Al Saddi",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/91/{surah}.json"
+  },
+  {
+    "id": 94,
+    "name": "Tafseer Al-Baghawi",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/94/{surah}.json"
+  },
+  {
+    "id": 92,
+    "name": "Tafseer Tanwir al-Miqbas",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/92/{surah}.json"
+  },
+  {
+    "id": 93,
+    "name": "Tafsir Al Wasit",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/93/{surah}.json"
+  },
+  {
+    "id": 15,
+    "name": "Tafsir al-Tabari",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/15/{surah}.json"
+  },
+  {
+    "id": 16,
+    "name": "Tafsir Muyassar",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/16/{surah}.json"
+  },
+  {
+    "id": 90,
+    "name": "Tafseer Al Qurtubi",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/90/{surah}.json"
+  },
+  {
+    "id": 804,
+    "name": "Rebar Kurdish Tafsir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/804/{surah}.json"
+  },
+  {
+    "id": 160,
+    "name": "Tafsir Ibn Kathir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/160/{surah}.json"
+  },
+  {
+    "id": 159,
+    "name": "Tafsir Bayan ul Quran",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/159/{surah}.json"
+  },
+  {
+    "id": 818,
+    "name": "Tazkirul Quran(Maulana Wahiduddin Khan)",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/818/{surah}.json"
+  },
+  {
+    "id": 817,
+    "name": "Tazkirul Quran(Maulana Wahiduddin Khan)",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/817/{surah}.json"
+  },
+  {
+    "id": 109,
+    "name": "Kashf Al-Asrar Tafsir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/109/{surah}.json"
+  },
+  {
+    "id": 108,
+    "name": "Al Qushairi Tafsir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/108/{surah}.json"
+  },
+  {
+    "id": 107,
+    "name": "Kashani Tafsir",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/107/{surah}.json"
+  },
+  {
+    "id": 93,
+    "name": "Tafsir al-Tustari",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/93/{surah}.json"
+  },
+  {
+    "id": 86,
+    "name": "Asbab Al-Nuzul by Al-Wahidi",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/86/{surah}.json"
+  },
+  {
+    "id": 73,
+    "name": "Tanwîr al-Miqbâs min Tafsîr Ibn ‘Abbâs",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/73/{surah}.json"
+  },
+  {
+    "id": 74,
+    "name": "Al-Jalalayn",
+    "author": "",
+    "language": "",
+    "source": "spa5k",
+    "url_pattern": "https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/74/{surah}.json"
+  }
+]

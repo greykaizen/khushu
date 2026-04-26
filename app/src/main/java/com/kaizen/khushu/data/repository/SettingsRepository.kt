@@ -72,6 +72,20 @@ class SettingsRepository(private val context: Context) {
         val TASBEEH_VOLUME_ENABLED = booleanPreferencesKey("tasbeeh_volume_enabled")
         val TASBEEH_VOLUME_ANIMATION = booleanPreferencesKey("tasbeeh_volume_animation")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+
+        // Prayer Times & Location
+        val PRAYER_CALCULATION_METHOD = stringPreferencesKey("prayer_calculation_method")
+        val PRAYER_MADHAB = stringPreferencesKey("prayer_madhab")
+        val LOCATION_LAT = floatPreferencesKey("location_lat")
+        val LOCATION_LNG = floatPreferencesKey("location_lng")
+        val USE_GPS_LOCATION = booleanPreferencesKey("use_gps_location")
+        val PRAYER_SOURCE_TYPE = stringPreferencesKey("prayer_source_type")
+        val PRAYER_OFFSET_FAJR = intPreferencesKey("prayer_offset_fajr")
+        val PRAYER_OFFSET_DHUHR = intPreferencesKey("prayer_offset_dhuhr")
+        val PRAYER_OFFSET_ASR = intPreferencesKey("prayer_offset_asr")
+        val PRAYER_OFFSET_MAGHRIB = intPreferencesKey("prayer_offset_maghrib")
+        val PRAYER_OFFSET_ISHA = intPreferencesKey("prayer_offset_isha")
+        val LAST_PRAYER_REFRESH_EPOCH_MS = longPreferencesKey("last_prayer_refresh_epoch_ms")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data
@@ -137,12 +151,64 @@ class SettingsRepository(private val context: Context) {
                 activeBeadStyleId = preferences[PreferencesKeys.ACTIVE_BEAD_STYLE_ID] ?: "CLASSIC_AMBER",
                 tasbeehStealthModeAllowed = preferences[PreferencesKeys.TASBEEH_STEALTH_MODE_ALLOWED] ?: false,
                 tasbeehVolumeEnabled = preferences[PreferencesKeys.TASBEEH_VOLUME_ENABLED] ?: true,
-                tasbeehVolumeAnimation = preferences[PreferencesKeys.TASBEEH_VOLUME_ANIMATION] ?: true
+                tasbeehVolumeAnimation = preferences[PreferencesKeys.TASBEEH_VOLUME_ANIMATION] ?: true,
+                onboardingCompleted = preferences[PreferencesKeys.ONBOARDING_COMPLETED] ?: false,
+                prayerCalculationMethod = preferences[PreferencesKeys.PRAYER_CALCULATION_METHOD] ?: "MUSLIM_WORLD_LEAGUE",
+                prayerMadhab = preferences[PreferencesKeys.PRAYER_MADHAB] ?: "SHAFI",
+                locationLat = preferences[PreferencesKeys.LOCATION_LAT] ?: 21.4225f,
+                locationLng = preferences[PreferencesKeys.LOCATION_LNG] ?: 39.8262f,
+                useGpsLocation = preferences[PreferencesKeys.USE_GPS_LOCATION] ?: false,
+                prayerSourceType = preferences[PreferencesKeys.PRAYER_SOURCE_TYPE] ?: "LOCAL",
+                fajrOffsetMinutes = preferences[PreferencesKeys.PRAYER_OFFSET_FAJR] ?: 0,
+                dhuhrOffsetMinutes = preferences[PreferencesKeys.PRAYER_OFFSET_DHUHR] ?: 0,
+                asrOffsetMinutes = preferences[PreferencesKeys.PRAYER_OFFSET_ASR] ?: 0,
+                maghribOffsetMinutes = preferences[PreferencesKeys.PRAYER_OFFSET_MAGHRIB] ?: 0,
+                ishaOffsetMinutes = preferences[PreferencesKeys.PRAYER_OFFSET_ISHA] ?: 0,
+                lastPrayerRefreshEpochMs = preferences[PreferencesKeys.LAST_PRAYER_REFRESH_EPOCH_MS] ?: 0L
             )
         }
 
     suspend fun updateTasbeehStealthModeAllowed(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.TASBEEH_STEALTH_MODE_ALLOWED] = enabled }
+    }
+
+    suspend fun updatePrayerCalculationMethod(method: String) {
+        context.dataStore.edit { it[PreferencesKeys.PRAYER_CALCULATION_METHOD] = method }
+    }
+
+    suspend fun updatePrayerMadhab(madhab: String) {
+        context.dataStore.edit { it[PreferencesKeys.PRAYER_MADHAB] = madhab }
+    }
+
+    suspend fun updateLocation(lat: Float, lng: Float) {
+        context.dataStore.edit {
+            it[PreferencesKeys.LOCATION_LAT] = lat
+            it[PreferencesKeys.LOCATION_LNG] = lng
+        }
+    }
+
+    suspend fun updateUseGpsLocation(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.USE_GPS_LOCATION] = enabled }
+    }
+
+    suspend fun updatePrayerSourceType(source: String) {
+        context.dataStore.edit { it[PreferencesKeys.PRAYER_SOURCE_TYPE] = source }
+    }
+
+    suspend fun updatePrayerOffset(prayerKey: String, minutes: Int) {
+        context.dataStore.edit {
+            when (prayerKey) {
+                "Fajr" -> it[PreferencesKeys.PRAYER_OFFSET_FAJR] = minutes
+                "Dhuhr" -> it[PreferencesKeys.PRAYER_OFFSET_DHUHR] = minutes
+                "Asr" -> it[PreferencesKeys.PRAYER_OFFSET_ASR] = minutes
+                "Maghrib" -> it[PreferencesKeys.PRAYER_OFFSET_MAGHRIB] = minutes
+                "Isha" -> it[PreferencesKeys.PRAYER_OFFSET_ISHA] = minutes
+            }
+        }
+    }
+
+    suspend fun updateLastPrayerRefresh(epochMs: Long) {
+        context.dataStore.edit { it[PreferencesKeys.LAST_PRAYER_REFRESH_EPOCH_MS] = epochMs }
     }
 
     suspend fun setTasbeehVolumeEnabled(enabled: Boolean) {
@@ -388,5 +454,17 @@ data class UserSettings(
     val tasbeehStealthModeAllowed: Boolean = false,
     val tasbeehVolumeEnabled: Boolean = true,
     val tasbeehVolumeAnimation: Boolean = true,
-    val onboardingCompleted: Boolean = false
+    val onboardingCompleted: Boolean = false,
+    val prayerCalculationMethod: String = "MUSLIM_WORLD_LEAGUE",
+    val prayerMadhab: String = "SHAFI",
+    val locationLat: Float = 21.4225f,
+    val locationLng: Float = 39.8262f,
+    val useGpsLocation: Boolean = false,
+    val prayerSourceType: String = "LOCAL",
+    val fajrOffsetMinutes: Int = 0,
+    val dhuhrOffsetMinutes: Int = 0,
+    val asrOffsetMinutes: Int = 0,
+    val maghribOffsetMinutes: Int = 0,
+    val ishaOffsetMinutes: Int = 0,
+    val lastPrayerRefreshEpochMs: Long = 0L
 )

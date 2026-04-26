@@ -56,6 +56,9 @@ import com.kaizen.khushu.data.local.TasbeehDatabase
 import com.kaizen.khushu.ui.components.PillNavBar
 import com.kaizen.khushu.ui.navigation.*
 import com.kaizen.khushu.ui.screens.onboarding.OnboardingScreen
+import com.kaizen.khushu.ui.screens.home.HomeScreen
+import com.kaizen.khushu.ui.screens.home.HomeViewModel
+import com.kaizen.khushu.data.repository.PrayerTimeRepository
 import com.kaizen.khushu.ui.screens.learn.LearnScreen
 import com.kaizen.khushu.ui.screens.learn.LearnSectionDetailScreen
 import com.kaizen.khushu.ui.screens.learn.LearnAudioViewModel
@@ -85,6 +88,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var learnAudioViewModel: LearnAudioViewModel
     private lateinit var quranViewModel: com.kaizen.khushu.ui.screens.quran.QuranViewModel
     private lateinit var hadithViewModel: com.kaizen.khushu.ui.screens.hadith.HadithViewModel
+    private lateinit var prayerTimeRepository: PrayerTimeRepository
+    private lateinit var homeViewModel: com.kaizen.khushu.ui.screens.home.HomeViewModel
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val media3Controller: MediaController?
@@ -119,6 +124,12 @@ class MainActivity : ComponentActivity() {
 
         settingsRepository = SettingsRepository(applicationContext)
         settingsViewModel = SettingsViewModel(settingsRepository, applicationContext)
+        prayerTimeRepository = PrayerTimeRepository(settingsRepository)
+
+        homeViewModel = ViewModelProvider(
+            this as ViewModelStoreOwner,
+            com.kaizen.khushu.ui.screens.home.HomeViewModel.factory(settingsRepository, prayerTimeRepository)
+        )[com.kaizen.khushu.ui.screens.home.HomeViewModel::class.java]
 
         val dao = TasbeehDatabase.getInstance(applicationContext).tasbeehDao()
         tasbeehViewModel =
@@ -199,6 +210,7 @@ class MainActivity : ComponentActivity() {
                         learnAudioViewModel = learnAudioViewModel,
                         quranViewModel = quranViewModel,
                         hadithViewModel = hadithViewModel,
+                        homeViewModel = homeViewModel,
                         darkTheme = darkTheme,
                         media3Controller = media3Controller
                     )
@@ -230,6 +242,7 @@ private fun KhushuApp(
     learnAudioViewModel: LearnAudioViewModel,
     quranViewModel: com.kaizen.khushu.ui.screens.quran.QuranViewModel,
     hadithViewModel: com.kaizen.khushu.ui.screens.hadith.HadithViewModel,
+    homeViewModel: HomeViewModel,
     darkTheme: Boolean,
     media3Controller: MediaController?
 ) {
@@ -287,6 +300,21 @@ private fun KhushuApp(
                                     popUpTo(ONBOARDING_ROUTE) { inclusive = true }
                                 }
                             }
+                        )
+                    }
+
+                    composable(
+                        route = AppDestinations.HOME.route,
+                        enterTransition = { tabEnter() },
+                        exitTransition = { tabExit() },
+                        popEnterTransition = { tabEnter() },
+                        popExitTransition = { tabExit() },
+                    ) {
+                        HomeScreen(
+                            viewModel = homeViewModel,
+                            hazeState = hazeState,
+                            contentPadding = screenContentPadding,
+                            onSettingsClick = { showSettingsSheet = true }
                         )
                     }
 
@@ -515,6 +543,9 @@ private fun KhushuApp(
                             onNavigateAppearance = {
                                 navController.navigate(SETTINGS_APPEARANCE_ROUTE)
                             },
+                            onNavigatePrayer = {
+                                navController.navigate(com.kaizen.khushu.ui.navigation.SETTINGS_PRAYER_ROUTE)
+                            },
                             onBack = {
                                 navController.popBackStack()
                             }
@@ -542,6 +573,19 @@ private fun KhushuApp(
                         popExitTransition = { subScreenPopExit() },
                     ) {
                         AppearanceSettingsScreen(
+                            viewModel = settingsViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = com.kaizen.khushu.ui.navigation.SETTINGS_PRAYER_ROUTE,
+                        enterTransition = { subScreenEnter() },
+                        exitTransition = { subScreenExit() },
+                        popEnterTransition = { subScreenPopEnter() },
+                        popExitTransition = { subScreenPopExit() },
+                    ) {
+                        PrayerSettingsScreen(
                             viewModel = settingsViewModel,
                             onBack = { navController.popBackStack() }
                         )
@@ -622,7 +666,8 @@ private fun KhushuApp(
                         popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val collectionId = backStackEntry.arguments?.getString("collectionId") ?: ""
-                        val collection = tasbeehViewModel.collections.value.find { it.id.toString() == collectionId }
+                        val collections by tasbeehViewModel.collections.collectAsStateWithLifecycle()
+                        val collection = collections.find { it.id.toString() == collectionId }
                         if (collection != null) {
                             val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
                             val customBeadStyle = settings.customBeadStyles.find { it.id == settings.activeBeadStyleId }

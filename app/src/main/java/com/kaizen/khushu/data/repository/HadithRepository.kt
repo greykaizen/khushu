@@ -23,6 +23,26 @@ object HadithRepository {
         }
     }
 
+    private val arabicCache = ConcurrentHashMap<String, Map<Int, String>>()
+
+    fun getArabicBook(context: Context, bookId: String): Map<Int, String> {
+        arabicCache[bookId]?.let { return it }
+        val filename = "ar.$bookId.json"
+        return try {
+            val raw = context.assets.open("hadith/$filename").bufferedReader().use { it.readText() }
+            val obj = json.parseToJsonElement(raw).jsonObject
+            val hadiths = obj["hadiths"]?.jsonArray ?: return emptyMap()
+            val map = hadiths.associate { el ->
+                val h = el.jsonObject
+                val num = h["hadithnumber"]?.jsonPrimitive?.intOrNull ?: 0
+                val text = h["text"]?.jsonPrimitive?.content ?: ""
+                num to text
+            }
+            arabicCache[bookId] = map
+            map
+        } catch (_: Exception) { emptyMap() }
+    }
+
     fun getSections(context: Context, bookId: String): List<HadithSection> {
         val book = loadBook(context, bookId)
         val metadata = book["metadata"]?.jsonObject ?: return emptyList()

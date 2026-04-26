@@ -31,10 +31,11 @@ class HadithViewModel(application: Application) : AndroidViewModel(application) 
         isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val rawList = HadithRepository.getHadiths(getApplication(), bookId, sectionNumber)
+            val arabicBook = HadithRepository.getArabicBook(getApplication(), bookId)
             val blocks = rawList.map { obj ->
                 val num = obj["hadithnumber"]?.jsonPrimitive?.intOrNull ?: 0
                 val text = obj["text"]?.jsonPrimitive?.content ?: ""
-                val arabic = obj["textArabic"]?.jsonPrimitive?.content // might be null
+                val arabic = arabicBook[num] ?: obj["textArabic"]?.jsonPrimitive?.content
                 
                 // Extract grade
                 val grades = obj["grades"]?.jsonArray ?: JsonArray(emptyList())

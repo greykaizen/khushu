@@ -202,6 +202,8 @@ fun HadithReaderScreen(
                     onKeepScreenOnChange = { settingsViewModel.toggleReadingKeepScreenOn(it) },
                     onShowTajweedChange = { settingsViewModel.toggleShowTajweed(it) },
                     onTranslationLangChange = { settingsViewModel.setSelectedTranslationLang(it) },
+                    onShowTafsirChange = { settingsViewModel.setShowTafsir(it) },
+                    onOpenTafsirPicker = { showSettings = false },
                     onReciterChange = { settingsViewModel.setSelectedReciterId(it) },
                     onScriptChange = { settingsViewModel.setSelectedScript(it) },
                     onOpenTranslationPicker = {
@@ -215,8 +217,12 @@ fun HadithReaderScreen(
             if (showTranslationPicker) {
                 TranslationPickerSheet(
                     selectedId = settings.selectedTranslationLang,
+                    selectedSource = try { com.kaizen.khushu.data.model.ContentSource.valueOf(settings.selectedTranslationSource) } catch (e: Exception) { com.kaizen.khushu.data.model.ContentSource.FAWAZ },
                     isDownloading = false, // TODO: Implement if needed
                     progress = 0f,
+                    onSelectSource = { source ->
+                        settingsViewModel.setSelectedTranslationSource(source.name)
+                    },
                     onSelect = { meta ->
                         settingsViewModel.setSelectedTranslationLang(meta.id)
                         showTranslationPicker = false

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khushu — Home Screen Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kalam:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f0ed;
+    font-family: 'Kalam', cursive;
+    min-height: 100vh;
+    padding: 40px 24px 60px;
+  }
+
+  .page-title {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    color: #555;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .page-sub {
+    font-family: 'Kalam', cursive;
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .row {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .option-label {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    color: #444;
+    font-weight: 700;
+  }
+  .option-desc {
+    font-family: 'Kalam', cursive;
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    max-width: 180px;
+    line-height: 1.5;
+  }
+
+  /* Phone shell */
+  .phone {
+    width: 200px;
+    background: #e4e6ea;
+    border-radius: 32px;
+    border: 2.5px solid #bbb;
+    padding: 14px 12px 18px;
+    position: relative;
+    box-shadow: 3px 4px 0px #ccc;
+  }
+
+  /* Status bar */
+  .status {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 6px 10px;
+    font-size: 9px;
+    color: #888;
+    font-family: 'Kalam', cursive;
+  }
+
+  /* App header */
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px 10px;
+  }
+  .app-name {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    color: #2a2a2a;
+    font-weight: 700;
+  }
+  .gear {
+    width: 18px; height: 18px;
+    border: 2px solid #666;
+    border-radius: 50%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gear::before {
+    content: '✦';
+    font-size: 8px;
+    color: #666;
+  }
+
+  /* Prayer time card */
+  .prayer-card {
+    background: white;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1.5px solid #ddd;
+  }
+  .prayer-card .hijri {
+    font-size: 13px;
+    color: #333;
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .prayer-card .next {
+    font-size: 12px;
+    color: #555;
+    font-family: 'Caveat', cursive;
+  }
+  .prayer-card .chevron {
+    text-align: center;
+    color: #aaa;
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  /* Main content area */
+  .main-area {
+    background: #d8dce3;
+    border-radius: 18px;
+    padding: 10px;
+    margin-bottom: 8px;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    background: white;
+    border-radius: 24px;
+    border: 1.5px solid #ddd;
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-around;
+  }
+  .nav-item {
+    font-family: 'Caveat', cursive;
+    font-size: 13px;
+    color: #999;
+    position: relative;
+    padding-bottom: 2px;
+  }
+  .nav-item.active {
+    color: #333;
+    font-weight: 700;
+  }
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: #555;
+    border-radius: 2px;
+  }
+
+  /* ---- OPTION 1: Ayah + Streak ---- */
+  .ayah-card {
+    background: white;
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1.5px solid #ddd;
+  }
+  .ayah-label {
+    font-size: 9px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    font-family: 'Kalam', cursive;
+  }
+  .ayah-text {
+    font-size: 10px;
+    color: #444;
+    font-family: 'Caveat', cursive;
+    line-height: 1.5;
+  }
+  .ayah-ref {
+    font-size: 9px;
+    color: #bbb;
+    margin-top: 4px;
+    font-family: 'Kalam', cursive;
+  }
+
+  .streak-row {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    padding: 8px 10px;
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid #ddd;
+  }
+  .streak-label {
+    font-size: 9px;
+    color: #888;
+    font-family: 'Kalam', cursive;
+    flex: 1;
+  }
+  .streak-dots {
+    display: flex;
+    gap: 3px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #c0c5cc;
+    border: 1.5px solid #aaa;
+  }
+  .dot.filled {
+    background: #6b7a8d;
+    border-color: #6b7a8d;
+  }
+
+  /* ---- OPTION 2: Prayer Tracker ---- */
+  .tracker-card {
+    background: white;
+    border-radius: 12px;
+    padding: 8px 12px;
+    border: 1.5px solid #ddd;
+    flex: 1;
+  }
+  .tracker-title {
+    font-size: 9px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-family: 'Kalam', cursive;
+  }
+  .prayer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed #eee;
+  }
+  .prayer-row:last-child { border-bottom: none; }
+  .prayer-name {
+    font-size: 11px;
+    color: #444;
+    font-family: 'Caveat', cursive;
+  }
+  .check-circle {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid #bbb;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check-circle.done {
+    background: #6b7a8d;
+    border-color: #6b7a8d;
+    color: white;
+    font-size: 8px;
+  }
+
+  /* ---- OPTION 3: Countdown + Qibla ---- */
+  .countdown-card {
+    background: white;
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1.5px solid #ddd;
+    text-align: center;
+  }
+  .countdown-label {
+    font-size: 9px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Kalam', cursive;
+    margin-bottom: 4px;
+  }
+  .countdown-time {
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    color: #2a2a2a;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .countdown-prayer {
+    font-size: 11px;
+    color: #888;
+    font-family: 'Caveat', cursive;
+    margin-top: 2px;
+  }
+  .countdown-bar-bg {
+    background: #e8eaed;
+    border-radius: 4px;
+    height: 5px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .countdown-bar-fill {
+    background: #6b7a8d;
+    height: 100%;
+    width: 40%;
+    border-radius: 4px;
+  }
+
+  .qibla-card {
+    background: white;
+    border-radius: 12px;
+    padding: 8px 12px;
+    border: 1.5px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .compass {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid #bbb;
+    position: relative;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compass-needle {
+    width: 2px;
+    height: 16px;
+    background: linear-gradient(#6b7a8d 50%, #ccc 50%);
+    border-radius: 2px;
+    transform: rotate(-35deg);
+    position: absolute;
+  }
+  .compass-center {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: #333;
+    position: absolute;
+    z-index: 2;
+  }
+  .qibla-info { flex: 1; }
+  .qibla-label {
+    font-size: 9px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Kalam', cursive;
+  }
+  .qibla-deg {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+  }
+
+  /* annotation arrows */
+  .note {
+    font-family: 'Kalam', cursive;
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    font-style: italic;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<p class="page-title">Khushu — Home Screen</p>
+<p class="page-sub">3 ideas for filling the empty space · all keep the same header + prayer times card</p>
+
+<div class="row">
+
+  <!-- OPTION 1: Ayah + Streak -->
+  <div class="option">
+    <div class="option-label">Option A</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●●</span></div>
+      <div class="app-header">
+        <span class="app-name">Khushu</span>
+        <div class="gear"></div>
+      </div>
+      <div class="prayer-card">
+        <div class="hijri">7 Dhu'l-Qi'dah</div>
+        <div class="next">12:48 PM · Dhuhr</div>
+        <div class="chevron">∨</div>
+      </div>
+      <div class="main-area">
+        <!-- Ayah of the day -->
+        <div class="ayah-card">
+          <div class="ayah-label">Ayah of the day</div>
+          <div class="ayah-text">"Verily, in the remembrance of Allah do hearts find rest."</div>
+          <div class="ayah-ref">Surah Ar-Ra'd · 13:28</div>
+        </div>
+        <!-- Weekly streak -->
+        <div class="streak-row">
+          <div class="streak-label">This week's prayers</div>
+          <div class="streak-dots">
+            <div class="dot filled"></div>
+            <div class="dot filled"></div>
+            <div class="dot filled"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active">Salah</div>
+        <div class="nav-item">Dhikr</div>
+        <div class="nav-item">Learn</div>
+      </div>
+    </div>
+    <div class="note">Spiritual + motivational</div>
+    <div class="option-desc">Daily Quran reminder keeps the spirit alive. Streak dots encourage consistency.</div>
+  </div>
+
+  <!-- OPTION 2: Prayer Completion Tracker -->
+  <div class="option">
+    <div class="option-label">Option B</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●●</span></div>
+      <div class="app-header">
+        <span class="app-name">Khushu</span>
+        <div class="gear"></div>
+      </div>
+      <div class="prayer-card">
+        <div class="hijri">7 Dhu'l-Qi'dah</div>
+        <div class="next">12:48 PM · Dhuhr</div>
+        <div class="chevron">∨</div>
+      </div>
+      <div class="main-area">
+        <div class="tracker-card">
+          <div class="tracker-title">Today's Prayers</div>
+          <div class="prayer-row">
+            <span class="prayer-name">Fajr</span>
+            <div class="check-circle done">✓</div>
+          </div>
+          <div class="prayer-row">
+            <span class="prayer-name">Dhuhr</span>
+            <div class="check-circle done">✓</div>
+          </div>
+          <div class="prayer-row">
+            <span class="prayer-name">Asr</span>
+            <div class="check-circle"></div>
+          </div>
+          <div class="prayer-row">
+            <span class="prayer-name">Maghrib</span>
+            <div class="check-circle"></div>
+          </div>
+          <div class="prayer-row">
+            <span class="prayer-name">Isha</span>
+            <div class="check-circle"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active">Salah</div>
+        <div class="nav-item">Dhikr</div>
+        <div class="nav-item">Learn</div>
+      </div>
+    </div>
+    <div class="note">Functional + accountable</div>
+    <div class="option-desc">Tap to mark each prayer done. Simple and practical — at a glance you see what's left.</div>
+  </div>
+
+  <!-- OPTION 3: Countdown + Qibla -->
+  <div class="option">
+    <div class="option-label">Option C</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●●</span></div>
+      <div class="app-header">
+        <span class="app-name">Khushu</span>
+        <div class="gear"></div>
+      </div>
+      <div class="prayer-card">
+        <div class="hijri">7 Dhu'l-Qi'dah</div>
+        <div class="next">12:48 PM · Dhuhr</div>
+        <div class="chevron">∨</div>
+      </div>
+      <div class="main-area">
+        <!-- Countdown -->
+        <div class="countdown-card">
+          <div class="countdown-label">Next prayer in</div>
+          <div class="countdown-time">2:14:33</div>
+          <div class="countdown-prayer">Asr · 3:02 PM</div>
+          <div class="countdown-bar-bg">
+            <div class="countdown-bar-fill"></div>
+          </div>
+        </div>
+        <!-- Qibla -->
+        <div class="qibla-card">
+          <div class="compass">
+            <div class="compass-needle"></div>
+            <div class="compass-center"></div>
+          </div>
+          <div class="qibla-info">
+            <div class="qibla-label">Qibla direction</div>
+            <div class="qibla-deg">247° SW</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active">Salah</div>
+        <div class="nav-item">Dhikr</div>
+        <div class="nav-item">Learn</div>
+      </div>
+    </div>
+    <div class="note">Informational + utility</div>
+    <div class="option-desc">Countdown keeps you aware of the next prayer. Qibla is always useful at a glance.</div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -3,13 +3,48 @@ package com.kaizen.khushu.data.repository
 import android.content.Context
 import com.kaizen.khushu.data.model.SurahMeta
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.contentOrNull
 import java.util.concurrent.ConcurrentHashMap
+
+data class VerseMeta(
+    val juz: Int,      // 1-30
+    val hizb: Int,     // 1-240 (hizbQuarter — each hizb = 4 quarters)
+    val rub: Int,      // 1-4 (quarter within the hizb)
+    val manzil: Int,   // 1-7
+    val ruku: Int,     // sequential ruku number within the Quran
+    val sajda: String? // null / "obligatory" / "recommended"
+)
 
 object QuranRepository {
     private var chaptersCache: List<SurahMeta>? = null
     private var tajweedMap: Map<String, String>? = null
     private var uthmaniMap: Map<String, String>? = null
+    private var verseMetaMap: Map<String, VerseMeta>? = null
     private val json = Json { ignoreUnknownKeys = true }
+
+    fun getVerseMeta(context: Context): Map<String, VerseMeta> {
+        verseMetaMap?.let { return it }
+        return try {
+            val raw = context.assets.open("quran/verse_meta.json").bufferedReader().use { it.readText() }
+            val obj = json.parseToJsonElement(raw).jsonObject
+            val map = obj.entries.associate { (key, value) ->
+                val v = value.jsonObject
+                key to VerseMeta(
+                    juz    = v["juz"]?.jsonPrimitive?.intOrNull ?: 1,
+                    hizb   = v["hizb"]?.jsonPrimitive?.intOrNull ?: 0,
+                    rub    = v["rub"]?.jsonPrimitive?.intOrNull ?: 0,
+                    manzil = v["manzil"]?.jsonPrimitive?.intOrNull ?: 0,
+                    ruku   = v["ruku"]?.jsonPrimitive?.intOrNull ?: 0,
+                    sajda  = v["sajda"]?.jsonPrimitive?.contentOrNull,
+                )
+            }
+            verseMetaMap = map
+            map
+        } catch (_: Exception) { emptyMap() }
+    }
 
     fun getChapters(context: Context): List<SurahMeta> {
         chaptersCache?.let { return it }

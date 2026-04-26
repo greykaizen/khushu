@@ -1,7 +1,10 @@
 package com.kaizen.khushu.ui.screens.settings
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,6 +12,9 @@ import com.kaizen.khushu.data.model.CustomBeadStyle
 import com.kaizen.khushu.data.repository.SettingsRepository
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.util.AppIconManager
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +26,7 @@ class SettingsViewModel(
     private val repository: SettingsRepository,
     private val appContext: Context,
 ) : ViewModel() {
+    private var hasAttemptedGpsRefresh = false
 
     val settings: StateFlow<UserSettings> = repository.settingsFlow.stateIn(
         scope = viewModelScope,
@@ -53,6 +60,20 @@ class SettingsViewModel(
             started = SharingStarted.Eagerly,
             initialValue = false
         )
+
+    init {
+        viewModelScope.launch {
+            settings.collect { current ->
+                if (current.useGpsLocation && !hasAttemptedGpsRefresh) {
+                    hasAttemptedGpsRefresh = true
+                    refreshLocation()
+                }
+                if (!current.useGpsLocation) {
+                    hasAttemptedGpsRefresh = false
+                }
+            }
+        }
+    }
 
     fun toggleHaptics(enabled: Boolean) {
         viewModelScope.launch { repository.updateHaptics(enabled) }
@@ -281,6 +302,64 @@ class SettingsViewModel(
             val current = settings.value.masteredTopicIds
             val updated = if (current.contains(topicId)) current - topicId else current + topicId
             repository.updateMasteredTopicIds(updated)
+        }
+    }
+
+    fun setPrayerCalculationMethod(method: String) {
+        viewModelScope.launch { repository.updatePrayerCalculationMethod(method) }
+    }
+
+    fun setPrayerMadhab(madhab: String) {
+        viewModelScope.launch { repository.updatePrayerMadhab(madhab) }
+    }
+
+    fun setLocation(lat: Float, lng: Float) {
+        viewModelScope.launch { repository.updateLocation(lat, lng) }
+    }
+
+    fun toggleUseGpsLocation(enabled: Boolean) {
+        viewModelScope.launch { repository.updateUseGpsLocation(enabled) }
+    }
+
+    fun setPrayerSourceType(source: String) {
+        viewModelScope.launch { repository.updatePrayerSourceType(source) }
+    }
+
+    fun setPrayerOffset(prayerName: String, minutes: Int) {
+        viewModelScope.launch { repository.updatePrayerOffset(prayerName, minutes.coerceIn(-15, 15)) }
+    }
+
+    fun refreshLocation() {
+        val hasFineLocation =
+            ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+        val hasCoarseLocation =
+            ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+
+        if (!hasFineLocation && !hasCoarseLocation) {
+            return
+        }
+
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(appContext)
+        try {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        setLocation(location.latitude.toFloat(), location.longitude.toFloat())
+                    } else {
+                        fusedLocationClient.getCurrentLocation(
+                            Priority.PRIORITY_HIGH_ACCURACY,
+                            CancellationTokenSource().token
+                        ).addOnSuccessListener { currentLocation ->
+                            currentLocation?.let {
+                                setLocation(it.latitude.toFloat(), it.longitude.toFloat())
+                            }
+                        }
+                    }
+                }
+        } catch (e: SecurityException) {
+            // Should not happen if permission check passed
         }
     }
 

@@ -8,6 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <!-- Splash screen — light mode: light accent bg, dark accent icon -->
-    <color name="splash_background">@android:color/system_accent1_500</color>
+    <color name="splash_background">#27847d</color>
     <color name="splash_icon_color">@android:color/white</color>
 </resources>

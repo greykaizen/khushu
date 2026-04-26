@@ -1,0 +1,702 @@
+[
+  {
+    "id": "english_rwwad",
+    "name": "English Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "en",
+    "language_iso": "en",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/english_rwwad/{surah}"
+  },
+  {
+    "id": "english_saheeh",
+    "name": "English Translation - Noor International Center",
+    "author": "",
+    "language": "en",
+    "language_iso": "en",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/english_saheeh/{surah}"
+  },
+  {
+    "id": "english_hilali_khan",
+    "name": "English Translation - Hilali and Khan",
+    "author": "",
+    "language": "en",
+    "language_iso": "en",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/english_hilali_khan/{surah}"
+  },
+  {
+    "id": "french_rashid",
+    "name": "French Translation - Rachid Maach",
+    "author": "",
+    "language": "fr",
+    "language_iso": "fr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/french_rashid/{surah}"
+  },
+  {
+    "id": "french_montada",
+    "name": "French translation - Noor International Center",
+    "author": "",
+    "language": "fr",
+    "language_iso": "fr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/french_montada/{surah}"
+  },
+  {
+    "id": "spanish_montada_eu",
+    "name": "Spanish Translation - Noor International Center",
+    "author": "",
+    "language": "es",
+    "language_iso": "es",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/spanish_montada_eu/{surah}"
+  },
+  {
+    "id": "spanish_garcia",
+    "name": "Spanish Translation - Isa Garcia",
+    "author": "",
+    "language": "es",
+    "language_iso": "es",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/spanish_garcia/{surah}"
+  },
+  {
+    "id": "spanish_montada_latin",
+    "name": "Spanish Translation (Latin American) - issued by Noor International",
+    "author": "",
+    "language": "es",
+    "language_iso": "es",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/spanish_montada_latin/{surah}"
+  },
+  {
+    "id": "portuguese_nasr",
+    "name": "Portuguese Translation - Helmi Nasr",
+    "author": "",
+    "language": "pt",
+    "language_iso": "pt",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/portuguese_nasr/{surah}"
+  },
+  {
+    "id": "german_bubenheim",
+    "name": "German Translation - Frank Bubenheim",
+    "author": "",
+    "language": "de",
+    "language_iso": "de",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/german_bubenheim/{surah}"
+  },
+  {
+    "id": "romanian_project",
+    "name": "Romanian Translation - Islam4ro.com",
+    "author": "",
+    "language": "ro",
+    "language_iso": "ro",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/romanian_project/{surah}"
+  },
+  {
+    "id": "dutch_center",
+    "name": "Dutch Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "nl",
+    "language_iso": "nl",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/dutch_center/{surah}"
+  },
+  {
+    "id": "turkish_rwwad",
+    "name": "Turkish Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "tr",
+    "language_iso": "tr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/turkish_rwwad/{surah}"
+  },
+  {
+    "id": "turkish_shaban",
+    "name": "Turkish Translation - Shaaban British",
+    "author": "",
+    "language": "tr",
+    "language_iso": "tr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/turkish_shaban/{surah}"
+  },
+  {
+    "id": "turkish_shahin",
+    "name": "Turkish Translation - Dr. Ali Ozek and others",
+    "author": "",
+    "language": "tr",
+    "language_iso": "tr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/turkish_shahin/{surah}"
+  },
+  {
+    "id": "azeri_musayev",
+    "name": "Azerbaijani Translation - Ali Khan Musayev",
+    "author": "",
+    "language": "az",
+    "language_iso": "az",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/azeri_musayev/{surah}"
+  },
+  {
+    "id": "macedonian_group",
+    "name": "Macedonian Translation - a group of Macedonian scholars",
+    "author": "",
+    "language": "mk",
+    "language_iso": "mk",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/macedonian_group/{surah}"
+  },
+  {
+    "id": "albanian_nahi",
+    "name": "Albanian Translation - Hassan Nahi",
+    "author": "",
+    "language": "sq",
+    "language_iso": "sq",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/albanian_nahi/{surah}"
+  },
+  {
+    "id": "bosnian_rwwad",
+    "name": "Bosnian Translation - Rowwad Translation Centre",
+    "author": "",
+    "language": "bs",
+    "language_iso": "bs",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/bosnian_rwwad/{surah}"
+  },
+  {
+    "id": "bosnian_mihanovich",
+    "name": "Bosnian Translation - Muhammad Mahanovic",
+    "author": "",
+    "language": "bs",
+    "language_iso": "bs",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/bosnian_mihanovich/{surah}"
+  },
+  {
+    "id": "serbian_rwwad",
+    "name": "Serbian Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "sr",
+    "language_iso": "sr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/serbian_rwwad/{surah}"
+  },
+  {
+    "id": "croatian_rwwad",
+    "name": "Croatian Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "hr",
+    "language_iso": "hr",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/croatian_rwwad/{surah}"
+  },
+  {
+    "id": "lithuanian_rwwad",
+    "name": "Lithuanian Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "lt",
+    "language_iso": "lt",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/lithuanian_rwwad/{surah}"
+  },
+  {
+    "id": "uzbek_rwwad",
+    "name": "Uzbek Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "uz",
+    "language_iso": "uz",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/uzbek_rwwad/{surah}"
+  },
+  {
+    "id": "uzbek_mansour",
+    "name": "Uzbek Translation - Alaauddin Mansour",
+    "author": "",
+    "language": "uz",
+    "language_iso": "uz",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/uzbek_mansour/{surah}"
+  },
+  {
+    "id": "tajik_arifi",
+    "name": "Tajiki Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "tg",
+    "language_iso": "tg",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/tajik_arifi/{surah}"
+  },
+  {
+    "id": "kyrgyz_hakimov",
+    "name": "Kyrgyz Translation - Shamsuddin Hakimov",
+    "author": "",
+    "language": "ky",
+    "language_iso": "ky",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/kyrgyz_hakimov/{surah}"
+  },
+  {
+    "id": "indonesian_sabiq",
+    "name": "Indonesian Translation - Sabiq Company",
+    "author": "",
+    "language": "id",
+    "language_iso": "id",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/indonesian_sabiq/{surah}"
+  },
+  {
+    "id": "indonesian_affairs",
+    "name": "Indonesian Translation - Ministry of Religious Affairs",
+    "author": "",
+    "language": "id",
+    "language_iso": "id",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/indonesian_affairs/{surah}"
+  },
+  {
+    "id": "indonesian_complex",
+    "name": "Indonesian Translation - The Complex",
+    "author": "",
+    "language": "id",
+    "language_iso": "id",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/indonesian_complex/{surah}"
+  },
+  {
+    "id": "tagalog_rwwad",
+    "name": "Filipino Translation (Tagalog) - Rowwad Translation Center",
+    "author": "",
+    "language": "tl",
+    "language_iso": "tl",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/tagalog_rwwad/{surah}"
+  },
+  {
+    "id": "bisayan_rwwad",
+    "name": "Filipino Translation (Bisayan) - Rowwad Translation Center",
+    "author": "",
+    "language": "ceb",
+    "language_iso": "ceb",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/bisayan_rwwad/{surah}"
+  },
+  {
+    "id": "maguindanao_rwwad",
+    "name": "Filipino Translation (Maguindanaon) - Rowwad Translation Center",
+    "author": "",
+    "language": "mdh",
+    "language_iso": "mdh",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/maguindanao_rwwad/{surah}"
+  },
+  {
+    "id": "chinese_suliman",
+    "name": "Chinese Translation - Muhammad Suleiman",
+    "author": "",
+    "language": "zh",
+    "language_iso": "zh",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/chinese_suliman/{surah}"
+  },
+  {
+    "id": "chinese_makin",
+    "name": "Chinese Translation - Muhammad Makeen",
+    "author": "",
+    "language": "zh",
+    "language_iso": "zh",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/chinese_makin/{surah}"
+  },
+  {
+    "id": "uyghur_saleh",
+    "name": "Uyghur Translation - Muhammad Saleh",
+    "author": "",
+    "language": "ug",
+    "language_iso": "ug",
+    "direction": "rtl",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/uyghur_saleh/{surah}"
+  },
+  {
+    "id": "japanese_saeedsato",
+    "name": "Japanese Translation - Saeed Sato",
+    "author": "",
+    "language": "ja",
+    "language_iso": "ja",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/japanese_saeedsato/{surah}"
+  },
+  {
+    "id": "vietnamese_rwwad",
+    "name": "Vietnamese Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "vi",
+    "language_iso": "vi",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/vietnamese_rwwad/{surah}"
+  },
+  {
+    "id": "khmer_rwwad",
+    "name": "Khmer Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "km",
+    "language_iso": "km",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/khmer_rwwad/{surah}"
+  },
+  {
+    "id": "khmer_cambodia",
+    "name": "Khmer Translation - Islamic Community Development Association",
+    "author": "",
+    "language": "km",
+    "language_iso": "km",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/khmer_cambodia/{surah}"
+  },
+  {
+    "id": "persian_ih",
+    "name": "Persian Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "fa",
+    "language_iso": "fa",
+    "direction": "rtl",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/persian_ih/{surah}"
+  },
+  {
+    "id": "kurdish_bamoki",
+    "name": "Kurdish Translation - Muhammad Salih Bamoki",
+    "author": "",
+    "language": "ku",
+    "language_iso": "ku",
+    "direction": "rtl",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/kurdish_bamoki/{surah}"
+  },
+  {
+    "id": "pashto_rwwad",
+    "name": "Pashto Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "ps",
+    "language_iso": "ps",
+    "direction": "rtl",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/pashto_rwwad/{surah}"
+  },
+  {
+    "id": "urdu_junagarhi",
+    "name": "Urdu Translation - Muhammad Junagarhi",
+    "author": "",
+    "language": "ur",
+    "language_iso": "ur",
+    "direction": "rtl",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/urdu_junagarhi/{surah}"
+  },
+  {
+    "id": "hindi_omari",
+    "name": "Hindi Translation - Azizul Haq Al-Omari",
+    "author": "",
+    "language": "hi",
+    "language_iso": "hi",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/hindi_omari/{surah}"
+  },
+  {
+    "id": "telugu_muhammad",
+    "name": "Telugu Translation - Abdurrahim ibn Muhammad",
+    "author": "",
+    "language": "te",
+    "language_iso": "te",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/telugu_muhammad/{surah}"
+  },
+  {
+    "id": "gujarati_omari",
+    "name": "Gujarati Translation - Rabella Al-Omari",
+    "author": "",
+    "language": "gu",
+    "language_iso": "gu",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/gujarati_omari/{surah}"
+  },
+  {
+    "id": "malayalam_kunhi",
+    "name": "Malayalam Translation - Abdul Hamid Haidar and Kunhi Muhammad",
+    "author": "",
+    "language": "ml",
+    "language_iso": "ml",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/malayalam_kunhi/{surah}"
+  },
+  {
+    "id": "kannada_hamza",
+    "name": "Kannada Translation - Hamza Butur",
+    "author": "",
+    "language": "kn",
+    "language_iso": "kn",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/kannada_hamza/{surah}"
+  },
+  {
+    "id": "assamese_rafeeq",
+    "name": "Assamese Translation - Rafiqul Islam Habibur-Rahman",
+    "author": "",
+    "language": "as",
+    "language_iso": "as",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/assamese_rafeeq/{surah}"
+  },
+  {
+    "id": "punjabi_arif",
+    "name": "Punjabi Translation - Arif Haleem",
+    "author": "",
+    "language": "pa",
+    "language_iso": "pa",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/punjabi_arif/{surah}"
+  },
+  {
+    "id": "tamil_omar",
+    "name": "Tamil Translation - Omar Sharif",
+    "author": "",
+    "language": "ta",
+    "language_iso": "ta",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/tamil_omar/{surah}"
+  },
+  {
+    "id": "tamil_omar_brief",
+    "name": "Tamil Translation - Omar Sharif - Abridged Version",
+    "author": "",
+    "language": "ta",
+    "language_iso": "ta",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/tamil_omar_brief/{surah}"
+  },
+  {
+    "id": "tamil_baqavi",
+    "name": "Tamil Translation - Abdulhamid Baqawi",
+    "author": "",
+    "language": "ta",
+    "language_iso": "ta",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/tamil_baqavi/{surah}"
+  },
+  {
+    "id": "sinhalese_mahir",
+    "name": "Sinhalese Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "si",
+    "language_iso": "si",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/sinhalese_mahir/{surah}"
+  },
+  {
+    "id": "swahili_rwwad",
+    "name": "Swahili Translation - Rowad Translation Center",
+    "author": "",
+    "language": "sw",
+    "language_iso": "sw",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/swahili_rwwad/{surah}"
+  },
+  {
+    "id": "swahili_barawani",
+    "name": "Swahili Translation - Ali Mohsin Al-Barwani",
+    "author": "",
+    "language": "sw",
+    "language_iso": "sw",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/swahili_barawani/{surah}"
+  },
+  {
+    "id": "somali_yacob",
+    "name": "Somali Translation - Abdullah Hasan Yaqoub",
+    "author": "",
+    "language": "so",
+    "language_iso": "so",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/somali_yacob/{surah}"
+  },
+  {
+    "id": "amharic_zain",
+    "name": "Amharic Translation - Africa Academy",
+    "author": "",
+    "language": "am",
+    "language_iso": "am",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/amharic_zain/{surah}"
+  },
+  {
+    "id": "amharic_sadiq",
+    "name": "Amharic Translation - Muhammad Sadiq",
+    "author": "",
+    "language": "am",
+    "language_iso": "am",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/amharic_sadiq/{surah}"
+  },
+  {
+    "id": "yoruba_mikail",
+    "name": "Yoruba Translation - Abu Rahimah Mikael",
+    "author": "",
+    "language": "yo",
+    "language_iso": "yo",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/yoruba_mikail/{surah}"
+  },
+  {
+    "id": "hausa_gummi",
+    "name": "Hausa Translation - Abu Bakr Jumi",
+    "author": "",
+    "language": "ha",
+    "language_iso": "ha",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/hausa_gummi/{surah}"
+  },
+  {
+    "id": "oromo_ababor",
+    "name": "Oromo Translation - Gali Ababor",
+    "author": "",
+    "language": "om",
+    "language_iso": "om",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/oromo_ababor/{surah}"
+  },
+  {
+    "id": "afar_hamza",
+    "name": "Afar Translation - Mahmoud Abdulqader Hamza",
+    "author": "",
+    "language": "aa",
+    "language_iso": "aa",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/afar_hamza/{surah}"
+  },
+  {
+    "id": "ankobambara_dayyan",
+    "name": "N'ko Translation - Baba Mamadi",
+    "author": "",
+    "language": "nqo",
+    "language_iso": "nqo",
+    "direction": "rtl",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/ankobambara_dayyan/{surah}"
+  },
+  {
+    "id": "kinyarwanda_assoc",
+    "name": "Kinyarwanda Translation - Rwanda Muslim Association",
+    "author": "",
+    "language": "rw",
+    "language_iso": "rw",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/kinyarwanda_assoc/{surah}"
+  },
+  {
+    "id": "ikirundi_gehiti",
+    "name": "Kirundi Translation - Yusuf Gahiti",
+    "author": "",
+    "language": "rn",
+    "language_iso": "rn",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/ikirundi_gehiti/{surah}"
+  },
+  {
+    "id": "moore_rwwad",
+    "name": "Moore Translation - Rowwad Translation Center",
+    "author": "",
+    "language": "mos",
+    "language_iso": "mos",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/moore_rwwad/{surah}"
+  },
+  {
+    "id": "asante_harun",
+    "name": "Akan Translation (Asante) - Harun Ismail",
+    "author": "",
+    "language": "ak",
+    "language_iso": "ak",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/asante_harun/{surah}"
+  },
+  {
+    "id": "lingala_zakaria",
+    "name": "Lingala Translation - Mohammed Balangogo",
+    "author": "",
+    "language": "ln",
+    "language_iso": "ln",
+    "direction": "ltr",
+    "type": "translation",
+    "url_pattern": "https://quranenc.com/api/v1/translation/sura/lingala_zakaria/{surah}"
+  }
+]

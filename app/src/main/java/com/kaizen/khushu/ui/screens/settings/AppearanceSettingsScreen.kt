@@ -174,11 +174,13 @@ fun AppearanceSettingsScreen(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     val tabs = listOf(
+                        "Home" to AppDestinations.HOME.route,
                         "Salah" to AppDestinations.SALAH.route,
                         "Tasbeeh" to AppDestinations.TASBEEH.route,
                         "Learn" to AppDestinations.LEARN.route

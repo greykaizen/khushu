@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khushu</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#1a1c28;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'DM Sans',sans-serif;}
+#root{display:flex;align-items:center;justify-content:center;width:100%;min-height:100vh;}
+::-webkit-scrollbar{display:none;}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.72;transform:scale(.88)}}
+@keyframes twinkle{0%,100%{opacity:.12}50%{opacity:.55}}
+@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+.su1,.su2,.su3,.su4{}
+
+.hscroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;}
+.hscroll::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+/* ── Themes ────────────────────────────────────────────── */
+const TH = {
+  light:{
+    isDark:false,
+    bgA:'#f8f2e2',bgB:'#edddc0',
+    scA:'#fdf6e4',scB:'#f4e2b0',
+    card:'rgba(252,248,238,.97)',
+    slab:'rgba(252,248,238,.96)',
+    nav:'rgba(252,248,238,.97)',
+    border:'rgba(255,255,255,.7)',
+    p:'rgba(26,16,8,.88)',
+    s:'rgba(26,16,8,.44)',
+    m:'rgba(26,16,8,.25)',
+    d:'rgba(0,0,0,.055)',
+    accent:'#b06c0c',
+    bodyC:'rgba(248,200,50,.85)',
+    innerC:'#fde060',
+    glow:'rgba(255,195,40,.35)',
+    arcBase:'rgba(26,16,8,.1)',
+    arcSolid:'rgba(26,16,8,.28)',
+    arcNext:'rgba(26,16,8,.8)',
+    arcFuture:'rgba(26,16,8,.15)',
+    mkruh:'#c82c0c',
+    statusC:'rgba(26,16,8,.42)',
+    shadow:'0 4px 20px rgba(0,0,0,.1)',
+    phoneShadow:'0 32px 90px rgba(0,0,0,.22)',
+  },
+  dark:{
+    isDark:true,
+    bgA:'#0b0d1a',bgB:'#131626',
+    scA:'#10122a',scB:'#0b0d20',
+    card:'rgba(22,24,48,.97)',
+    slab:'rgba(18,20,40,.97)',
+    nav:'rgba(14,16,34,.98)',
+    border:'rgba(255,255,255,.08)',
+    p:'rgba(234,230,255,.9)',
+    s:'rgba(195,188,240,.48)',
+    m:'rgba(175,168,220,.28)',
+    d:'rgba(255,255,255,.07)',
+    accent:'#9478dc',
+    bodyC:'rgba(210,204,252,.9)',
+    innerC:'rgba(230,226,255,.95)',
+    glow:'rgba(180,165,255,.28)',
+    arcBase:'rgba(255,255,255,.1)',
+    arcSolid:'rgba(210,205,255,.4)',
+    arcNext:'rgba(238,234,255,.88)',
+    arcFuture:'rgba(255,255,255,.13)',
+    mkruh:'#e04030',
+    statusC:'rgba(200,194,240,.48)',
+    shadow:'0 4px 24px rgba(0,0,0,.45)',
+    phoneShadow:'0 32px 90px rgba(0,0,0,.5)',
+  }
+};
+
+/* ── Data ──────────────────────────────────────────────── */
+const PRAYERS=[
+  {name:'Fajr',   ar:'الفجر', time:'5:14 AM', h:5, m:14,t:.08,cl:{light:'#4a70b0',dark:'#6890d8'}},
+  {name:'Dhuhr',  ar:'الظهر', time:'12:48 PM',h:12,m:48,t:.52,cl:{light:'#a87010',dark:'#d4a828'}},
+  {name:'Asr',    ar:'العصر', time:'4:22 PM', h:16,m:22,t:.66,cl:{light:'#a06020',dark:'#d08840'}},
+  {name:'Maghrib',ar:'المغرب',time:'7:03 PM', h:19,m:3, t:.82,cl:{light:'#9a3828',dark:'#e06050'}},
+  {name:'Isha',   ar:'العشاء',time:'8:31 PM', h:20,m:31,t:.93,cl:{light:'#584898',dark:'#9070d0'}},
+];
+const MAKRUH=[
+  {t:.08,t2:.15,label:'Sunrise', desc:'Disliked to pray until the sun rises a spear\'s height (~20 min after sunrise)'},
+  {t:.48,t2:.53,label:'Zawal',   desc:'Sun at exact zenith — forbidden to pray at this moment, just before Dhuhr begins'},
+  {t:.79,t2:.84,label:'Sunset',  desc:'Disliked to pray as the sun sets until it fully disappears below the horizon'},
+];
+const EVENTS=[
+  {label:'Today',            date:'7 Dhu\'l-Qi\'dah', name:'Sacred Month'},
+  {label:'25 Dhu\'l-Qi\'dah',date:'in 18 days',       name:'Dahw al-Ard'},
+  {label:'1 Dhu\'l-Hijjah', date:'in 23 days',        name:'Dhul Hijjah begins'},
+  {label:'9 Dhu\'l-Hijjah', date:'in 31 days',        name:'Yawm Arafah'},
+  {label:'10 Dhu\'l-Hijjah',date:'in 32 days',        name:'Eid al-Adha'},
+  {label:'13 Dhu\'l-Hijjah',date:'in 35 days',        name:'End of Tashreeq'},
+];
+const AYAH={text:'Verily, in the remembrance of Allah do hearts find rest.',ref:'Ar-Ra\'d · 13:28'};
+
+/* ── Bezier arc ────────────────────────────────────────── */
+const P0={x:0,y:130},P1={x:166,y:-18},P2={x:332,y:130};
+function bpt(t){const u=1-t;return{x:u*u*P0.x+2*u*t*P1.x+t*t*P2.x,y:u*u*P0.y+2*u*t*P1.y+t*t*P2.y};}
+function zoomArc(tS,tE,W,H,pad=10){
+  const steps=60,raw=[];
+  for(let i=0;i<=steps;i++)raw.push(bpt(tS+(tE-tS)*(i/steps)));
+  const xs=raw.map(p=>p.x),ys=raw.map(p=>p.y);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const sx=(W-2*pad)/(x1-x0||1),sy=(H-2*pad)/(y1-y0||1),s=Math.min(sx,sy);
+  const ox=pad+(W-2*pad-(x1-x0)*s)/2,oy=pad+(H-2*pad-(y1-y0)*s)/2;
+  function map(p){return{x:ox+(p.x-x0)*s,y:oy+(p.y-y0)*s};}
+  return{pts:raw.map(map),map};
+}
+
+/* ── Stars (deterministic) ─────────────────────────────── */
+const STARS=Array.from({length:22},(_,i)=>({
+  x:((i*47+19)%120)+5,y:((i*31+11)%55)+4,
+  r:((i*13)%8)/10+0.35,o:((i*17)%8)/10*0.38+0.1,
+  delay:((i*7)%20)/10,
+}));
+
+/* ── Icons ─────────────────────────────────────────────── */
+function GearIcon({c}){return(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>);}
+
+/* ── Celestial body ────────────────────────────────────── */
+function Celestial({cx,cy,th}){
+  if(!th.isDark)return(
+    <g style={{animation:'pulse 3.5s ease-in-out infinite',transformOrigin:`${cx}px ${cy}px`}}>
+      <circle cx={cx} cy={cy} r={17} fill="rgba(255,200,45,.18)"/>
+      <circle cx={cx} cy={cy} r={12} fill="rgba(255,195,40,.32)"/>
+      <circle cx={cx} cy={cy} r={9}  fill={th.bodyC} stroke="rgba(250,185,30,.4)" strokeWidth="2.5"/>
+      <circle cx={cx} cy={cy} r={5.5} fill={th.innerC}/>
+    </g>
+  );
+  // Crescent moon
+  return(
+    <g style={{animation:'pulse 4s ease-in-out infinite',transformOrigin:`${cx}px ${cy}px`}}>
+      <circle cx={cx} cy={cy} r={15} fill="rgba(180,162,255,.15)"/>
+      <circle cx={cx} cy={cy} r={10} fill="rgba(185,168,255,.25)"/>
+      <circle cx={cx} cy={cy} r={8.5} fill={th.bodyC}/>
+      <circle cx={cx+3.2} cy={cy-.8} r={7} fill={th.scB}/>
+    </g>
+  );
+}
+
+/* ── Sun Card ──────────────────────────────────────────── */
+function SunCard({sunT,nextT,nextName,th,activeMk,onMkTap}){
+  const CW=161,CH=161,svgW=CW-26,svgH=CH-58;
+  const tS=Math.max(0,sunT-.17),tE=Math.min(1,nextT+.12);
+  const {pts,map}=useMemo(()=>zoomArc(tS,tE,svgW,svgH,9),[sunT,nextT]);
+  const sunM=map(bpt(sunT)),nextM=map(bpt(nextT));
+  const progIdx=Math.floor(((sunT-tS)/(tE-tS))*pts.length);
+  const pathAll=pts.map((p,i)=>`${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const pathDone=pts.slice(0,progIdx+1).map((p,i)=>`${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const inMkruh=MAKRUH.find(mk=>sunT>=mk.t&&sunT<=mk.t2);
+
+  return(
+    <div className="su1" style={{
+      width:CW,height:CH,borderRadius:20,position:'relative',overflow:'hidden',flexShrink:0,
+      background:`linear-gradient(148deg,${th.scA} 0%,${th.scB} 100%)`,
+      border:`1px solid ${th.border}`,
+      boxShadow:th.shadow,
+    }}>
+
+      {/* Stars */}
+      {th.isDark&&(
+        <svg style={{position:'absolute',inset:0,pointerEvents:'none'}} width={CW} height={CH}>
+          {STARS.map((s,i)=>(
+            <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="white" opacity={s.o}
+              style={{animation:`twinkle ${1.8+s.delay}s ease-in-out infinite`,animationDelay:`${s.delay}s`}}
+            />
+          ))}
+        </svg>
+      )}
+
+      {/* Sun ambient glow on background */}
+      <div style={{
+        position:'absolute',pointerEvents:'none',
+        left:sunM.x+13-30,top:sunM.y+42-30,
+        width:60,height:60,borderRadius:'50%',
+        background:`radial-gradient(circle,${th.glow} 0%,transparent 70%)`,
+      }}/>
+
+      <div style={{padding:'12px 13px 0',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+        <span style={{fontSize:8.5,color:th.s,textTransform:'uppercase',letterSpacing:'.09em',fontWeight:600}}>Sun path</span>
+        {inMkruh
+          ? <span style={{fontSize:7,color:th.mkruh,fontWeight:700,textTransform:'uppercase',letterSpacing:'.07em',background:th.isDark?'rgba(220,60,30,.15)':'rgba(200,44,12,.08)',borderRadius:5,padding:'2px 5px'}}>{inMkruh.label}</span>
+          : <span style={{fontSize:8,color:th.m}}>{th.isDark?'Night':'Morning'}</span>
+        }
+      </div>
+
+      <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`}
+        style={{display:'block',margin:'4px 13px 0',overflow:'visible'}}>
+
+        {/* Makruh segments */}
+        {MAKRUH.map((mk,i)=>{
+          if(mk.t2<tS||mk.t>tE)return null;
+          const mS=Math.max(mk.t,tS),mE=Math.min(mk.t2,tE);
+          const mpts=Array.from({length:8},(_,s)=>map(bpt(mS+(mE-mS)*(s/7))));
+          const md=mpts.map((p,j)=>`${j===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+          const isA=activeMk===i;
+          return(<path key={i} d={md} fill="none" stroke={th.mkruh} strokeWidth={isA?9:5} strokeLinecap="round" opacity={isA?.7:.36} style={{transition:'all .2s',cursor:'pointer'}} onClick={()=>onMkTap(isA?null:i)}/>);
+        })}
+
+        {/* Base arc */}
+        <path d={pathAll} fill="none" stroke={th.arcBase} strokeWidth="1.3" strokeDasharray="4 6" strokeLinecap="round"/>
+        {/* Past trail */}
+        {progIdx>0&&<path d={pathDone} fill="none" stroke={th.arcSolid} strokeWidth="1.8" strokeLinecap="round"/>}
+
+        {/* Next prayer dot */}
+        <circle cx={nextM.x} cy={nextM.y} r={8.5} fill="none" stroke={th.arcNext} strokeWidth="1.1" opacity=".4"/>
+        <circle cx={nextM.x} cy={nextM.y} r={3.8} fill={th.arcNext}/>
+        <text x={nextM.x} y={nextM.y-11} textAnchor="middle" fontSize="7" fontFamily="DM Sans" fontWeight="600" fill={th.arcNext} letterSpacing=".06em" opacity=".8">{nextName.toUpperCase()}</text>
+
+        {/* Sun / Moon */}
+        <Celestial cx={sunM.x} cy={sunM.y} th={th}/>
+      </svg>
+
+      {/* Date */}
+      <div style={{position:'absolute',bottom:10,left:13,right:13}}>
+        <span style={{fontFamily:'Caveat',fontSize:12,fontWeight:700,color:th.s}}>7 Dhu'l-Qi'dah · 1446</span>
+      </div>
+
+      {/* Makruh overlay */}
+      {activeMk!==null&&(
+        <div onClick={()=>onMkTap(null)} style={{
+          position:'absolute',inset:0,borderRadius:19,
+          background:th.isDark?'rgba(8,8,22,.9)':'rgba(18,6,0,.84)',
+          backdropFilter:'blur(14px)',
+          padding:'16px 15px',display:'flex',flexDirection:'column',justifyContent:'center',
+          cursor:'pointer',animation:'slideUp .15s ease both',
+        }}>
+          <div style={{fontSize:7.5,fontWeight:700,color:'#f06045',textTransform:'uppercase',letterSpacing:'.09em',marginBottom:6}}>Makruh · {MAKRUH[activeMk].label}</div>
+          <div style={{fontSize:10.5,color:'rgba(255,255,255,.7)',lineHeight:1.65,fontWeight:300}}>{MAKRUH[activeMk].desc}</div>
+          <div style={{fontSize:8,color:'rgba(255,255,255,.28)',marginTop:10}}>Tap to dismiss</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Next Prayer Card ──────────────────────────────────── */
+function NextPrayerCard({prayer,hh,mm,ss,doneCount,th}){
+  return(
+    <div className="su2" style={{
+      width:161,height:161,borderRadius:20,flexShrink:0,
+      background:th.card,backdropFilter:'blur(24px)',
+      border:`1px solid ${th.border}`,
+      padding:'14px 16px 13px',
+      display:'flex',flexDirection:'column',justifyContent:'space-between',
+      boxShadow:th.shadow,
+    }}>
+      <div>
+        <div style={{fontSize:8.5,color:th.s,textTransform:'uppercase',letterSpacing:'.09em',fontWeight:600,marginBottom:5}}>Next prayer</div>
+        <div style={{fontFamily:'Cormorant Garamond',fontSize:36,fontWeight:300,color:th.p,lineHeight:1,letterSpacing:'-.01em'}}>{prayer.name}</div>
+        <div style={{fontFamily:'Cormorant Garamond',fontSize:12,color:th.s,fontStyle:'italic',marginTop:3}}>{prayer.time}</div>
+      </div>
+      <div>
+        <div style={{fontFamily:'Caveat',fontSize:22,fontWeight:700,color:th.p,fontVariantNumeric:'tabular-nums',lineHeight:1}}>
+          {hh}:{mm}<span style={{fontSize:14,color:th.m}}>{ss}</span>
+        </div>
+        <div style={{display:'flex',gap:5,marginTop:9,alignItems:'center'}}>
+          {PRAYERS.map((_,i)=>(
+            <div key={i} style={{
+              width:i<doneCount?7:5.5,height:i<doneCount?7:5.5,borderRadius:'50%',
+              background:i<doneCount?th.accent:'rgba(130,130,130,.15)',
+              transition:'all .3s',
+            }}/>
+          ))}
+          <span style={{fontSize:8,color:th.m,marginLeft:2}}>{doneCount}/5</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Events Strip ──────────────────────────────────────── */
+function EventsStrip({th}){
+  return(
+    <div className="su3" style={{padding:'0 14px'}}>
+      <div style={{fontSize:8.5,color:th.s,textTransform:'uppercase',letterSpacing:'.09em',fontWeight:600,marginBottom:8}}>Upcoming · Dhu'l-Qi'dah 1446</div>
+      <div className="hscroll">
+        {EVENTS.map((ev,i)=>(
+          <div key={i} style={{
+            flexShrink:0,
+            background:i===0?(th.isDark?'rgba(165,105,18,.2)':'rgba(185,108,8,.1)'):(th.isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.04)'),
+            border:`1px solid ${i===0?(th.isDark?'rgba(185,135,40,.28)':'rgba(175,108,8,.18)'):(th.isDark?'rgba(255,255,255,.08)':'rgba(0,0,0,.07)')}`,
+            borderRadius:14,padding:'9px 13px',minWidth:116,
+          }}>
+            <div style={{fontSize:7.5,color:i===0?th.accent:th.m,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em',marginBottom:2}}>{ev.label}</div>
+            <div style={{fontFamily:'Cormorant Garamond',fontSize:14,color:th.p,lineHeight:1.3}}>{ev.name}</div>
+            <div style={{fontSize:8.5,color:th.m,marginTop:2}}>{ev.date}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Prayer Slab ───────────────────────────────────────── */
+function PrayerSlab({done,setDone,th}){
+  const doneCount=Object.values(done).filter(Boolean).length;
+  const [popped,setPopped]=useState({});
+  function toggle(name){
+    setDone(p=>{
+      const n={...p,[name]:!p[name]};
+      if(!p[name]){setPopped(q=>({...q,[name]:true}));setTimeout(()=>setPopped(q=>({...q,[name]:false})),420);}
+      return n;
+    });
+  }
+  return(
+    <div className="su4" style={{
+      margin:'0 14px',
+      background:th.slab,backdropFilter:'blur(24px)',
+      borderRadius:22,border:`1px solid ${th.border}`,
+      padding:'15px 18px',
+      boxShadow:th.shadow,
+    }}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+        <div style={{fontSize:8.5,color:th.s,textTransform:'uppercase',letterSpacing:'.09em',fontWeight:600}}>Today's prayers</div>
+        <div style={{fontSize:8.5,color:th.m,fontWeight:500}}>{doneCount} of 5</div>
+      </div>
+      <div style={{height:2.5,background:th.isDark?'rgba(255,255,255,.08)':'rgba(0,0,0,.07)',borderRadius:2,marginBottom:12,overflow:'hidden'}}>
+        <div style={{height:'100%',width:`${doneCount/5*100}%`,background:th.accent,borderRadius:2,transition:'width .4s ease'}}/>
+      </div>
+
+      {PRAYERS.map((p,i)=>{
+        const isPrayed=done[p.name];
+        const isNext=!isPrayed&&PRAYERS.find(x=>!done[x.name])?.name===p.name;
+        const pCol=p.cl[th.isDark?'dark':'light'];
+        return(
+          <div key={p.name} onClick={()=>toggle(p.name)} style={{
+            display:'flex',alignItems:'center',gap:10,
+            padding:'8.5px 0',
+            borderBottom:i<PRAYERS.length-1?`1px solid ${th.d}`:'none',
+            cursor:'pointer',userSelect:'none',
+          }}>
+            {/* Prayer time color dot */}
+            <div style={{
+              width:6,height:6,borderRadius:'50%',flexShrink:0,
+              background:isPrayed?(th.isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.1)'):pCol,
+              opacity:isPrayed?.3:1,
+              boxShadow:(!isPrayed&&th.isDark)?`0 0 7px ${pCol}70`:'none',
+              transition:'all .3s',
+            }}/>
+            {/* Checkmark */}
+            <div style={{
+              width:18,height:18,borderRadius:'50%',flexShrink:0,
+              border:`1.6px solid ${isPrayed?(th.isDark?'rgba(255,255,255,.22)':'rgba(0,0,0,.2)'):(th.isDark?'rgba(255,255,255,.14)':'rgba(0,0,0,.12)')}`,
+              background:isPrayed?(th.isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.07)'):'transparent',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              transition:'all .22s',
+            }}>
+              {isPrayed&&(
+                <svg width="8" height="6" viewBox="0 0 8 6" fill="none" style={{animation:popped[p.name]?'checkPop .42s ease both':'none'}}>
+                  <path d="M1 3L3 5.5L7 1" stroke={th.isDark?'rgba(218,212,255,.65)':'rgba(26,16,8,.5)'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+            <span style={{
+              fontFamily:'Cormorant Garamond',fontSize:18,
+              fontWeight:isNext?600:300,
+              color:isPrayed?th.m:th.p,flex:1,
+              textDecoration:isPrayed?'line-through':'none',
+              transition:'all .22s',
+            }}>
+              {p.name}
+              {isNext&&<span style={{marginLeft:8,fontSize:7.5,fontWeight:700,color:th.accent,letterSpacing:'.1em',textTransform:'uppercase',verticalAlign:'middle',fontFamily:'DM Sans'}}>next</span>}
+            </span>
+            <span style={{fontFamily:'serif',fontSize:10,color:th.m,direction:'rtl'}}>{p.ar}</span>
+            <span style={{fontSize:11,color:th.s,minWidth:52,textAlign:'right',fontVariantNumeric:'tabular-nums'}}>{p.time}</span>
+          </div>
+        );
+      })}
+
+      <div style={{borderTop:`1px solid ${th.d}`,paddingTop:10,marginTop:4}}>
+        <div style={{fontFamily:'Cormorant Garamond',fontStyle:'italic',fontSize:11.5,color:th.m,lineHeight:1.65}}>
+          "{AYAH.text}" <span style={{fontStyle:'normal',opacity:.7}}>— {AYAH.ref}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── App ───────────────────────────────────────────────── */
+function App(){
+  const [dark,setDark]=useState(false);
+  const [done,setDone]=useState({Fajr:true,Dhuhr:false,Asr:false,Maghrib:false,Isha:false});
+  const [activeTab,setActiveTab]=useState('Salah');
+  const [activeMk,setActiveMk]=useState(null);
+  const [now,setNow]=useState(new Date());
+  const th=dark?TH.dark:TH.light;
+
+  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t);},[]);
+
+  const sunT=Math.max(.03,Math.min(.95,(10.5-5.23)/(20.52-5.23)*.93));
+  const next=PRAYERS[1];
+  const target=new Date(now);target.setHours(next.h,next.m,0,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  const diff=Math.max(0,target-now);
+  const hh=String(Math.floor(diff/3600000)).padStart(2,'0');
+  const mm=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  const ss=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  const doneCount=Object.values(done).filter(Boolean).length;
+
+  return(
+    <div style={{
+      width:360,height:778,borderRadius:46,overflow:'hidden',
+      background:`linear-gradient(168deg,${th.bgA} 0%,${th.bgB} 100%)`,
+      boxShadow:`${th.phoneShadow},inset 0 1px 0 rgba(255,255,255,.3)`,
+      display:'flex',flexDirection:'column',
+      transition:'background .5s',
+    }}>
+
+      {/* Status bar */}
+      <div style={{display:'flex',justifyContent:'space-between',padding:'14px 26px 0',fontSize:12,color:th.statusC,fontWeight:500,transition:'color .4s'}}>
+        <span>9:41</span>
+        <span style={{display:'flex',gap:5,alignItems:'center'}}>
+          <svg width="24" height="11" viewBox="0 0 24 11"><rect x="0" y="1" width="21" height="9" rx="2.5" stroke={th.statusC} strokeWidth="1.2" fill="none"/><rect x="22" y="3" width="2" height="5" rx="1" fill={th.statusC}/><rect x="1.5" y="2.5" width="15" height="6" rx="1" fill={th.statusC}/></svg>
+        </span>
+      </div>
+
+      {/* Header */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 22px 12px'}}>
+        <span style={{fontFamily:'Caveat',fontSize:26,fontWeight:700,color:th.p,transition:'color .4s'}}>Khushu</span>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          {/* Theme pill */}
+          <button onClick={()=>setDark(d=>!d)} style={{
+            background:dark?'rgba(255,255,255,.09)':'rgba(0,0,0,.06)',
+            border:`1px solid ${dark?'rgba(255,255,255,.12)':'rgba(0,0,0,.09)'}`,
+            borderRadius:20,padding:'5px 11px 5px 9px',cursor:'pointer',
+            display:'flex',alignItems:'center',gap:6,
+            transition:'all .4s',
+          }}>
+            <span style={{fontSize:13}}>{dark?'🌙':'☀️'}</span>
+            <span style={{fontSize:10,fontWeight:600,color:th.s,transition:'color .4s'}}>{dark?'Dark':'Light'}</span>
+          </button>
+          <div style={{cursor:'pointer',opacity:.65}}><GearIcon c={th.s}/></div>
+        </div>
+      </div>
+
+      {/* Scroll body */}
+      <div style={{flex:1,overflowY:'auto',display:'flex',flexDirection:'column',gap:10,paddingBottom:14}}>
+        <div style={{display:'flex',gap:10,padding:'0 14px'}}>
+          <SunCard sunT={sunT} nextT={next.t} nextName={next.name} th={th} activeMk={activeMk} onMkTap={setActiveMk}/>
+          <NextPrayerCard prayer={next} hh={hh} mm={mm} ss={ss} doneCount={doneCount} th={th}/>
+        </div>
+        <EventsStrip th={th}/>
+        <PrayerSlab done={done} setDone={setDone} th={th}/>
+      </div>
+
+      {/* Pill nav */}
+      <div style={{padding:'6px 14px 22px'}}>
+        <div style={{
+          background:th.nav,backdropFilter:'blur(22px)',borderRadius:30,padding:'10px 8px',
+          display:'flex',justifyContent:'space-around',
+          border:`1px solid ${th.border}`,
+          boxShadow:th.isDark?'0 4px 28px rgba(0,0,0,.55)':'0 4px 20px rgba(0,0,0,.09)',
+          transition:'background .5s,border .5s,box-shadow .5s',
+        }}>
+          {['Salah','Dhikr','Learn'].map(tab=>(
+            <div key={tab} onClick={()=>setActiveTab(tab)} style={{
+              fontFamily:'Caveat',fontSize:17,
+              color:activeTab===tab?th.p:th.m,
+              fontWeight:activeTab===tab?700:600,
+              cursor:'pointer',padding:'2px 20px 4px',
+              position:'relative',userSelect:'none',transition:'color .3s',
+            }}>
+              {tab}
+              {activeTab===tab&&<div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:16,height:2,background:th.p,borderRadius:2,transition:'background .4s'}}/>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

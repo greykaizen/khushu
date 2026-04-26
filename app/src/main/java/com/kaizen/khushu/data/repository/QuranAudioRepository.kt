@@ -3,6 +3,7 @@ package com.kaizen.khushu.data.repository
 import android.content.Context
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
+import com.kaizen.khushu.data.repository.CatalogRepository
 
 object QuranAudioRepository {
     private val manifestCache = ConcurrentHashMap<String, Map<Int, String>>()
@@ -29,6 +30,24 @@ object QuranAudioRepository {
     }
 
     fun getUrl(context: Context, reciterId: String, surahNumber: Int): String? {
+        var reciter = CatalogRepository.reciters(context, com.kaizen.khushu.data.model.ContentSource.MP3QURAN).find { it.id == reciterId }
+        if (reciter == null) {
+            reciter = CatalogRepository.reciters(context, com.kaizen.khushu.data.model.ContentSource.QF).find { it.id == reciterId }
+        }
+        if (reciter == null) {
+            reciter = CatalogRepository.reciters(context, com.kaizen.khushu.data.model.ContentSource.EVERYAYAH).find { it.id == reciterId }
+        }
+        if (reciter == null) {
+            reciter = com.kaizen.khushu.data.model.AVAILABLE_RECITERS.find { it.id == reciterId }
+        }
+        
+        if (reciter != null && reciter.audioUrlPattern.isNotBlank()) {
+            val surahPadded = surahNumber.toString().padStart(3, '0')
+            return reciter.audioUrlPattern
+                .replace("{surah}", surahNumber.toString())
+                .replace("{surah_padded}", surahPadded)
+        }
+
         val manifest = getManifest(context, reciterId)
         return manifest[surahNumber]
     }

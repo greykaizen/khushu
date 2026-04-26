@@ -36,6 +36,7 @@ data class AyahBlock(
     val textUthmani: String? = null,
     val translationEn: String? = null,
     val tajweedMarkup: String? = null,
+    val tafsirText: String? = null,
 ) : ContentBlock()
 
 @Serializable

@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,6 +21,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onNavigateCounter: () -> Unit,
     onNavigateAppearance: () -> Unit,
+    onNavigatePrayer: () -> Unit,
     onBack: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -66,6 +68,13 @@ fun SettingsScreen(
                 detail = "Theme, Dynamic Color & AMOLED",
                 imageVector = Icons.Default.ColorLens,
                 onClick = onNavigateAppearance
+            )
+
+            MenuSectionItem(
+                title = "Prayer Times",
+                detail = "Calculation Method & Asr Rules",
+                imageVector = Icons.Default.AccessTime,
+                onClick = onNavigatePrayer
             )
 
             Spacer(Modifier.height(32.dp))

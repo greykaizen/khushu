@@ -246,7 +246,7 @@ private fun AyahBlockView(
             }
 
             // Determine if selected lang is RTL
-            val isTranslationRtl = com.kaizen.khushu.data.model.AVAILABLE_TRANSLATIONS
+            val isTranslationRtl = com.kaizen.khushu.data.model.TranslationMeta.AVAILABLE_TRANSLATIONS
                 .find { it.id == settings.selectedTranslationLang }?.isRtl ?: false
 
             if (translationText != null) {
@@ -264,6 +264,26 @@ private fun AyahBlockView(
                             textAlign = if (isTranslationRtl) TextAlign.Right else TextAlign.Center,
                         ),
                         color = contentColor.copy(alpha = 0.75f),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            if (settings.showTafsir && block.tafsirText != null) {
+                Spacer(Modifier.height(24.dp))
+                HorizontalDivider(color = contentColor.copy(alpha = 0.1f))
+                Spacer(Modifier.height(16.dp))
+                val isSpa5k = settings.selectedTafsirSource == "SPA5K"
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                    Text(
+                        text = block.tafsirText,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = if (isSpa5k) ScheherazadeNew else androidx.compose.ui.text.font.FontFamily.Default,
+                            fontSize = if (isSpa5k) (settings.translationSizeSp + 6f).sp else settings.translationSizeSp.sp,
+                            lineHeight = if (isSpa5k) ((settings.translationSizeSp + 6f) * 1.8f).sp else (settings.translationSizeSp * 1.6f).sp,
+                            textAlign = TextAlign.Right,
+                        ),
+                        color = contentColor.copy(alpha = 0.85f),
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }

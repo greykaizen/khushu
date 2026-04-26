@@ -43,7 +43,13 @@ fun KhushuLogoBadge(
         "DARK"  -> Color(0xFF000000)
         "LIGHT" -> Color(0xFFFFFFFF)
         "GREEN" -> Color(0xFF1B7A3E)
-        else    -> Color(ContextCompat.getColor(context, android.R.color.system_accent1_500))
+        else    -> {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                Color(ContextCompat.getColor(context, android.R.color.system_accent1_500))
+            } else {
+                Color(0xFF27847D)
+            }
+        }
     }
     val iconTint = when (logoStyle) {
         "LIGHT" -> Color(0xFF000000)
