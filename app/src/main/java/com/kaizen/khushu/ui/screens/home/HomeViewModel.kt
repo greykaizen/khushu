@@ -251,39 +251,51 @@ class HomeViewModel(
             val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
             todayHijri?.format(formatter).orEmpty()
         }.getOrDefault("")
+        val currentMonth = todayHijri?.get(ChronoField.MONTH_OF_YEAR) ?: 0
+        val currentDay = todayHijri?.get(ChronoField.DAY_OF_MONTH) ?: 0
+        val currentYear = todayHijri?.get(ChronoField.YEAR) ?: 0
 
         fun mapEvent(ev: com.kaizen.khushu.data.repository.IslamicCalendarEvent): IslamicEvent {
-            val currentM = todayHijri?.get(ChronoField.MONTH_OF_YEAR) ?: ev.month
-            val currentD = todayHijri?.get(ChronoField.DAY_OF_MONTH) ?: ev.day
-
-            var eventYear = todayHijri?.get(ChronoField.YEAR) ?: 0
-            if (todayHijri != null && (ev.month < currentM || (ev.month == currentM && ev.day < currentD))) {
-                eventYear += 1
-            }
-
-            val eventDate = try {
-                todayHijri
-                    ?.with(ChronoField.YEAR, eventYear.toLong())
-                    ?.with(ChronoField.MONTH_OF_YEAR, ev.month.toLong())
-                    ?.with(ChronoField.DAY_OF_MONTH, ev.day.toLong())
-            } catch (e: Exception) {
-                todayHijri
-            }
-
-            val daysBetween = if (todayHijri != null && eventDate != null) {
-                ChronoUnit.DAYS.between(todayHijri, eventDate)
-            } else {
-                0L
-            }
-            val dateLabel = when (daysBetween) {
-                0L -> "Today"
-                1L -> "Tomorrow"
-                else -> "in $daysBetween days"
-            }
             val detailDate = if (ev.day == ev.endDay) {
                 "${ev.day} ${ev.monthNameEnglish}"
             } else {
                 "${ev.day}-${ev.endDay} ${ev.monthNameEnglish}"
+            }
+            val isPastInCurrentMonth = ev.month == currentMonth && ev.endDay < currentDay
+            val isTodayEvent = ev.month == currentMonth && currentDay in ev.day..ev.endDay
+
+            val dateLabel = if (isPastInCurrentMonth) {
+                ""
+            } else {
+                val eventYear = if (
+                    todayHijri != null &&
+                    (ev.month < currentMonth || (ev.month == currentMonth && ev.day < currentDay))
+                ) {
+                    currentYear + 1
+                } else {
+                    currentYear
+                }
+
+                val eventDate = try {
+                    todayHijri
+                        ?.with(ChronoField.YEAR, eventYear.toLong())
+                        ?.with(ChronoField.MONTH_OF_YEAR, ev.month.toLong())
+                        ?.with(ChronoField.DAY_OF_MONTH, ev.day.toLong())
+                } catch (e: Exception) {
+                    todayHijri
+                }
+
+                val daysBetween = if (todayHijri != null && eventDate != null) {
+                    ChronoUnit.DAYS.between(todayHijri, eventDate)
+                } else {
+                    0L
+                }
+
+                when (daysBetween) {
+                    0L -> "Today"
+                    1L -> "Tomorrow"
+                    else -> "in $daysBetween days"
+                }
             }
 
             return IslamicEvent(
@@ -292,23 +304,33 @@ class HomeViewModel(
                 day = ev.day,
                 endDay = ev.endDay,
                 label = dateLabel,
-                date = "$dateLabel | $detailDate",
+                date = if (dateLabel.isBlank()) detailDate else "$dateLabel | $detailDate",
                 name = ev.title,
                 description = ev.description,
                 notes = ev.notes,
                 detailDate = detailDate,
-                isToday = daysBetween == 0L
+                isToday = isTodayEvent,
             )
         }
 
-        val currentMonth = todayHijri?.get(ChronoField.MONTH_OF_YEAR) ?: 0
-        val currentYear = todayHijri?.get(ChronoField.YEAR) ?: 0
         val currentMonthName = islamicEventsRepository.getAllEvents()
             .firstOrNull { it.month == currentMonth }
             ?.monthNameEnglish
             ?: getMonthName(currentMonth)
         val currentMonthEvents = runCatching {
-            islamicEventsRepository.getEventsForMonth(currentMonth).map(::mapEvent)
+            islamicEventsRepository.getEventsForMonth(currentMonth)
+                .map(::mapEvent)
+                .let { monthEvents ->
+                    val activeIndex = monthEvents.indexOfFirst { currentDay in it.day..it.endDay }
+                        .takeIf { it >= 0 }
+                        ?: monthEvents.indexOfFirst { it.day > currentDay }
+                            .takeIf { it >= 0 }
+                        ?: monthEvents.lastIndex
+
+                    monthEvents.mapIndexed { index, event ->
+                        event.copy(isActive = index == activeIndex)
+                    }
+                }
         }.getOrDefault(emptyList())
         val calendarEvents = runCatching {
             islamicEventsRepository.getAllEvents().map(::mapEvent)

@@ -29,7 +29,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.text.style.TextDecoration
@@ -63,7 +66,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
-import com.kaizen.khushu.ui.navigation.SETTINGS_ABOUT_ROUTE
 
 private const val KHUSHU_REPO_URL = "https://github.com/greykaizen/khushu"
 private const val KHUSHU_ISSUES_URL = "https://github.com/greykaizen/khushu/issues/new/choose"
@@ -181,12 +183,12 @@ fun SettingsSheet(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             SocialCircleButton(
-                                iconRes = R.drawable.ic_menu,
+                                imageVector = Icons.Default.BugReport,
                                 onClick = { openUrl(KHUSHU_ISSUES_URL) }
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             SocialCircleButton(
-                                iconRes = R.drawable.ic_globe,
+                                imageVector = Icons.Default.Info,
                                 onClick = onNavigateAbout
                             )
                         }
@@ -338,7 +340,8 @@ private fun SettingsBrandingHeader(
 
 @Composable
 private fun SocialCircleButton(
-    iconRes: Int,
+    iconRes: Int? = null,
+    imageVector: ImageVector? = null,
     onClick: () -> Unit
 ) {
     Box(
@@ -349,11 +352,24 @@ private fun SocialCircleButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(35.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        when {
+            imageVector != null -> {
+                Icon(
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            iconRes != null -> {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(35.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

@@ -48,6 +48,24 @@ data class CustomBeadStyle(
     val preset: BeadPreset = BeadPreset.NONE,
 )
 
+const val DEFAULT_CUSTOM_BEAD_STYLE_ID = "khushu_default_bead_style"
+
+fun defaultCustomBeadStyle(): CustomBeadStyle {
+    return CustomBeadStyle(
+        id = DEFAULT_CUSTOM_BEAD_STYLE_ID,
+        name = "Khushu Default",
+        shapeType = BeadShapeType.CIRCLE,
+        baseColor = 0xFFD4850A,
+        depthMode = BeadDepthMode.EMBOSS,
+        textureStyle = BeadTextureStyle.RESIN,
+        is3dEnabled = true,
+        chromaticAberration = false,
+        metallicSheen = false,
+        specularity = 0.7f,
+        preset = BeadPreset.AMBER,
+    )
+}
+
 /** Returns a copy of this style with all fields set for the given preset. */
 fun CustomBeadStyle.applyPreset(preset: BeadPreset): CustomBeadStyle = when (preset) {
     BeadPreset.NONE     -> this.copy(preset = BeadPreset.NONE)

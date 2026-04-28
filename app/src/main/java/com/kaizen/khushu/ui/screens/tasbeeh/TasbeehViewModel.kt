@@ -108,19 +108,8 @@ class TasbeehViewModel(private val dao: TasbeehDao) : ViewModel() {
 
     init {
         viewModelScope.launch {
+            dao.deleteDummyCards()
             if (dao.count() == 0) seedDefaults()
-            val currentCount = dao.count()
-            if (currentCount < 12) {
-                for (i in 1..(12 - currentCount)) {
-                    dao.insert(
-                        TasbeehCollection(
-                            title = "Dummy Card $i",
-                            colorInt = KhushuColors.Palette[i % KhushuColors.Palette.size].toArgb(),
-                            items = listOf(DhikrItem("Test Dhikr", 33))
-                        )
-                    )
-                }
-            }
         }
     }
 
@@ -133,53 +122,28 @@ class TasbeehViewModel(private val dao: TasbeehDao) : ViewModel() {
     private suspend fun seedDefaults() {
         val seeds = listOf(
             TasbeehCollection(
-                title = "After Salah",
+                title = "أذكار بعد الصلاة",
                 colorInt = KhushuColors.Palette[0].toArgb(),
                 items = listOf(
-                    DhikrItem("Subhan Allah", 33),
-                    DhikrItem("Alhamdulillah", 33),
-                    DhikrItem("Allahu Akbar", 34),
+                    DhikrItem("سُبْحَانَ الله", 33),
+                    DhikrItem("الْحَمْدُ لِلَّه", 33),
+                    DhikrItem("اللهُ أَكْبَر", 34),
                 ),
             ),
             TasbeehCollection(
-                title = "Morning Adhkar",
+                title = "الصلاة على النبي ﷺ",
                 colorInt = KhushuColors.Palette[1].toArgb(),
                 items = listOf(
-                    DhikrItem("Ayatul Kursi", 1),
-                    DhikrItem("Surah Al-Ikhlas", 3),
-                    DhikrItem("Surah Al-Falaq", 3),
-                    DhikrItem("Surah An-Nas", 3),
+                    DhikrItem("اللَّهُمَّ صَلِّ عَلَى مُحَمَّد", 100),
+                    DhikrItem("اللَّهُمَّ بَارِكْ عَلَى مُحَمَّد", 100),
                 ),
             ),
             TasbeehCollection(
-                title = "Evening Adhkar",
+                title = "الاستغفار",
                 colorInt = KhushuColors.Palette[2].toArgb(),
                 items = listOf(
-                    DhikrItem("Ayatul Kursi", 1),
-                    DhikrItem("Surah Al-Ikhlas", 3),
-                    DhikrItem("Surah Al-Falaq", 3),
-                    DhikrItem("Surah An-Nas", 3),
-                ),
-            ),
-            TasbeehCollection(
-                title = "Istighfar",
-                colorInt = KhushuColors.Palette[3].toArgb(),
-                items = listOf(
-                    DhikrItem("Astaghfirullah", 100),
-                ),
-            ),
-            TasbeehCollection(
-                title = "Salawat",
-                colorInt = KhushuColors.Palette[4].toArgb(),
-                items = listOf(
-                    DhikrItem("Allahumma Salli 'ala Muhammad", 100),
-                ),
-            ),
-            TasbeehCollection(
-                title = "La ilaha illallah",
-                colorInt = KhushuColors.Palette[5].toArgb(),
-                items = listOf(
-                    DhikrItem("La ilaha illallah", 100),
+                    DhikrItem("أَسْتَغْفِرُ الله", 100),
+                    DhikrItem("سُبْحَانَ اللهِ وَبِحَمْدِهِ", 100),
                 ),
             ),
         )

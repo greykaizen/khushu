@@ -40,10 +40,19 @@ object PrayerNotificationPublisher {
             context,
             PrayerNotificationScheduler.channelIdForStyle(alertStyle)
         )
-            .setSmallIcon(R.drawable.ic_khushu_logo)
+            .setSmallIcon(R.drawable.ic_notification_small)
             .setContentTitle(title)
             .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(
+                if (alertStyle == "SILENT") {
+                    NotificationCompat.PRIORITY_LOW
+                } else {
+                    NotificationCompat.PRIORITY_HIGH
+                }
+            )
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
 
@@ -55,7 +64,6 @@ object PrayerNotificationPublisher {
                     builder.setVibrate(longArrayOf(0L, 180L, 120L, 180L))
                 }
                 "VIBRATION" -> {
-                    builder.setSilent(true)
                     builder.setVibrate(longArrayOf(0L, 220L, 140L, 220L))
                 }
                 "SILENT" -> builder.setSilent(true)

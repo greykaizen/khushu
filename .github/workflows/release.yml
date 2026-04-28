@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required for creating releases
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -23,15 +23,15 @@ jobs:
 
       - name: Decode Keystore
         env:
-          ENCODED_STRING: ${{ secrets.SIGNING_KEY }}
+          ENCODED_STRING: ${{ secrets.SIGNING_KEY_STORE_BASE64 }}
         run: |
           echo "$ENCODED_STRING" | base64 --decode > keystore.p12
 
       - name: Build and Sign APK
         env:
-          ALIAS: ${{ secrets.ALIAS }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/keystore.p12 \

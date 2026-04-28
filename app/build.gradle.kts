@@ -23,8 +23,8 @@ android {
         applicationId = "com.kaizen.khushu"
         minSdk = 30
         targetSdk = 36
-        versionCode = 78
-        versionName = "0.24.3+$gitHash"
+        versionCode = 79
+        versionName = "0.24.4+$gitHash"
 
 
         buildConfigField("String", "AUDIO_BASE_URL", "\"https://example.com/audio/\"")
@@ -62,6 +62,7 @@ android {
     }
     lint {
         disable += "ContextCastToActivity"
+        disable += "InvalidFragmentVersionForActivityResult"
     }
 
     // Configure for Arabic font support

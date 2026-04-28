@@ -38,6 +38,7 @@ data class IslamicEvent(
     val notes: String? = null,
     val detailDate: String = date,
     val isToday: Boolean = false,
+    val isActive: Boolean = false,
 )
 
 data class HomeUiState(

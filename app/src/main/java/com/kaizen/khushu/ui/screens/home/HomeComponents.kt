@@ -13,6 +13,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -638,6 +639,16 @@ fun EventsStrip(
 ) {
     var selectedEvent by remember { mutableStateOf<IslamicEvent?>(null) }
     var showCalendar by remember { mutableStateOf(false) }
+    val activeEventIndex = remember(events) {
+        events.indexOfFirst { it.isActive }.takeIf { it >= 0 } ?: 0
+    }
+    val rowState = rememberLazyListState()
+
+    LaunchedEffect(events, activeEventIndex) {
+        if (events.isNotEmpty()) {
+            rowState.scrollToItem(activeEventIndex.coerceIn(0, events.lastIndex))
+        }
+    }
 
     val monthGroups = remember(calendarEvents) {
         calendarEvents
@@ -665,11 +676,12 @@ fun EventsStrip(
         )
 
         LazyRow(
+            state = rowState,
             contentPadding = PaddingValues(horizontal = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             itemsIndexed(events) { index, ev ->
-                val isFirst = index == 0
+                val isFirst = ev.isActive
                 val bgColor =
                     if (isFirst) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
                 val borderColor =

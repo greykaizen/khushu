@@ -20,4 +20,7 @@ interface TasbeehDao {
 
     @Query("SELECT COUNT(*) FROM tasbeeh_collections")
     suspend fun count(): Int
+
+    @Query("DELETE FROM tasbeeh_collections WHERE title LIKE 'Dummy Card %'")
+    suspend fun deleteDummyCards()
 }

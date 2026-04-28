@@ -23,7 +23,7 @@
 </p>
 
 > [!NOTE]
-> **Khushu is in early development.**
+> **Khushu is in Early Development.**
 > We are currently in the Alpha stage of our journey. While we strive for a seamless experience, you may encounter occasional bugs. Your patience and feedback help us build a better sanctuary for the Ummah.
 
 ---

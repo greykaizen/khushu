@@ -50,7 +50,7 @@ fun TasbihBeadCustomizerSheet(
 
     var workingStyle by remember {
         val current = settings.customBeadStyles.find { it.id == settings.activeBeadStyleId }
-        mutableStateOf(current ?: CustomBeadStyle(id = "default", name = "My Design"))
+        mutableStateOf(current ?: defaultCustomBeadStyle())
     }
 
     val circle = MaterialShapes.Circle.toShape()
@@ -393,11 +393,11 @@ fun TasbihBeadCustomizerSheet(
                     Text("Save & Apply Style", fontWeight = FontWeight.Bold, fontFamily = BeVietnamPro)
                 }
 
-                if (workingStyle.id != "default" && settings.customBeadStyles.any { it.id == workingStyle.id }) {
+                if (workingStyle.id != DEFAULT_CUSTOM_BEAD_STYLE_ID && settings.customBeadStyles.any { it.id == workingStyle.id }) {
                     TextButton(
                         onClick = {
                             settingsViewModel.deleteCustomBeadStyle(workingStyle.id)
-                            workingStyle = settings.customBeadStyles.firstOrNull() ?: CustomBeadStyle(id = "default", name = "Default")
+                            workingStyle = settings.customBeadStyles.firstOrNull() ?: defaultCustomBeadStyle()
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)

@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.kaizen.khushu.data.model.CustomBeadStyle
+import com.kaizen.khushu.data.model.DEFAULT_CUSTOM_BEAD_STYLE_ID
+import com.kaizen.khushu.data.model.defaultCustomBeadStyle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -119,6 +121,15 @@ class SettingsRepository(private val context: Context) {
             } catch (e: Exception) {
                 emptyList()
             }
+            val resolvedCustomStyles = if (customStyles.isEmpty()) {
+                listOf(defaultCustomBeadStyle())
+            } else {
+                customStyles
+            }
+            val requestedActiveStyleId = preferences[PreferencesKeys.ACTIVE_BEAD_STYLE_ID]
+            val resolvedActiveStyleId = requestedActiveStyleId
+                ?.takeIf { id -> resolvedCustomStyles.any { it.id == id } }
+                ?: DEFAULT_CUSTOM_BEAD_STYLE_ID
 
             UserSettings(
                 hapticsEnabled = preferences[PreferencesKeys.HAPTICS_ENABLED] ?: true,
@@ -135,7 +146,7 @@ class SettingsRepository(private val context: Context) {
                 showCompletionText = preferences[PreferencesKeys.SHOW_COMPLETION_TEXT] ?: true,
                 completionText = preferences[PreferencesKeys.COMPLETION_TEXT] ?: "الحمد لله",
                 colorSeed = preferences[PreferencesKeys.COLOR_SEED] ?: "default",
-                tasbeehListMode = preferences[PreferencesKeys.TASBEEH_LIST_MODE] ?: false,
+                tasbeehListMode = preferences[PreferencesKeys.TASBEEH_LIST_MODE] ?: true,
                 startupTab = preferences[PreferencesKeys.STARTUP_TAB] ?: "salah",
                 tasbihBeadStyle = preferences[PreferencesKeys.TASBIH_BEAD_STYLE] ?: "CLASSIC_AMBER",
                 logoStyle = preferences[PreferencesKeys.LOGO_STYLE] ?: "DYNAMIC",
@@ -164,8 +175,8 @@ class SettingsRepository(private val context: Context) {
                 wobbleStiffness = preferences[PreferencesKeys.WOBBLE_STIFFNESS] ?: 140f,
                 wobbleDampingRatio = preferences[PreferencesKeys.WOBBLE_DAMPING_RATIO] ?: 0.25f,
                 beadMicroScale = preferences[PreferencesKeys.BEAD_MICRO_SCALE] ?: 1.2f,
-                customBeadStyles = customStyles,
-                activeBeadStyleId = preferences[PreferencesKeys.ACTIVE_BEAD_STYLE_ID] ?: "CLASSIC_AMBER",
+                customBeadStyles = resolvedCustomStyles,
+                activeBeadStyleId = resolvedActiveStyleId,
                 tasbeehStealthModeAllowed = preferences[PreferencesKeys.TASBEEH_STEALTH_MODE_ALLOWED] ?: false,
                 tasbeehVolumeEnabled = preferences[PreferencesKeys.TASBEEH_VOLUME_ENABLED] ?: true,
                 tasbeehVolumeAnimation = preferences[PreferencesKeys.TASBEEH_VOLUME_ANIMATION] ?: true,
@@ -527,8 +538,8 @@ data class UserSettings(
     val wobbleStiffness: Float = 140f,
     val wobbleDampingRatio: Float = 0.25f,
     val beadMicroScale: Float = 1.2f,
-    val customBeadStyles: List<CustomBeadStyle> = emptyList(),
-    val activeBeadStyleId: String = "CLASSIC_AMBER",
+    val customBeadStyles: List<CustomBeadStyle> = listOf(defaultCustomBeadStyle()),
+    val activeBeadStyleId: String = DEFAULT_CUSTOM_BEAD_STYLE_ID,
     val tasbeehStealthModeAllowed: Boolean = false,
     val tasbeehVolumeEnabled: Boolean = true,
     val tasbeehVolumeAnimation: Boolean = true,

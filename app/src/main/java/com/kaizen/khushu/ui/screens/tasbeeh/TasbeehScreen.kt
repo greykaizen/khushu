@@ -679,7 +679,8 @@ private fun PreviewBead(
 ) {
     val noiseShader = GlobalNoiseShader.value
     val noiseBrush = remember(noiseShader) { ShaderBrush(noiseShader) }
-    // Override color with card's onContainer color; strip engraving for card display
+    // Card preview should borrow the active shape/effects, but keep card-driven color
+    // and omit engraving so the card stays compact and legible.
     val resolvedStyle = customStyle?.copy(
         baseColor = baseColor.toArgb().toLong() and 0xFFFFFFFFL,
         engravingText = ""

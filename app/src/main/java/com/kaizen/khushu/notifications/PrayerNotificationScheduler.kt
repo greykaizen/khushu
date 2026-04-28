@@ -1,6 +1,7 @@
 package com.kaizen.khushu.notifications
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -368,10 +369,10 @@ class PrayerNotificationScheduler(
     }
 
     companion object {
-        const val CHANNEL_SYSTEM_SOUND = "prayer_reminders_system_sound"
-        const val CHANNEL_CUSTOM_SOUND = "prayer_reminders_custom_sound"
-        const val CHANNEL_VIBRATION = "prayer_reminders_vibration"
-        const val CHANNEL_SILENT = "prayer_reminders_silent"
+        const val CHANNEL_SYSTEM_SOUND = "prayer_reminders_system_sound_v2"
+        const val CHANNEL_CUSTOM_SOUND = "prayer_reminders_custom_sound_v2"
+        const val CHANNEL_VIBRATION = "prayer_reminders_vibration_v2"
+        const val CHANNEL_SILENT = "prayer_reminders_silent_v2"
 
         fun createNotificationChannels(context: Context) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -385,29 +386,33 @@ class PrayerNotificationScheduler(
                 NotificationChannel(
                     CHANNEL_SYSTEM_SOUND,
                     "Prayer Reminders",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
                 ).apply {
-                    description = "Prayer reminders with system notification sound"
+                    description = "Prayer reminders with system notification sound and heads-up alerts"
                     setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttributes)
                     enableVibration(true)
+                    lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
                 NotificationChannel(
                     CHANNEL_CUSTOM_SOUND,
                     "Prayer Reminders Custom",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
                 ).apply {
-                    description = "Prayer reminders with a stronger alarm-style tone"
+                    description = "Prayer reminders with a stronger alarm-style tone and heads-up alerts"
                     setSound(defaultCustomSoundUri(), audioAttributes)
                     enableVibration(true)
+                    lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
                 NotificationChannel(
                     CHANNEL_VIBRATION,
                     "Prayer Reminders Vibration",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
                 ).apply {
-                    description = "Prayer reminders with vibration only"
+                    description = "Prayer reminders with vibration-only heads-up alerts"
                     setSound(null, null)
                     enableVibration(true)
+                    vibrationPattern = longArrayOf(0L, 220L, 140L, 220L)
+                    lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
                 NotificationChannel(
                     CHANNEL_SILENT,
@@ -418,6 +423,7 @@ class PrayerNotificationScheduler(
                     setSound(null, null)
                     enableVibration(false)
                     setShowBadge(false)
+                    lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 }
             )
             channels.forEach { channel ->

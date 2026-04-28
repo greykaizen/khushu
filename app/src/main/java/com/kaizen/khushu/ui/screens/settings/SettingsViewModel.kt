@@ -9,6 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kaizen.khushu.data.model.CustomBeadStyle
+import com.kaizen.khushu.data.model.DEFAULT_CUSTOM_BEAD_STYLE_ID
+import com.kaizen.khushu.data.model.defaultCustomBeadStyle
 import com.kaizen.khushu.data.repository.SettingsRepository
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.util.AppIconManager
@@ -46,10 +48,12 @@ class SettingsViewModel(
             showCompletionText = true,
             completionText = "الحمد لله",
             colorSeed = "default",
-            tasbeehListMode = false,
+            tasbeehListMode = true,
             startupTab = "salah",
             tasbihBeadStyle = "CLASSIC_AMBER",
-            showTajweed = false
+            showTajweed = false,
+            customBeadStyles = listOf(defaultCustomBeadStyle()),
+            activeBeadStyleId = DEFAULT_CUSTOM_BEAD_STYLE_ID,
         )
     )
 
