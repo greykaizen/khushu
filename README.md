@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="docs/images/khushu-logo-teal-final.svg" width="128" alt="Khushu Logo">
+  <img src="docs/images/khushu-logo-teal-final.svg" width="100" alt="Khushu Logo">
 </p>
 
-<h1 align="center">•  Khushu  •</h1>
-
-<p align="center">
+<div align="center">
+  <p style="font-size: 24px; font-weight: bold;">• Khushu •</p>
   <strong>Your prayer deserves your full heart.</strong>
-</p>
+</div>
 
+<br>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/100%25-Free_%26_Private-success.svg" alt="100% Free & Private">
@@ -50,16 +50,17 @@ We stripped away everything unnecessary and embraced a "Pure Black" aesthetic. I
 Experience a beautifully smooth Rakat picker and a minimalist full-screen counter that lets you focus entirely on your prayer. Just tap anywhere.
 
 <p align="center">
-  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-05-15-82_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
-  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-12-59-22-18_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
+  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-30-14-29-44-15_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
+  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-30-14-29-46-82_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
   <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-10-14-38_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
 </p>
 
 ### 📿 Calming Tasbeeh
-Organize your Dhikr in calming, pastel-colored collections. Our massive, immersive counters let you engage in remembrance without constantly looking at your screen.
+Organize your Dhikr in calming, pastel-colored collections. Our massive, immersive counters let you engage in remembrance without constantly looking at your screen. Design beautiful tasbih's and let Allahs remembrance fill your heart.
 
 <p align="center">
   <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-00-09-84_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
+  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-30-14-37-33-79_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
   <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-10-24-23_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
 </p>
 
@@ -67,7 +68,7 @@ Organize your Dhikr in calming, pastel-colored collections. Our massive, immersi
 Authentic Hadith and Quranic verses presented in modern, clean typography, giving you the clarity to ponder over the words of Allah and His Messenger (ﷺ).
 
 <p align="center">
-  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-10-08-16_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
+  <kbd><img src="docs/images/screenshots/Screenshot_2026-04-30-14-29-54-06_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
   <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-00-19-29_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
   <kbd><img src="docs/images/screenshots/Screenshot_2026-04-28-13-00-29-44_12360300079e5e3aef057e94f5c45592.jpg" width="200"></kbd>
 </p>
@@ -94,8 +95,9 @@ If you love the app and want to see it grow—if you want to help us reach more 
 
 Khushu is already usable, but there is still a lot of thoughtful work planned ahead. The current roadmap includes:
 
-*   **🕌 Muslim Mosque Registry:** A clean, community-helpful way to discover and keep track of mosques.
+*   **🕌 Muslim Mosque Registry:** A clean, community-helpful way to discover and keep track of mosques timings in local areas.
 *   **🧭 Qibla Direction:** A focused Qibla experience that feels calm and reliable instead of gimmicky.
+*   **🏠 Homescreen Widget** Show your prayer progress and next prayer time on your homescreen.
 *   **📖 Quran & Tafsir Polish:** Better Tafsir flow, richer reading ergonomics, and continued refinement in Quran study surfaces.
 *   **✨ Ongoing Product Polish:** More consistency across settings, prayer flows, notifications, and small interaction details throughout the app.
 
