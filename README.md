@@ -90,14 +90,14 @@ If you love the app and want to see it grow—if you want to help us reach more 
 
 ---
 
-## 🛠️ Roadmap & Planned Features
+## 🛠️ Roadmap
 
-We are constantly dreaming of ways to make Khushu more useful for your daily life. Here is what we are working on next:
+Khushu is already usable, but there is still a lot of thoughtful work planned ahead. The current roadmap includes:
 
-*   **📅 Prayer Timings & Calendar:** Integrated, beautiful prayer times with a minimalist calendar to help you stay ahead of your schedule.
-*   **🔔 Intelligent Notifications:** Gentle, non-distracting reminders for Sunnah fasts and night prayers (Tahajjud).
-*   **🕌 Widgets:** Beautiful home screen widgets for prayer timing, tasbih.
-*   **🌍 More Languages:** Bringing Khushu to more brothers and sisters globally with community-driven translations.
+*   **🕌 Muslim Mosque Registry:** A clean, community-helpful way to discover and keep track of mosques.
+*   **🧭 Qibla Direction:** A focused Qibla experience that feels calm and reliable instead of gimmicky.
+*   **📖 Quran & Tafsir Polish:** Better Tafsir flow, richer reading ergonomics, and continued refinement in Quran study surfaces.
+*   **✨ Ongoing Product Polish:** More consistency across settings, prayer flows, notifications, and small interaction details throughout the app.
 
 ---
 
