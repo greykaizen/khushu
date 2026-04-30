@@ -649,7 +649,7 @@ fun NextPrayerCard(
                 Spacer(Modifier.height(14.dp))
                 Column {
                     Text(
-                            text = "NEXT TIMING",
+                            text = "NEXT PRAYER",
                             style =
                                     MaterialTheme.typography.labelSmall.copy(
                                             fontSize = 8.5.sp,
@@ -676,11 +676,11 @@ fun NextPrayerCard(
                     Text(
                             text = nextPrayer?.time ?: "Prayer time unavailable",
                             style =
-                                    MaterialTheme.typography.bodySmall.copy(
-                                            fontSize = 10.sp,
+                                    MaterialTheme.typography.titleLarge.copy(
+                                            fontSize = 16.sp,
 //                                            fontStyle = FontStyle.Italic
                                     ),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f),
 //                            modifier = Modifier.padding(top = 2.dp)
                     )
                     }

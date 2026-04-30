@@ -12,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
@@ -42,12 +44,71 @@ import com.kaizen.khushu.ui.theme.Antonio
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import com.kaizen.khushu.ui.theme.ScheherazadeNew
 
+@Composable
+private fun SlidingSegmentedControl(
+    items: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(
+        modifier = modifier
+            .height(50.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(4.dp)
+    ) {
+        val itemWidth = maxWidth / items.size
+        val indicatorOffset by animateDpAsState(
+            targetValue = itemWidth * selectedIndex,
+            animationSpec = tween(durationMillis = 220),
+            label = "reading_settings_segment_offset"
+        )
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier
+                    .offset(x = indicatorOffset)
+                    .width(itemWidth)
+                    .fillMaxHeight()
+            ) {}
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                items.forEachIndexed { index, label ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { onSelect(index) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontFamily = BeVietnamPro,
+                            color = if (selectedIndex == index) {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadingSettingsSheet(
     settings: UserSettings,
     reciterDownloadStates: Map<String, Pair<Float, Int>?> = emptyMap(),
     isReciterDownloaded: (String) -> Boolean = { false },
+    supportsTafsirSelection: Boolean = false,
     onDismiss: () -> Unit,
     onThemeChange: (String) -> Unit,
     onArabicSizeChange: (Float) -> Unit,
@@ -68,7 +129,7 @@ fun ReadingSettingsSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Display", "Text & Translation", "Audio")
+    val tabs = listOf("Display", "Text", "Audio")
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -80,40 +141,22 @@ fun ReadingSettingsSheet(
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Reading Settings",
-                    style = MaterialTheme.typography.headlineSmall.copy(
+                    style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = BeVietnamPro,
                         fontWeight = FontWeight.Normal
                     ),
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = 28.dp)
+                        .padding(bottom = 24.dp)
                 )
 
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = Color.Transparent,
-                    divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)) },
-                    indicator = {
-                        TabRowDefaults.PrimaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(selectedTab),
-                            width = 64.dp,
-                            shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
-                        )
-                    }
-                ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = {
-                                Text(
-                                    text = title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontFamily = BeVietnamPro,
-                                    color = if (selectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
-                }
+                SlidingSegmentedControl(
+                    items = tabs,
+                    selectedIndex = selectedTab,
+                    onSelect = { selectedTab = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                )
 
                 Spacer(Modifier.height(16.dp))
 
@@ -189,25 +232,43 @@ fun ReadingSettingsSheet(
                                 }
                             }
 
-                            item {
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-                                Spacer(Modifier.height(8.dp))
-                                SettingLabel("Tafsir")
-                                Spacer(Modifier.height(12.dp))
-                                SettingToggle(
-                                    label = "Show Tafsir",
-                                    checked = settings.showTafsir,
-                                    onCheckedChange = onShowTafsirChange,
-                                )
-                                if (settings.showTafsir) {
-                                    Spacer(Modifier.height(12.dp))
-                                    val tafsirLabel = settings.selectedTafsirId.ifBlank { "Select Tafsir" }
-                                    OutlinedButton(
-                                        onClick = onOpenTafsirPicker,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(12.dp),
+                            if (supportsTafsirSelection) {
+                                item {
+                                    val context = LocalContext.current
+                                    val tafsirSource = remember(settings.selectedTafsirSource) {
+                                        try { ContentSource.valueOf(settings.selectedTafsirSource) } catch (_: Exception) { ContentSource.SPA5K }
+                                    }
+                                    val effectiveTafsirSource = remember(tafsirSource) {
+                                        if (tafsirSource == ContentSource.QF) ContentSource.SPA5K else tafsirSource
+                                    }
+                                    val selectedTafsirMeta = remember(
+                                        settings.selectedTafsirId,
+                                        effectiveTafsirSource
                                     ) {
-                                        Text(tafsirLabel, fontFamily = BeVietnamPro)
+                                        CatalogRepository.tafsirs(context, effectiveTafsirSource)
+                                            .find { it.id == settings.selectedTafsirId }
+                                    }
+
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+                                    Spacer(Modifier.height(8.dp))
+                                    SettingLabel("Tafsir")
+                                    Spacer(Modifier.height(12.dp))
+                                    SettingToggle(
+                                        label = "Show Tafsir",
+                                        checked = settings.showTafsir,
+                                        onCheckedChange = onShowTafsirChange,
+                                    )
+                                    if (settings.showTafsir) {
+                                        Spacer(Modifier.height(12.dp))
+                                        val tafsirLabel = selectedTafsirMeta?.name
+                                            ?: settings.selectedTafsirId.ifBlank { "Select Tafsir" }
+                                        OutlinedButton(
+                                            onClick = onOpenTafsirPicker,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(12.dp),
+                                        ) {
+                                            Text(tafsirLabel, fontFamily = BeVietnamPro)
+                                        }
                                     }
                                 }
                             }

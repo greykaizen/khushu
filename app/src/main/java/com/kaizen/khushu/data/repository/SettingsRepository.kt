@@ -154,7 +154,7 @@ class SettingsRepository(private val context: Context) {
                 startupTab = preferences[PreferencesKeys.STARTUP_TAB] ?: "home",
                 tasbihBeadStyle = preferences[PreferencesKeys.TASBIH_BEAD_STYLE] ?: "CLASSIC_AMBER",
                 logoStyle = preferences[PreferencesKeys.LOGO_STYLE] ?: "DYNAMIC",
-                readingTheme = preferences[PreferencesKeys.READING_THEME] ?: "DARK",
+                readingTheme = preferences[PreferencesKeys.READING_THEME] ?: "AUTO",
                 arabicSizeSp = preferences[PreferencesKeys.ARABIC_SIZE_SP] ?: 32f,
                 translationSizeSp = preferences[PreferencesKeys.TRANSLATION_SIZE_SP] ?: 16f,
                 showTranslation = preferences[PreferencesKeys.SHOW_TRANSLATION] ?: true,

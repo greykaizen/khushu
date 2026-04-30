@@ -30,16 +30,22 @@ fun TafsirPickerSheet(
     currentSurah: Int,
     isDownloading: Boolean,
     progress: Float,
+    downloadingTafsirId: String? = null,
     onSelectSource: (ContentSource) -> Unit,
     onSelect: (TafsirMeta) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
-    val tafsirSources = remember { ContentSource.entries.filter { it.supportsTafsir } }
+    val tafsirSources = remember {
+        ContentSource.entries.filter { it.supportsTafsir && it != ContentSource.QF }
+    }
+    val effectiveSelectedSource = remember(selectedSource) {
+        if (selectedSource == ContentSource.QF) ContentSource.SPA5K else selectedSource
+    }
 
-    val catalog = remember(selectedSource) {
-        CatalogRepository.tafsirs(context, selectedSource)
+    val catalog = remember(effectiveSelectedSource) {
+        CatalogRepository.tafsirs(context, effectiveSelectedSource)
             .groupBy { it.language.ifBlank { "Other" } }
             .toSortedMap()
     }
@@ -56,7 +62,7 @@ fun TafsirPickerSheet(
 
                 SettingLabel("Source")
                 Spacer(Modifier.height(8.dp))
-                SourcePickerRow(sources = tafsirSources, selected = selectedSource, onSelect = onSelectSource)
+                SourcePickerRow(sources = tafsirSources, selected = effectiveSelectedSource, onSelect = onSelectSource)
                 Spacer(Modifier.height(16.dp))
 
                 if (isDownloading) {
@@ -78,8 +84,9 @@ fun TafsirPickerSheet(
                                 modifier = Modifier.padding(top = 8.dp))
                         }
                         items(tafsirs) { meta ->
-                            val isDownloaded = TafsirRepository.isDownloaded(context, meta.id, currentSurah)
+                            val isDownloaded = TafsirRepository.hasRenderableTafsir(context, meta.id, currentSurah)
                             val isSelected = selectedTafsirId == meta.id
+                            val isRowDownloading = isDownloading && downloadingTafsirId == meta.id
 
                             Surface(
                                 onClick = { if (!isDownloading) onSelect(meta) },
@@ -101,15 +108,27 @@ fun TafsirPickerSheet(
                                             buildString {
                                                 if (meta.author.isNotBlank()) append(meta.author)
                                                 append(" • ")
-                                                if (isDownloaded) append("Downloaded")
+                                                if (isRowDownloading) append("Downloading...")
+                                                else if (isDownloaded) append("Downloaded")
                                                 else append("Tap to download this surah")
                                             },
                                             style = MaterialTheme.typography.bodySmall,
                                             fontFamily = BeVietnamPro,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
+                                        if (isRowDownloading) {
+                                            Spacer(Modifier.height(8.dp))
+                                            LinearProgressIndicator(
+                                                progress = { progress },
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
                                     }
                                     when {
+                                        isRowDownloading -> CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp
+                                        )
                                         isSelected -> Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
                                         !isDownloaded -> Icon(Icons.Default.Download, null,
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))

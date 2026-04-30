@@ -647,9 +647,7 @@ private fun KhushuApp(
                         popExitTransition = { subScreenPopExit() },
                     ) {
                         CustomizeScreen(
-                            onNavigateBranding = {
-                                navController.navigate(CUSTOMIZE_BRANDING_ROUTE)
-                            },
+                            settingsViewModel = settingsViewModel,
                             onNavigateSalah = { navController.navigate(CUSTOMIZE_SALAH_ROUTE) },
                             onNavigateTasbeeh = {
                                 navController.navigate(CUSTOMIZE_TASBEEH_ROUTE)
@@ -687,19 +685,6 @@ private fun KhushuApp(
                             viewModel = settingsViewModel,
                             onPreview = { navController.navigate(TASBEEH_CANVAS_ROUTE) },
                             onBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable(
-                        route = CUSTOMIZE_BRANDING_ROUTE,
-                        enterTransition = { subScreenEnter() },
-                        exitTransition = { subScreenExit() },
-                        popEnterTransition = { subScreenPopEnter() },
-                        popExitTransition = { subScreenPopExit() },
-                    ) {
-                        BrandingSettingsScreen(
-                            settingsViewModel = settingsViewModel,
-                            onBack = { navController.popBackStack() },
                         )
                     }
 

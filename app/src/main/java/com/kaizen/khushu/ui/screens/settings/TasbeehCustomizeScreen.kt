@@ -6,7 +6,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,7 +27,7 @@ fun TasbeehCustomizeScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { SettingsTopBarTitle("Tasbih Visuals", scrollBehavior) },
+                title = { SettingsTopBarTitle("Tasbih Screen", scrollBehavior) },
                 navigationIcon = { SettingsBackButton(onBack) },
                 scrollBehavior = scrollBehavior
             )
@@ -43,46 +42,54 @@ fun TasbeehCustomizeScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(8.dp))
-            SectionHeader("Preview")
-            MenuSectionItem(
-                title = "Open Tasbeeh Screen Editor",
-                detail = "Customize your tasbih counter layout",
-                onClick = onPreview
-            )
-            MenuSectionItem(
-                title = "Bead Style",
-                detail = "Choose Classic Amber or Dark Onyx",
-                onClick = { showBeadSheet = true }
-            )
-
-            SectionHeader("Visual Effects")
-            SettingsToggle(
-                title = "Dynamic Colors",
-                subtitle = "Apply collection color automatically based on theme",
-                checked = settings.tasbeehDynamicColors,
-                onCheckedChange = { viewModel.toggleTasbeehDynamicColors(it) }
-            )
-
-            SectionHeader("Interaction")
-            SettingsToggle(
-                title = "Stealth Mode",
-                subtitle = "Tap screen to hide all widgets for private use",
-                checked = settings.tasbeehStealthModeAllowed,
-                onCheckedChange = { viewModel.toggleTasbeehStealthModeAllowed(it) }
-            )
-            SettingsToggle(
-                title = "Volume Buttons",
-                subtitle = "Use physical volume keys to count",
-                checked = settings.tasbeehVolumeEnabled,
-                onCheckedChange = { viewModel.toggleTasbeehVolumeEnabled(it) }
-            )
-            if (settings.tasbeehVolumeEnabled) {
-                SettingsToggle(
-                    title = "Animate Volume Keys",
-                    subtitle = "Show bead animation when counting with volume keys",
-                    checked = settings.tasbeehVolumeAnimation,
-                    onCheckedChange = { viewModel.toggleTasbeehVolumeAnimation(it) }
+            SettingsSectionCard(
+                title = "Layout",
+                subtitle = "Open the editor or change how beads are styled."
+            ) {
+                MenuSectionItem(
+                    title = "Edit Tasbih Screen",
+                    detail = "Customize your counter layout and widget placement",
+                    onClick = onPreview
                 )
+                MenuSectionItem(
+                    title = "Design Tasbih Beads",
+                    detail = "Design the active bead material, shape, and finish",
+                    onClick = { showBeadSheet = true }
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            SettingsSectionCard(
+                title = "Behavior",
+                subtitle = "How the Tasbih screen reacts while you count."
+            ) {
+                SettingsToggle(
+                    title = "Dynamic Colors",
+                    subtitle = "Use collection colors automatically in the list and counter.",
+                    checked = settings.tasbeehDynamicColors,
+                    onCheckedChange = { viewModel.toggleTasbeehDynamicColors(it) }
+                )
+                SettingsToggle(
+                    title = "Stealth Mode",
+                    subtitle = "Allow hiding widgets for a cleaner private counting view.",
+                    checked = settings.tasbeehStealthModeAllowed,
+                    onCheckedChange = { viewModel.toggleTasbeehStealthModeAllowed(it) }
+                )
+                SettingsToggle(
+                    title = "Volume Buttons",
+                    subtitle = "Use physical volume keys to count.",
+                    checked = settings.tasbeehVolumeEnabled,
+                    onCheckedChange = { viewModel.toggleTasbeehVolumeEnabled(it) }
+                )
+                if (settings.tasbeehVolumeEnabled) {
+                    SettingsToggle(
+                        title = "Animate Volume Keys",
+                        subtitle = "Show bead movement when counting with the hardware buttons.",
+                        checked = settings.tasbeehVolumeAnimation,
+                        onCheckedChange = { viewModel.toggleTasbeehVolumeAnimation(it) }
+                    )
+                }
             }
             
             Spacer(Modifier.height(32.dp))
@@ -94,26 +101,5 @@ fun TasbeehCustomizeScreen(
             settingsViewModel = viewModel,
             onDismiss = { showBeadSheet = false }
         )
-    }
-}
-
-@Composable
-private fun MenuSectionItem(title: String, detail: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        color = Color.Transparent
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 16.dp)
-        ) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = detail,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
     }
 }

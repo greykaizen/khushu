@@ -554,6 +554,7 @@ fun QuranReaderScreen(
 
                 ReadingSettingsSheet(
                     settings = settings,
+                    supportsTafsirSelection = true,
                     reciterDownloadStates = reciterDownloadStates,
                     isReciterDownloaded = { quranAudioViewModel.isReciterDownloaded(it) },
                     onDismiss = { showSettings = false },
@@ -616,12 +617,20 @@ fun QuranReaderScreen(
                     currentSurah = surahNumber,
                     isDownloading = isTafsirDownloading,
                     progress = tafsirDownloadProgress,
+                    downloadingTafsirId = viewModel.downloadingTafsirId.value,
                     onSelectSource = { source ->
                         settingsViewModel.setSelectedTafsir(settings.selectedTafsirId, source.name)
                     },
                     onSelect = { meta ->
-                        settingsViewModel.setSelectedTafsir(meta.id, meta.source.name)
-                        showTafsirPicker = false
+                        if (com.kaizen.khushu.data.repository.TafsirRepository.isDownloaded(context, meta.id, surahNumber)) {
+                            settingsViewModel.setSelectedTafsir(meta.id, meta.source.name)
+                            showTafsirPicker = false
+                        } else {
+                            viewModel.downloadTafsirForSurah(context, meta, surahNumber) {
+                                settingsViewModel.setSelectedTafsir(meta.id, meta.source.name)
+                                showTafsirPicker = false
+                            }
+                        }
                     },
                     onDismiss = { showTafsirPicker = false }
                 )

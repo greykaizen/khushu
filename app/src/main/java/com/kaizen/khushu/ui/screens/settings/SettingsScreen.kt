@@ -48,43 +48,52 @@ fun SettingsScreen(
         ) {
             Spacer(Modifier.height(8.dp))
 
-            SectionHeader("General")
-            SettingsToggle(
-                title = "Keep Screen Awake",
-                subtitle = "Prevent device sleep during sessions",
-                checked = settings.keepScreenAwake,
-                onCheckedChange = { viewModel.toggleKeepScreenAwake(it) }
-            )
+            SettingsSectionCard(
+                title = "App behavior",
+                subtitle = "Core behavior that applies across Khushu."
+            ) {
+                SettingsToggle(
+                    title = "Keep Screen Awake",
+                    subtitle = "Prevent device sleep during prayer and tasbih sessions.",
+                    checked = settings.keepScreenAwake,
+                    onCheckedChange = { viewModel.toggleKeepScreenAwake(it) }
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
-            MenuSectionItem(
-                title = "Counter",
-                detail = "Haptics, Volume Keys & Feedback",
-                imageVector = Icons.Default.TouchApp,
-                onClick = onNavigateCounter
-            )
+            SettingsSectionCard(
+                title = "Preferences",
+                subtitle = "Timing, feedback, appearance, and app information."
+            ) {
+                MenuSectionItem(
+                    title = "Prayer Times",
+                    detail = "Calculation, reminders, Home visibility, and diagnostics",
+                    imageVector = Icons.Default.AccessTime,
+                    onClick = onNavigatePrayer
+                )
 
-            MenuSectionItem(
-                title = "Appearance",
-                detail = "Theme, Dynamic Color & AMOLED",
-                imageVector = Icons.Default.ColorLens,
-                onClick = onNavigateAppearance
-            )
+                MenuSectionItem(
+                    title = "Appearance",
+                    detail = "Theme, colors, startup screen, and reading defaults",
+                    imageVector = Icons.Default.ColorLens,
+                    onClick = onNavigateAppearance
+                )
 
-            MenuSectionItem(
-                title = "Prayer Times",
-                detail = "Calculation Method & Asr Rules",
-                imageVector = Icons.Default.AccessTime,
-                onClick = onNavigatePrayer
-            )
+                MenuSectionItem(
+                    title = "Counter",
+                    detail = "Haptics and hardware counting behavior",
+                    imageVector = Icons.Default.TouchApp,
+                    onClick = onNavigateCounter
+                )
 
-            MenuSectionItem(
-                title = "About Khushu",
-                detail = "Story, project links and bug reporting",
-                imageVector = Icons.Default.Info,
-                onClick = onNavigateAbout
-            )
+                MenuSectionItem(
+                    title = "About Khushu",
+                    detail = "Story, project links, and issue reporting",
+                    imageVector = Icons.Default.Info,
+                    onClick = onNavigateAbout
+                )
+            }
 
             Spacer(Modifier.height(32.dp))
         }

@@ -1,6 +1,7 @@
 package com.kaizen.khushu.data.repository
 
 import android.content.Context
+import com.kaizen.khushu.data.model.ContentSource
 import com.kaizen.khushu.data.model.TafsirMeta
 import kotlinx.serialization.json.*
 import java.io.File
@@ -15,18 +16,67 @@ object TafsirRepository {
         return file.exists()
     }
 
+    fun hasRenderableTafsir(context: Context, tafsirId: String, surahNumber: Int): Boolean {
+        if (!isDownloaded(context, tafsirId, surahNumber)) return false
+        return loadSurah(context, tafsirId, surahNumber).isNotEmpty()
+    }
+
     suspend fun downloadSurah(
         context: Context,
         meta: TafsirMeta,
         surahNumber: Int,
         onProgress: (Float) -> Unit = {},
     ) {
-        val url = meta.urlPattern.replace("{surah}", surahNumber.toString())
-        if (url.startsWith("qf:")) return  // QF tafsir: fetch via QF API (future)
-
         val dir = File(context.filesDir, "tafsirs/${meta.id}")
         if (!dir.exists()) dir.mkdirs()
         val file = File(dir, "$surahNumber.json")
+        cache.remove("${meta.id}_${surahNumber}")
+
+        // Prefer the Quran.com tafsir API for supported numeric tafsir resources. It returns
+        // stable verse-indexed tafsir objects that we normalize into the app's local cache shape.
+        if ((meta.source == ContentSource.QF || meta.source == ContentSource.SPA5K) && meta.id.toIntOrNull() != null) {
+            val quranApiUrl = "https://api.quran.com/api/v4/tafsirs/${meta.id}?chapter_number=$surahNumber"
+            try {
+                with(URL(quranApiUrl).openConnection() as HttpURLConnection) {
+                    setRequestProperty("Accept", "application/json")
+                    connect()
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        val body = inputStream.bufferedReader().use { it.readText() }
+                        val tafsirArray = Json.parseToJsonElement(body).jsonObject["tafsirs"]?.jsonArray
+                        if (tafsirArray != null) {
+                            val normalized = JsonArray(
+                                tafsirArray.map { el ->
+                                    val obj = el.jsonObject
+                                    buildJsonObject {
+                                        put(
+                                            "ayah",
+                                            obj["verse_number"]?.jsonPrimitive?.intOrNull
+                                                ?: obj["ayah"]?.jsonPrimitive?.intOrNull
+                                                ?: 0
+                                        )
+                                        put(
+                                            "text",
+                                            obj["text"]?.jsonPrimitive?.content
+                                                ?: obj["tafsir"]?.jsonPrimitive?.content
+                                                ?: ""
+                                        )
+                                    }
+                                }
+                            )
+                            file.writeText(normalized.toString())
+                            cache.remove("${meta.id}_${surahNumber}")
+                            onProgress(1f)
+                            return
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                // Fall through to legacy static JSON download below.
+            }
+        }
+
+        val url = meta.urlPattern.replace("{surah}", surahNumber.toString())
+        if (url.startsWith("qf:")) return
 
         with(URL(url).openConnection() as HttpURLConnection) {
             connect()
@@ -46,6 +96,7 @@ object TafsirRepository {
                 }
             }
         }
+        cache.remove("${meta.id}_${surahNumber}")
     }
 
     fun loadSurah(context: Context, tafsirId: String, surahNumber: Int): Map<Int, String> {

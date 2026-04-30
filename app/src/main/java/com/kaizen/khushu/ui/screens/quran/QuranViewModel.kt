@@ -10,6 +10,7 @@ import com.kaizen.khushu.data.repository.LearnRepository
 import com.kaizen.khushu.data.repository.VerseMeta
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.data.model.ContentSource
+import com.kaizen.khushu.data.model.TafsirMeta
 import com.kaizen.khushu.data.repository.CatalogRepository
 import com.kaizen.khushu.data.repository.TafsirRepository
 import kotlinx.coroutines.Dispatchers
@@ -27,16 +28,24 @@ class QuranViewModel(application: Application) : AndroidViewModel(application) {
     val tafsirText = mutableStateOf<Map<Int, String>>(emptyMap())
     val isTafsirDownloading = mutableStateOf(false)
     val tafsirDownloadProgress = mutableStateOf(0f)
+    val downloadingTafsirId = mutableStateOf<String?>(null)
 
     fun loadTafsirIfEnabled(context: android.content.Context, settings: UserSettings, surahNumber: Int) {
-        if (!settings.showTafsir || settings.selectedTafsirId.isBlank()) return
+        if (!settings.showTafsir || settings.selectedTafsirId.isBlank()) {
+            tafsirText.value = emptyMap()
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
-            val source = try { ContentSource.valueOf(settings.selectedTafsirSource) }
-                         catch (_: Exception) { ContentSource.SPA5K }
+            val requestedSource = try { ContentSource.valueOf(settings.selectedTafsirSource) }
+                catch (_: Exception) { ContentSource.SPA5K }
+            val source = if (requestedSource == ContentSource.QF) ContentSource.SPA5K else requestedSource
             val catalog = CatalogRepository.tafsirs(context, source)
-            val meta = catalog.find { it.id == settings.selectedTafsirId } ?: return@launch
+            val meta = catalog.find { it.id == settings.selectedTafsirId } ?: run {
+                withContext(Dispatchers.Main) { tafsirText.value = emptyMap() }
+                return@launch
+            }
 
-            if (!TafsirRepository.isDownloaded(context, meta.id, surahNumber)) {
+            if (!TafsirRepository.hasRenderableTafsir(context, meta.id, surahNumber)) {
                 isTafsirDownloading.value = true
                 TafsirRepository.downloadSurah(context, meta, surahNumber) { p ->
                     tafsirDownloadProgress.value = p
@@ -47,6 +56,40 @@ class QuranViewModel(application: Application) : AndroidViewModel(application) {
             withContext(Dispatchers.Main) {
                 tafsirText.value = loadedTafsir
             }
+        }
+    }
+
+    fun downloadTafsirForSurah(
+        context: android.content.Context,
+        meta: TafsirMeta,
+        surahNumber: Int,
+        onComplete: () -> Unit = {},
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (TafsirRepository.hasRenderableTafsir(context, meta.id, surahNumber)) {
+                withContext(Dispatchers.Main) { onComplete() }
+                return@launch
+            }
+
+            withContext(Dispatchers.Main) {
+                isTafsirDownloading.value = true
+                tafsirDownloadProgress.value = 0f
+                downloadingTafsirId.value = meta.id
+            }
+
+            try {
+                TafsirRepository.downloadSurah(context, meta, surahNumber) { progress ->
+                    tafsirDownloadProgress.value = progress
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isTafsirDownloading.value = false
+                    tafsirDownloadProgress.value = 0f
+                    downloadingTafsirId.value = null
+                }
+            }
+
+            withContext(Dispatchers.Main) { onComplete() }
         }
     }
 

@@ -10,7 +10,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -18,16 +28,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.ui.navigation.AppDestinations
@@ -44,8 +68,18 @@ fun AppearanceSettingsScreen(
     val settings by viewModel.settings.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val transitionController = LocalThemeTransitionController.current
-
-    val btnCoords = remember { mutableStateListOf<LayoutCoordinates?>(null, null, null) }
+    val buttonCoordinates = remember { mutableStateListOf<LayoutCoordinates?>(null, null, null) }
+    val themeOptions = listOf("System", "Light", "Dark")
+    val themeIcons = listOf(
+        Icons.Default.Settings,
+        Icons.Default.WbSunny,
+        Icons.Default.DarkMode
+    )
+    val isDarkTheme = when (settings.themeMode) {
+        "Light" -> false
+        "Dark" -> true
+        else -> isSystemInDarkTheme()
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -65,86 +99,109 @@ fun AppearanceSettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(8.dp))
-            SectionHeader("Theme")
 
-            val themeOptions = listOf("System", "Light", "Dark")
-            val themeIcons = listOf(
-                Icons.Default.Settings,
-                Icons.Default.WbSunny,
-                Icons.Default.DarkMode
-            )
-
-            SingleChoiceSegmentedButtonRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp)
+            SettingsSectionCard(
+                title = "Theme",
+                subtitle = "Control the overall look and startup behavior of Khushu."
             ) {
-                themeOptions.forEachIndexed { index, label ->
-                    SegmentedButton(
-                        modifier = Modifier.onGloballyPositioned { btnCoords[index] = it },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = themeOptions.size),
-                        onClick = {
-                            val center = btnCoords[index]?.boundsInRoot()?.center ?: Offset.Zero
-                            transitionController.captureAndChange(center) {
-                                viewModel.setThemeMode(label)
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    themeOptions.forEachIndexed { index, label ->
+                        SegmentedButton(
+                            modifier = Modifier.onGloballyPositioned { buttonCoordinates[index] = it },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = themeOptions.size),
+                            onClick = {
+                                val center = buttonCoordinates[index]?.boundsInRoot()?.center ?: Offset.Zero
+                                transitionController.captureAndChange(center) {
+                                    viewModel.setThemeMode(label)
+                                }
+                            },
+                            selected = settings.themeMode == label,
+                            icon = {
+                                Icon(
+                                    imageVector = themeIcons[index],
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = label,
+                                    fontFamily = BeVietnamPro,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
                             }
-                        },
-                        selected = settings.themeMode == label,
-                        icon = {
-                            Icon(
-                                imageVector = themeIcons[index],
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        label = { Text(label, fontFamily = BeVietnamPro, style = MaterialTheme.typography.labelLarge) }
-                    )
+                        )
+                    }
+                }
+
+                SettingsToggle(
+                    title = "Show Continue Reading",
+                    subtitle = "Keep the last opened study topic visible in Study.",
+                    checked = settings.showContinueReading,
+                    onCheckedChange = viewModel::toggleShowContinueReading
+                )
+
+                Text(
+                    text = "Startup screen",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Choose which area opens first when Khushu launches.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        "Home" to AppDestinations.HOME.route,
+                        "Pray" to AppDestinations.SALAH.route,
+                        "Tasbih" to AppDestinations.TASBEEH.route,
+                        "Study" to AppDestinations.LEARN.route
+                    ).forEach { (label, route) ->
+                        FilterChip(
+                            selected = settings.startupTab == route,
+                            onClick = { viewModel.setStartupTab(route) },
+                            label = { Text(label) }
+                        )
+                    }
                 }
             }
 
             Spacer(Modifier.height(16.dp))
-            SectionHeader("System")
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                SettingsToggle(
-                    title = "Dynamic Color",
-                    subtitle = "Sync accent color with wallpaper (Material You)",
-                    checked = settings.dynamicColor,
-                    onCheckedChange = { viewModel.toggleDynamicColor(it) }
-                )
-            }
-
-            val isDarkTheme = when (settings.themeMode) {
-                "Light" -> false
-                "Dark" -> true
-                else -> isSystemInDarkTheme()
-            }
-
-            if (isDarkTheme) {
-                SettingsToggle(
-                    title = "Pure AMOLED Black",
-                    subtitle = "Use absolute #000000 background",
-                    checked = settings.pureBlack,
-                    onCheckedChange = { viewModel.togglePureBlack(it) }
-                )
-            }
-
-            SettingsToggle(
-                title = "Show Continue Reading",
-                subtitle = "Display the last read topic on the Learn screen",
-                checked = settings.showContinueReading,
-                onCheckedChange = { viewModel.toggleShowContinueReading(it) }
-            )
-
-            AnimatedVisibility(
-                visible = !settings.dynamicColor || Build.VERSION.SDK_INT < Build.VERSION_CODES.S,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+            SettingsSectionCard(
+                title = "Color",
+                subtitle = "Use wallpaper-aware colors or choose a manual accent."
             ) {
-                Column {
-                    Spacer(Modifier.height(16.dp))
-                    SectionHeader("Accent Color")
-                    Spacer(Modifier.height(12.dp))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    SettingsToggle(
+                        title = "Dynamic Color",
+                        subtitle = "Sync the accent palette with your wallpaper.",
+                        checked = settings.dynamicColor,
+                        onCheckedChange = viewModel::toggleDynamicColor
+                    )
+                }
+
+                if (isDarkTheme) {
+                    SettingsToggle(
+                        title = "Pure AMOLED Black",
+                        subtitle = "Use an absolute black background in dark mode.",
+                        checked = settings.pureBlack,
+                        onCheckedChange = viewModel::togglePureBlack
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = !settings.dynamicColor || Build.VERSION.SDK_INT < Build.VERSION_CODES.S,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -157,41 +214,6 @@ fun AppearanceSettingsScreen(
                                 onClick = { viewModel.setColorSeed(key) }
                             )
                         }
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(32.dp))
-            SectionHeader("Startup Screen")
-
-            Column(
-                modifier = Modifier.padding(vertical = 12.dp)
-            ) {
-                Text(
-                    text = "Choose which tab opens when the app launches",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    val tabs = listOf(
-                        "Home" to AppDestinations.HOME.route,
-                        "Salah" to AppDestinations.SALAH.route,
-                        "Tasbeeh" to AppDestinations.TASBEEH.route,
-                        "Learn" to AppDestinations.LEARN.route
-                    )
-
-                    tabs.forEach { (label, route) ->
-                        FilterChip(
-                            selected = settings.startupTab == route,
-                            onClick = { viewModel.setStartupTab(route) },
-                            label = { Text(label) }
-                        )
                     }
                 }
             }
@@ -227,7 +249,7 @@ private fun AccentColorChip(
                 tint = Color.White.copy(alpha = 0.8f)
             )
         }
-        
+
         if (selected) {
             Box(
                 modifier = Modifier
