@@ -215,6 +215,8 @@ fun TasbihWidgetRenderer(
         fisheyeStrengthProvider: () -> Float = { 1f },
         // Transit bead: canvas-local Y of the bead being dragged between stacks, null = none.
         transitBeadProvider: () -> Float? = { null },
+        // 0..1 lift amount for the transit bead. 1 = fully picked up, 0 = landed.
+        transitLiftProvider: () -> Float = { 0f },
         transitFromBottom: Boolean = true,
         // Conveyor-belt scroll offset in canvas-local px: applied to all bead Y positions.
         // Positive = beads shifted downward; animates to 0 for slide-up effect on increment.
@@ -407,13 +409,14 @@ fun TasbihWidgetRenderer(
                 // ── Transit bead: drawn on top, follows finger across the gap ───────
                 // Visible only while a bead is being dragged between stacks.
                 transitCanvasY?.let { ty ->
-                    // Always at least 1.5× to signal it is "lifted" from its stack.
-                    val tScale = beadScale(ty).coerceAtLeast(1.5f)
+                    val transitLift = transitLiftProvider().coerceIn(0f, 1f)
+                    val minTransitScale = 1f + (0.5f * transitLift)
+                    val tScale = beadScale(ty).coerceAtLeast(minTransitScale)
                     val tr = beadRadius * tScale
                     // Large glowing halo so the held bead stands out clearly.
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(Color.White.copy(alpha = 0.45f * widget.alpha), Color.Transparent),
+                            colors = listOf(Color.White.copy(alpha = 0.45f * widget.alpha * transitLift), Color.Transparent),
                             center = Offset(cx, ty),
                             radius = tr * 2.5f,
                         ),

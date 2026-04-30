@@ -102,6 +102,7 @@ fun TasbeehImmersiveScreen(
     val fisheyeAlpha = remember { Animatable(0f) }
     // Transit bead state — tracks a bead being dragged across the gap between stacks.
     val transitYAnim      = remember { Animatable(0f) }
+    val transitLiftAnim   = remember { Animatable(0f) }
     var isInTransit       by remember { mutableStateOf(false) }
     var transitFromBottom by remember { mutableStateOf(true) }
     // Conveyor-belt scroll: snapped to ±beadStep then animated to 0 on each successful transit.
@@ -193,6 +194,9 @@ fun TasbeehImmersiveScreen(
                                     val canvasH  = screenHeight * 0.9f
                                     { if (isInTransit) transitYAnim.value - offsetY * screenHeight + canvasH / 2f else null }
                                 } else { { null } },
+                                transitLiftProvider = if (widget is TasbihWidget.StringBeadWidget) {
+                                    { transitLiftAnim.value }
+                                } else { { 0f } },
                                 transitFromBottom = transitFromBottom,
                                 // Reads scrollOffsetAnim at draw-phase: drives the slide animation.
                                 scrollOffsetProvider = if (widget is TasbihWidget.StringBeadWidget) {
@@ -257,8 +261,10 @@ fun TasbeehImmersiveScreen(
                             // Top-most bead of the BOTTOM stack (screen Y)
                             val bottomBoundaryY = canvasTopScreen + canvasH - beadR -
                                 (bottomCount - 1).coerceAtLeast(0) * (2f * beadR + beadGap)
-                            // Midpoint of the gap — crossing this commits the transit.
-                            val gapMidY = (topBoundaryY + bottomBoundaryY) / 2f
+                            val gapDistance = (bottomBoundaryY - topBoundaryY).coerceAtLeast(0f)
+                            // Commit once the bead has travelled a reasonable portion of the gap
+                            // from its source side, so upward and downward swipes feel balanced.
+                            val commitDistance = gapDistance * 0.25f
                             val triggerZone = beadR * 2.5f  // how close the finger must start
                             val triggerMove = beadR * 1.5f  // how far it must move to begin transit
 
@@ -285,7 +291,10 @@ fun TasbeehImmersiveScreen(
                                     if (canGoUp || canGoDown) {
                                         isInTransit    = true
                                         transitFromBottom = canGoUp
-                                        scope.launch { transitYAnim.snapTo(change.position.y) }
+                                        scope.launch {
+                                            transitLiftAnim.snapTo(1f)
+                                            transitYAnim.snapTo(change.position.y)
+                                        }
                                     }
                                 }
                                 if (isInTransit) scope.launch { transitYAnim.snapTo(change.position.y) }
@@ -308,8 +317,11 @@ fun TasbeehImmersiveScreen(
                             // ── Transit resolution ───────────────────────────────────
                             if (isInTransit) {
                                 val currentY = transitYAnim.value
-                                val committed = (transitFromBottom && currentY < gapMidY) ||
-                                               (!transitFromBottom && currentY > gapMidY)
+                                val committed = if (transitFromBottom) {
+                                    currentY < (bottomBoundaryY - commitDistance)
+                                } else {
+                                    currentY > (topBoundaryY + commitDistance)
+                                }
                                 if (committed) {
                                     // Animate transit bead to landing, register count, then slide stacks.
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -318,7 +330,14 @@ fun TasbeehImmersiveScreen(
                                     else
                                         bottomBoundaryY - 2f * beadR - beadGap
                                     scope.launch {
-                                        transitYAnim.animateTo(destY, spring(stiffness = 500f, dampingRatio = 0.85f))
+                                        val moveJob = launch {
+                                            transitYAnim.animateTo(destY, spring(stiffness = 500f, dampingRatio = 0.85f))
+                                        }
+                                        val liftJob = launch {
+                                            transitLiftAnim.animateTo(0f, tween(180))
+                                        }
+                                        moveJob.join()
+                                        liftJob.join()
                                         // Displace stacks to new post-count positions, then slide into place.
                                         val beadStep = beadR * 2.4f  // 2r + 0.4r gap in canvas pixels
                                         val slideDir = if (transitFromBottom) beadStep else -beadStep
@@ -332,7 +351,14 @@ fun TasbeehImmersiveScreen(
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     val snapTarget = if (transitFromBottom) bottomBoundaryY else topBoundaryY
                                     scope.launch {
-                                        transitYAnim.animateTo(snapTarget, spring(stiffness = 300f, dampingRatio = 0.7f))
+                                        val moveJob = launch {
+                                            transitYAnim.animateTo(snapTarget, spring(stiffness = 300f, dampingRatio = 0.7f))
+                                        }
+                                        val liftJob = launch {
+                                            transitLiftAnim.animateTo(0f, tween(180))
+                                        }
+                                        moveJob.join()
+                                        liftJob.join()
                                         isInTransit = false
                                     }
                                 }
