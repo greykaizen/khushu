@@ -18,7 +18,7 @@
 
 <p align="center">
   <a href="https://github.com/greykaizen/khushu/releases/latest">
-    <img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.svg" height="54">
+    <img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.svg" height="104">
   </a>
 </p>
 
