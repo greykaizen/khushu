@@ -23,7 +23,7 @@ MaintainerNotes: |-
 Builds:
   - versionName: "0.24.7"
     versionCode: 81
-    commit: 4ed07d0f9c271d036959af98c5a5d767d0acc9df
+    commit: 86fcdd06d2c98a95e93017cf3746a4b7164b02b3
     gradle:
       - fdroid
     gradleprops:
