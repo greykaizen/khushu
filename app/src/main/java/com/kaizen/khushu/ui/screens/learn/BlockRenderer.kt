@@ -85,6 +85,7 @@ fun BlockRenderer(
     onPlayClick: ((ContentBlock) -> Unit)? = null,
     onBookmarkClick: ((ContentBlock) -> Unit)? = null,
     onTafsirClick: ((ContentBlock) -> Unit)? = null,
+    readingMode: String = "verse_by_verse",
     modifier: Modifier = Modifier,
 ) {
     val textPadding = Modifier.padding(horizontal = 20.dp)
@@ -101,6 +102,7 @@ fun BlockRenderer(
             tajweedMap = tajweedMap,
             scriptMap = scriptMap,
             isHighlighted = isHighlighted,
+            readingMode = readingMode,
             onPlayClick = { onPlayClick?.invoke(block) },
             onBookmarkClick = { onBookmarkClick?.invoke(block) },
             onTafsirClick = { onTafsirClick?.invoke(block) },
@@ -167,17 +169,35 @@ private fun AyahBlockView(
     tajweedMap: Map<String, String>,
     scriptMap: Map<String, String>,
     isHighlighted: Boolean,
+    readingMode: String,
     onPlayClick: () -> Unit,
     onBookmarkClick: () -> Unit,
     onTafsirClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isReadingMode = readingMode == "reading"
     val highlightBg = if (isHighlighted)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
     else Color.Transparent
 
     val contentColor = if (isHighlighted) MaterialTheme.colorScheme.onPrimaryContainer else fg
     val primaryColor = MaterialTheme.colorScheme.primary
+
+    // Reading mode: seamless Arabic flow, no chrome
+    if (isReadingMode) {
+        ReadingModeAyah(block, settings, contentColor, fg, tajweedMap, scriptMap, inlineContent = remember(block.ayah, contentColor) {
+            mapOf(
+                "marker" to androidx.compose.foundation.text.InlineTextContent(
+                    androidx.compose.ui.text.Placeholder(
+                        width = 38.sp,
+                        height = 32.sp,
+                        placeholderVerticalAlign = androidx.compose.ui.text.PlaceholderVerticalAlign.Center
+                    )
+                ) { AyahEndMarker(number = block.ayah, fg = contentColor) }
+            )
+        }, modifier = modifier.background(highlightBg))
+        return
+    }
 
     // Inline ayah-end marker
     val inlineContent = remember(block.ayah, contentColor) {
@@ -412,6 +432,73 @@ private fun AyahBlockView(
             thickness = 1.dp,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
+    }
+}
+
+/**
+ * Reading mode: pure Arabic text flow, no action bar, no translation, no chips.
+ * Uses a slightly larger line-height and justified/RTL rendering.
+ * Font: ScheherazadeNew at the user's selected arabicSizeSp.
+ */
+@Composable
+private fun ReadingModeAyah(
+    block: AyahBlock,
+    settings: UserSettings,
+    contentColor: Color,
+    fg: Color,
+    tajweedMap: Map<String, String>,
+    scriptMap: Map<String, String>,
+    inlineContent: Map<String, androidx.compose.foundation.text.InlineTextContent>,
+    modifier: Modifier = Modifier,
+) {
+    val verseKey = "${block.surah}:${block.ayah}"
+    val tajweedMarkup = if (settings.selectedScript == "uthmani")
+        tajweedMap[verseKey] ?: block.tajweedMarkup
+    else null
+    val plainArabicText = if (settings.selectedScript != "uthmani")
+        scriptMap[verseKey] ?: block.textUthmani
+    else block.textUthmani
+    val showTajweed = settings.showTajweed && tajweedMarkup != null
+
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        if (showTajweed) {
+            TajweedText(
+                markup = tajweedMarkup!!,
+                fontSize = settings.arabicSizeSp.sp,
+                lineHeight = (settings.arabicSizeSp * 2.0f).sp,
+                color = contentColor,
+                inlineContent = inlineContent,
+                appendMarker = true,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 2.dp)
+            )
+        } else if (plainArabicText != null) {
+            val annotatedString = remember(plainArabicText) {
+                buildAnnotatedString {
+                    append(plainArabicText)
+                    appendInlineContent("marker", "[marker]")
+                }
+            }
+            Text(
+                text = annotatedString,
+                fontFamily = ScheherazadeNew,
+                fontSize = settings.arabicSizeSp.sp,
+                lineHeight = (settings.arabicSizeSp * 2.0f).sp,
+                // No inter-verse gap — seamless reading flow
+                color = contentColor,
+                inlineContent = inlineContent,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    textDirection = TextDirection.Rtl,
+                    fontFamily = ScheherazadeNew,
+                    textAlign = TextAlign.Justify,
+                    color = contentColor
+                ),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 2.dp),
+            )
+        }
     }
 }
 

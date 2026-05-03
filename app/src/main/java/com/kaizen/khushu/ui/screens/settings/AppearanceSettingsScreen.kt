@@ -131,7 +131,7 @@ fun AppearanceSettingsScreen(
                                     Text(
                                         text = label,
                                         fontFamily = BeVietnamPro,
-                                        style = MaterialTheme.typography.labelLarge
+                                        style = MaterialTheme.typography.titleMedium
                                     )
                                 }
                             )

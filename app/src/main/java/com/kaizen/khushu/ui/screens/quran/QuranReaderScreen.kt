@@ -3,6 +3,7 @@ package com.kaizen.khushu.ui.screens.quran
 import android.widget.Toast
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -247,6 +248,8 @@ fun QuranReaderScreen(
     var showSettings by remember { mutableStateOf(false) }
     var showTranslationPicker by remember { mutableStateOf(false) }
     var showTafsirPicker by remember { mutableStateOf(false) }
+    // "verse_by_verse" or "reading"
+    var readingMode by remember { mutableStateOf("verse_by_verse") }
 
     LaunchedEffect(surahNumber, settings.selectedTranslationLang) {
         viewModel.loadChapters()
@@ -264,7 +267,6 @@ fun QuranReaderScreen(
     }
 
     val surah = chapters.find { it.id == surahNumber }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     // Auto-scroll to playing ayah
     LaunchedEffect(playingAyahIndex) {
@@ -309,38 +311,23 @@ fun QuranReaderScreen(
                 .clip(androidx.compose.foundation.shape.RoundedCornerShape(32.dp))
                 .background(bg)
         ) {
-            val titleFraction = scrollBehavior.state.collapsedFraction
-            val titleFontSize = androidx.compose.ui.util.lerp(28f, 20f, titleFraction).sp
-
             Scaffold(
                 containerColor = Color.Transparent,
                 modifier = modifier
-                    .nestedScroll(nestedScrollConnection)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    .nestedScroll(nestedScrollConnection),
                 topBar = {
-                    LargeTopAppBar(
+                    TopAppBar(
                         title = {
-                            surah?.let {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(
-                                        text = it.nameSimple,
-                                        fontFamily = BeVietnamPro,
-                                        fontSize = titleFontSize,
-                                        color = fg
-                                    )
-                                    Text(
-                                        text = "·",
-                                        fontFamily = BeVietnamPro,
-                                        fontSize = titleFontSize,
-                                        color = fg.copy(alpha = 0.5f)
-                                    )
-                                    Text(
-                                        text = it.nameArabic,
-                                        fontFamily = ScheherazadeNew,
-                                        fontSize = titleFontSize * 1.1f,
-                                        color = fg
-                                    )
-                                }
+                            // Pill-style mode toggle — centred in the bar
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                ReadingModeToggle(
+                                    mode = readingMode,
+                                    onModeChange = { readingMode = it },
+                                    fg = fg
+                                )
                             }
                         },
                         navigationIcon = {
@@ -380,7 +367,6 @@ fun QuranReaderScreen(
                                 )
                             }
                         },
-                        scrollBehavior = scrollBehavior,
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                             scrolledContainerColor = bg.copy(alpha = 0.9f),
@@ -513,6 +499,7 @@ fun QuranReaderScreen(
                                         translationMap = translationMap,
                                         scriptMap = scriptMap,
                                         isHighlighted = playingAyahIndex == index,
+                                        readingMode = readingMode,
                                         onBlockClick = { activeBlock = it to index },
                                         onPlayClick = {
                                             quranAudioViewModel.playAyah(surahNumber, index, blocks, settings.selectedReciterId, sequence = false)
@@ -714,6 +701,64 @@ fun QuranReaderScreen(
                     onDismiss = { showTafsirPicker = false }
                 )
             }
+        }
+    }
+}
+
+/**
+ * Pill-style segmented toggle matching Quran.com's "Verse by Verse | Reading" switcher.
+ */
+@Composable
+private fun ReadingModeToggle(
+    mode: String,
+    onModeChange: (String) -> Unit,
+    fg: Color,
+    modifier: Modifier = Modifier,
+) {
+    val isVerseByVerse = mode == "verse_by_verse"
+    val activeColor = fg
+    val inactiveColor = fg.copy(alpha = 0.45f)
+    val pillBg = fg.copy(alpha = 0.1f)
+    val activeBg = fg.copy(alpha = 0.18f)
+
+    Row(
+        modifier = modifier
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+            .background(pillBg),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Verse by Verse tab
+        Box(
+            modifier = Modifier
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                .background(if (isVerseByVerse) activeBg else Color.Transparent)
+                .clickable { onModeChange("verse_by_verse") }
+                .padding(horizontal = 14.dp, vertical = 7.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Verse by Verse",
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = BeVietnamPro),
+                color = if (isVerseByVerse) activeColor else inactiveColor,
+                fontWeight = if (isVerseByVerse) FontWeight.SemiBold else FontWeight.Normal
+            )
+        }
+
+        // Reading tab
+        Box(
+            modifier = Modifier
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                .background(if (!isVerseByVerse) activeBg else Color.Transparent)
+                .clickable { onModeChange("reading") }
+                .padding(horizontal = 14.dp, vertical = 7.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Reading",
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = BeVietnamPro),
+                color = if (!isVerseByVerse) activeColor else inactiveColor,
+                fontWeight = if (!isVerseByVerse) FontWeight.SemiBold else FontWeight.Normal
+            )
         }
     }
 }
