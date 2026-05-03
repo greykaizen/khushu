@@ -41,7 +41,12 @@ class PrayerTimeRepository(
             "NORTH_AMERICA",
             "KUWAIT",
             "QATAR",
-            "SINGAPORE" -> true
+            "SINGAPORE",
+            "ALGERIA",
+            "TUNISIA",
+            "FRANCE_UOIF",
+            "FRANCE_15",
+            "FRANCE_18" -> true
             "TEHRAN",
             "TURKEY" -> false
             else -> false
@@ -223,6 +228,10 @@ class PrayerTimeRepository(
                 append("?latitude=$lat")
                 append("&longitude=$lng")
                 append("&method=$methodId")
+                if (methodId == 99) {
+                    val params = getCalculationParameters(methodStr)
+                    append("&methodSettings=${params.fajrAngle},null,${params.ishaAngle}")
+                }
                 append("&school=$school")
                 append("&timezonestring=$timeZoneString")
                 if (methodStr == "MOON_SIGHTING_COMMITTEE") {
@@ -258,6 +267,11 @@ class PrayerTimeRepository(
             "KUWAIT" -> CalculationMethod.KUWAIT.parameters
             "QATAR" -> CalculationMethod.QATAR.parameters
             "SINGAPORE" -> CalculationMethod.SINGAPORE.parameters
+            "ALGERIA" -> CalculationParameters(18.0, 17.0).apply { method = CalculationMethod.OTHER }
+            "TUNISIA" -> CalculationParameters(18.0, 18.0).apply { method = CalculationMethod.OTHER }
+            "FRANCE_UOIF" -> CalculationParameters(12.0, 12.0).apply { method = CalculationMethod.OTHER }
+            "FRANCE_15" -> CalculationParameters(15.0, 15.0).apply { method = CalculationMethod.OTHER }
+            "FRANCE_18" -> CalculationParameters(18.0, 17.0).apply { method = CalculationMethod.OTHER }
             "TEHRAN" -> CalculationMethod.OTHER.parameters
             "TURKEY" -> CalculationMethod.OTHER.parameters
             else -> CalculationMethod.MUSLIM_WORLD_LEAGUE.parameters
@@ -278,6 +292,7 @@ class PrayerTimeRepository(
             "SINGAPORE" -> 11
             "TURKEY" -> 13
             "MOON_SIGHTING_COMMITTEE" -> 15
+            "ALGERIA", "TUNISIA", "FRANCE_UOIF", "FRANCE_15", "FRANCE_18" -> 99
             else -> 3
         }
     }

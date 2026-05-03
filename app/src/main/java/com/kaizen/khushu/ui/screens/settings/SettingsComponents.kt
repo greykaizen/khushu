@@ -540,6 +540,7 @@ fun SettingsDropdown(
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
+                    contentPadding = PaddingValues(14.dp),
                     text = { Text(optionLabel(option), fontFamily = BeVietnamPro) },
                     onClick = {
                         onOptionSelected(option)

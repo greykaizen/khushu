@@ -35,6 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
@@ -56,7 +62,12 @@ private val calculationMethodLabels = mapOf(
     "QATAR" to "Qatar",
     "SINGAPORE" to "Majlis Ugama Islam Singapura",
     "TEHRAN" to "Institute of Geophysics, University of Tehran",
-    "TURKEY" to "Diyanet Isleri Baskanligi, Turkey"
+    "TURKEY" to "Diyanet Isleri Baskanligi, Turkey",
+    "ALGERIA" to "Algerian Ministry of Religious Affairs",
+    "TUNISIA" to "Tunisian Ministry of Religious Affairs",
+    "FRANCE_UOIF" to "Union des Organisations Islamiques de France (12°)",
+    "FRANCE_15" to "France (15°)",
+    "FRANCE_18" to "France / Grande Mosquée de Paris"
 )
 
 private val madhabLabels = mapOf(
@@ -125,7 +136,8 @@ fun PrayerSettingsScreen(
     val calculationMethods = listOf(
         "MUSLIM_WORLD_LEAGUE", "EGYPTIAN", "KARACHI", "UMM_AL_QURA",
         "DUBAI", "MOON_SIGHTING_COMMITTEE", "NORTH_AMERICA", "KUWAIT",
-        "QATAR", "SINGAPORE", "TEHRAN", "TURKEY"
+        "QATAR", "SINGAPORE", "ALGERIA", "TUNISIA", "FRANCE_UOIF", 
+        "FRANCE_15", "FRANCE_18", "TEHRAN", "TURKEY"
     )
     val madhabs = listOf("SHAFI", "HANAFI")
     val sources = listOf("LOCAL", "API")
@@ -219,51 +231,61 @@ fun PrayerSettingsScreen(
                     }
                 )
 
-                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        FilledTonalButton(
-                            onClick = {
-                                locationPermissionLauncher.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                if (settings.useGpsLocation) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            FilledTonalButton(
+                                onClick = {
+                                    locationPermissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
                                     )
-                                )
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.MyLocation, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("GPS Access", fontFamily = BeVietnamPro)
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.MyLocation, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("GPS Access", fontFamily = BeVietnamPro, style = MaterialTheme.typography.titleSmall)
+                            }
+    
+                            OutlinedButton(
+                                onClick = viewModel::refreshLocation,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Refresh", fontFamily = BeVietnamPro, style = MaterialTheme.typography.titleSmall)
+                            }
                         }
-
-                        OutlinedButton(
-                            onClick = viewModel::refreshLocation,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Refresh", fontFamily = BeVietnamPro)
+    
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = "Current: ${"%.4f".format(Locale.US, settings.locationLat)}, ${"%.4f".format(Locale.US, settings.locationLng)}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = BeVietnamPro),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Last refreshed: $lastRefreshed",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = BeVietnamPro),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
-
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                    
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = "Current: ${"%.4f".format(Locale.US, settings.locationLat)}, ${"%.4f".format(Locale.US, settings.locationLng)}",
-                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = BeVietnamPro),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "Last refreshed: $lastRefreshed",
-                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = BeVietnamPro),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                } else {
+                    ManualLocationInput(
+                        lat = settings.locationLat,
+                        lng = settings.locationLng,
+                        onLocationSave = { lat, lng ->
+                            viewModel.setLocation(lat, lng)
+                        }
+                    )
                 }
             }
 
@@ -637,5 +659,50 @@ private fun DiagnosticRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = BeVietnamPro), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = BeVietnamPro, fontWeight = FontWeight.SemiBold))
+    }
+}
+
+@Composable
+private fun ManualLocationInput(
+    lat: Float,
+    lng: Float,
+    onLocationSave: (Float, Float) -> Unit
+) {
+    var latText by remember(lat) { mutableStateOf(lat.toString()) }
+    var lngText by remember(lng) { mutableStateOf(lng.toString()) }
+
+    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(
+                value = latText,
+                onValueChange = { latText = it },
+                label = { Text("Latitude", fontFamily = BeVietnamPro) },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = BeVietnamPro)
+            )
+            OutlinedTextField(
+                value = lngText,
+                onValueChange = { lngText = it },
+                label = { Text("Longitude", fontFamily = BeVietnamPro) },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = BeVietnamPro)
+            )
+        }
+        FilledTonalButton(
+            onClick = {
+                val parsedLat = latText.toFloatOrNull()
+                val parsedLng = lngText.toFloatOrNull()
+                if (parsedLat != null && parsedLng != null) {
+                    onLocationSave(parsedLat, parsedLng)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Update Coordinates", fontFamily = BeVietnamPro)
+        }
     }
 }
