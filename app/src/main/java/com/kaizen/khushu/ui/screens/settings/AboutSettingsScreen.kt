@@ -94,11 +94,11 @@ fun AboutSettingsScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
-                text = "This first version is the foundation. Prayer times, reminders, reading, and reflection are being shaped into something more disciplined and more beautiful over time. If you see rough edges, that is part of building in public and tightening the product with real use.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f)
-            )
+//            Text(
+//                text = "This first version is the foundation. Prayer times, reminders, reading, and reflection are being shaped into something more disciplined and more beautiful over time. If you see rough edges, that is part of building in public and tightening the product with real use.",
+//                style = MaterialTheme.typography.bodyLarge,
+//                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f)
+//            )
 
             SectionHeader("Links")
             MenuSectionItem(

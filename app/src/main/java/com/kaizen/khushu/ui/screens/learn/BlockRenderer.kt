@@ -18,15 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -219,29 +217,25 @@ private fun AyahBlockView(
             .fillMaxWidth()
             .background(highlightBg)
     ) {
-        // ── Action bar row ────────────────────────────────────────────────────
-        Row(
+        // ── Top: verse number badge only ─────────────────────────────────────
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(top = 16.dp, bottom = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 14.dp, bottom = 2.dp)
         ) {
-            // Verse number circle badge
             Box(
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawCircle(
-                        color = primaryColor.copy(alpha = 0.12f),
+                        color = primaryColor.copy(alpha = 0.10f),
                         radius = size.minDimension / 2f
                     )
                     drawCircle(
-                        color = primaryColor.copy(alpha = 0.4f),
+                        color = primaryColor.copy(alpha = 0.35f),
                         radius = size.minDimension / 2f,
-                        style = Stroke(width = 1.5f)
+                        style = Stroke(width = 1.4f)
                     )
                 }
                 Text(
@@ -249,46 +243,10 @@ private fun AyahBlockView(
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontFamily = BeVietnamPro,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp
+                        fontSize = 10.sp
                     ),
                     color = primaryColor,
                 )
-            }
-
-            // Action icons
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onPlayClick, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Default.PlayArrow,
-                        contentDescription = "Play",
-                        tint = contentColor.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                IconButton(onClick = onBookmarkClick, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Default.BookmarkBorder,
-                        contentDescription = "Bookmark",
-                        tint = contentColor.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                IconButton(onClick = {}, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Default.Share,
-                        contentDescription = "Share",
-                        tint = contentColor.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                IconButton(onClick = {}, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = "More",
-                        tint = contentColor.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
             }
         }
 
@@ -316,7 +274,7 @@ private fun AyahBlockView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .padding(top = 8.dp, bottom = 4.dp)
+                        .padding(top = 6.dp, bottom = 4.dp)
                 )
             } else if (plainArabicText != null) {
                 val annotatedString = remember(plainArabicText, contentColor) {
@@ -341,7 +299,7 @@ private fun AyahBlockView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .padding(top = 8.dp, bottom = 4.dp),
+                        .padding(top = 6.dp, bottom = 4.dp),
                 )
             }
         }
@@ -372,7 +330,7 @@ private fun AyahBlockView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .padding(top = 4.dp, bottom = 8.dp),
+                        .padding(top = 2.dp, bottom = 8.dp),
                 )
             }
         }
@@ -386,7 +344,7 @@ private fun AyahBlockView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 8.dp)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
@@ -412,18 +370,57 @@ private fun AyahBlockView(
             }
         }
 
-        // ── Quran.com style content chips ─────────────────────────────────────
+        // ── Bottom row: Tafsir chip (left) + action icons (right) ─────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                .padding(horizontal = 12.dp)
+                .padding(bottom = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            VerseChip(Icons.AutoMirrored.Filled.MenuBook, "Tafsirs", contentColor, onTafsirClick)
-            VerseChip(Icons.Default.School, "Lessons", contentColor, {})
-            VerseChip(Icons.AutoMirrored.Filled.Chat, "Reflections", contentColor, {})
+            // Tafsir chip — only shown when tafsir is not already expanded inline
+            if (!settings.showTafsir || block.tafsirText == null) {
+                VerseChip(Icons.AutoMirrored.Filled.MenuBook, "Tafsir", contentColor, onTafsirClick)
+            } else {
+                Spacer(Modifier.width(1.dp))
+            }
+
+            // Action icons on the right
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onPlayClick, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        tint = contentColor.copy(alpha = 0.45f),
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+                IconButton(onClick = onBookmarkClick, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Default.BookmarkBorder,
+                        contentDescription = "Bookmark",
+                        tint = contentColor.copy(alpha = 0.45f),
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+                IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Default.Share,
+                        contentDescription = "Share",
+                        tint = contentColor.copy(alpha = 0.45f),
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+                IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "More",
+                        tint = contentColor.copy(alpha = 0.45f),
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+            }
         }
 
         // ── Verse separator ───────────────────────────────────────────────────

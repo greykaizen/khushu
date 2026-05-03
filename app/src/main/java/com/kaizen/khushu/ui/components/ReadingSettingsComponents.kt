@@ -336,8 +336,8 @@ fun ReadingSettingsSheet(
                                 Slider(
                                     value = settings.arabicSizeSp,
                                     onValueChange = onArabicSizeChange,
-                                    valueRange = 24f..64f,
-                                    steps = 9
+                                    valueRange = 16f..64f,
+                                    steps = 11 // 16,20,24,28,32,36,40,44,48,52,56,60,64
                                 )
                             }
 
@@ -347,8 +347,8 @@ fun ReadingSettingsSheet(
                                     Slider(
                                         value = settings.translationSizeSp,
                                         onValueChange = onTranslationSizeChange,
-                                        valueRange = 14f..28f,
-                                        steps = 6
+                                        valueRange = 12f..28f,
+                                        steps = 7
                                     )
                                 }
                             }
