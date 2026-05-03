@@ -1,0 +1,7 @@
+This patch focuses on polish and clarity across the app.
+
+- Added a one-time welcome note from the developer on first launch
+- Added a one-time Study note asking users to report textual mistakes
+- Added support and donation details to About Khushu
+- Moved Keep Screen Awake into Appearance for cleaner settings
+- Refreshed store screenshots and poster images
