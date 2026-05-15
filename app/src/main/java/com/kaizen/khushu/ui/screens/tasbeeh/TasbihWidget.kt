@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -457,13 +458,15 @@ fun TasbihWidgetRenderer(
                                                 PlatformTextStyle(includeFontPadding = false)
                                 ),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.width(maxWidth)
+                        maxLines = 2,
+                        modifier = Modifier.fillMaxWidth()
                 )
             }
         }
         is TasbihWidget.CounterWidget -> {
             Column(
-                modifier = baseModifier.defaultMinSize(minWidth = 156.dp)
+                modifier = baseModifier.defaultMinSize(minWidth = 156.dp),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
             ) {
                 Text(
                         text = currentCount.toString(),
@@ -482,6 +485,7 @@ fun TasbihWidgetRenderer(
                                                 PlatformTextStyle(includeFontPadding = false)
                                 ),
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
                         modifier = Modifier.width(156.dp)
                 )
                 Text(
@@ -489,6 +493,7 @@ fun TasbihWidgetRenderer(
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(widget.color).copy(alpha = 0.5f),
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
                         modifier = Modifier.width(156.dp)
                 )
             }

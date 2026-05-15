@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +47,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -248,37 +251,39 @@ fun SalahImmersiveScreen(
             label = "completion_alpha"
         )
 
-        Box(modifier = Modifier.alpha(contentAlpha)) {
-            preset.widgets.sortedBy { it.zIndex }.forEach { widget ->
-                Box(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            translationX = (widget.offsetX * screenWidth) - (size.width / 2f)
-                            translationY = (widget.offsetY * screenHeight) - (size.height / 2f)
-                            scaleX = widget.scale
-                            scaleY = widget.scale
-                            transformOrigin = TransformOrigin.Center
-                            alpha = widgetsAlpha
-                        }
-                ) {
-                    WidgetRenderer(widget = widget, currentRakats = count, isComplete = false, completionText = completionText)
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Box(modifier = Modifier.alpha(contentAlpha)) {
+                preset.widgets.sortedBy { it.zIndex }.forEach { widget ->
+                    Box(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                translationX = (widget.offsetX * screenWidth) - (size.width / 2f)
+                                translationY = (widget.offsetY * screenHeight) - (size.height / 2f)
+                                scaleX = widget.scale
+                                scaleY = widget.scale
+                                transformOrigin = TransformOrigin.Center
+                                alpha = widgetsAlpha
+                                clip = false
+                            }
+                    ) {
+                        WidgetRenderer(widget = widget, currentRakats = count, isComplete = false, completionText = completionText)
+                    }
                 }
-            }
 
-            // Completion text — always centered regardless of preset layout
-            preset.widgets.filterIsInstance<CanvasWidget.RakatCount>().firstOrNull()?.let { rakatWidget ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(completionAlpha),
-                    contentAlignment = Alignment.Center
-                ) {
-                    WidgetRenderer(
-                        widget = rakatWidget,
-                        currentRakats = count,
-                        isComplete = isComplete,
-                        completionText = completionText
-                    )
+                preset.widgets.filterIsInstance<CanvasWidget.RakatCount>().firstOrNull()?.let { rakatWidget ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(completionAlpha),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        WidgetRenderer(
+                            widget = rakatWidget,
+                            currentRakats = count,
+                            isComplete = isComplete,
+                            completionText = completionText
+                        )
+                    }
                 }
             }
         }

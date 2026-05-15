@@ -50,6 +50,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -173,51 +175,51 @@ fun TasbeehImmersiveScreen(
             }
     ) {
         if (screenWidth > 0f && screenHeight > 0f) {
-            AnimatedVisibility(visible = widgetsVisible, enter = fadeIn(), exit = fadeOut()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    layout.widgets.sortedBy { it.zIndex }.forEach { widget ->
-                        Box(
-                            modifier = Modifier.graphicsLayer {
-                                translationX = (widget.offsetX * screenWidth) - (size.width / 2f)
-                                translationY = (widget.offsetY * screenHeight) - (size.height / 2f)
-                                scaleX = widget.scale
-                                scaleY = widget.scale
-                                transformOrigin = TransformOrigin.Center
-                                clip = false
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                AnimatedVisibility(visible = widgetsVisible, enter = fadeIn(), exit = fadeOut()) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        layout.widgets.sortedBy { it.zIndex }.forEach { widget ->
+                            Box(
+                                modifier = Modifier.graphicsLayer {
+                                    translationX = (widget.offsetX * screenWidth) - (size.width / 2f)
+                                    translationY = (widget.offsetY * screenHeight) - (size.height / 2f)
+                                    scaleX = widget.scale
+                                    scaleY = widget.scale
+                                    transformOrigin = TransformOrigin.Center
+                                    clip = false
+                                }
+                            ) {
+                                TasbihWidgetRenderer(
+                                    widget = widget,
+                                    currentCount = currentCount,
+                                    currentItem = currentItem,
+                                    stringControlXOffset = 0f,
+                                    stringControlYFraction = 0.5f,
+                                    countedBeads = currentCount,
+                                    totalBeads = currentTarget,
+                                    beadStyle = beadStyle,
+                                    customBeadStyle = customBeadStyle,
+                                    thumbPositionProvider = if (widget is TasbihWidget.StringBeadWidget) {
+                                        val offsetY = widget.offsetY
+                                        { fingerYOnString?.let { fy -> Offset(0f, fy - offsetY * screenHeight) } }
+                                    } else { { null } },
+                                    fisheyeStrengthProvider = if (widget is TasbihWidget.StringBeadWidget) {
+                                        { fisheyeAlpha.value }
+                                    } else { { 1f } },
+                                    transitBeadProvider = if (widget is TasbihWidget.StringBeadWidget) {
+                                        val offsetY  = widget.offsetY
+                                        val canvasH  = screenHeight * 0.9f
+                                        { if (isInTransit) transitYAnim.value - offsetY * screenHeight + canvasH / 2f else null }
+                                    } else { { null } },
+                                    transitLiftProvider = if (widget is TasbihWidget.StringBeadWidget) {
+                                        { transitLiftAnim.value }
+                                    } else { { 0f } },
+                                    transitFromBottom = transitFromBottom,
+                                    scrollOffsetProvider = if (widget is TasbihWidget.StringBeadWidget) {
+                                        { scrollOffsetAnim.value }
+                                    } else { { 0f } },
+                                )
                             }
-                        ) {
-                            TasbihWidgetRenderer(
-                                widget = widget,
-                                currentCount = currentCount,
-                                currentItem = currentItem,
-                                stringControlXOffset = 0f,
-                                stringControlYFraction = 0.5f,
-                                countedBeads = currentCount,
-                                totalBeads = currentTarget,
-                                beadStyle = beadStyle,
-                                customBeadStyle = customBeadStyle,
-                                thumbPositionProvider = if (widget is TasbihWidget.StringBeadWidget) {
-                                    val offsetY = widget.offsetY
-                                    { fingerYOnString?.let { fy -> Offset(0f, fy - offsetY * screenHeight) } }
-                                } else { { null } },
-                                // Reads fisheyeAlpha at draw-phase: strength fades smoothly on lift.
-                                fisheyeStrengthProvider = if (widget is TasbihWidget.StringBeadWidget) {
-                                    { fisheyeAlpha.value }
-                                } else { { 1f } },
-                                transitBeadProvider = if (widget is TasbihWidget.StringBeadWidget) {
-                                    val offsetY  = widget.offsetY
-                                    val canvasH  = screenHeight * 0.9f
-                                    { if (isInTransit) transitYAnim.value - offsetY * screenHeight + canvasH / 2f else null }
-                                } else { { null } },
-                                transitLiftProvider = if (widget is TasbihWidget.StringBeadWidget) {
-                                    { transitLiftAnim.value }
-                                } else { { 0f } },
-                                transitFromBottom = transitFromBottom,
-                                // Reads scrollOffsetAnim at draw-phase: drives the slide animation.
-                                scrollOffsetProvider = if (widget is TasbihWidget.StringBeadWidget) {
-                                    { scrollOffsetAnim.value }
-                                } else { { 0f } },
-                            )
                         }
                     }
                 }
