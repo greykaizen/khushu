@@ -101,6 +101,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var prayerTimeRepository: PrayerTimeRepository
     private lateinit var homeViewModel: com.kaizen.khushu.ui.screens.home.HomeViewModel
 
+    // Tracks whether the tasbeeh immersive screen is currently active so that
+    // volume key interception only fires there and not app-wide.
+    var isOnTasbeehImmersive: Boolean = false
+
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val media3Controller: MediaController?
         get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
@@ -137,13 +141,15 @@ class MainActivity : ComponentActivity() {
         prayerTimeRepository = PrayerTimeRepository(settingsRepository)
         val islamicEventsRepository = IslamicEventsRepository(applicationContext)
         val prayerNotificationScheduler = PrayerNotificationScheduler(applicationContext)
+        val prayerManager = com.kaizen.khushu.logic.PrayerManager(settingsRepository, prayerTimeRepository)
 
         homeViewModel = ViewModelProvider(
             this as ViewModelStoreOwner,
             com.kaizen.khushu.ui.screens.home.HomeViewModel.factory(
                 settingsRepository,
                 prayerTimeRepository,
-                islamicEventsRepository
+                islamicEventsRepository,
+                prayerManager
             )
         )[com.kaizen.khushu.ui.screens.home.HomeViewModel::class.java]
 
@@ -254,7 +260,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         val settings = settingsViewModel.settings.value
-        if (settings.volumeCounting &&
+        // Only intercept volume keys when the tasbeeh immersive screen is active
+        // and the user has volume-counting enabled. Everywhere else, pass the
+        // event to the OS so the system volume slider works normally.
+        if (isOnTasbeehImmersive &&
+            settings.volumeCounting &&
             (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
                     keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
         ) {
@@ -290,6 +300,13 @@ private fun KhushuApp(
     val currentRoute = navBackStackEntry?.destination?.route
     val hazeState = remember { HazeState() }
     val showNavBar = AppDestinations.entries.any { it.route == currentRoute }
+
+    // Keep MainActivity.isOnTasbeehImmersive in sync with the current route so that
+    // volume key interception is scoped to the Tasbih immersive screen only.
+    val activity = LocalContext.current as? MainActivity
+    SideEffect {
+        activity?.isOnTasbeehImmersive = currentRoute?.startsWith("tasbeeh/immersive") == true
+    }
     val currentDestination = AppDestinations.fromRoute(currentRoute) ?: AppDestinations.SALAH
     val showDeveloperWelcome = !settings.developerWelcomeDismissed && currentRoute != ONBOARDING_ROUTE
 

@@ -114,6 +114,7 @@ class SettingsRepository(private val context: Context) {
         val EXTRA_PRAYER_NOTIFICATIONS = stringSetPreferencesKey("extra_prayer_notifications")
         val SHOW_EXTRA_PRAYER_TIMINGS_ON_HOME = booleanPreferencesKey("show_extra_prayer_timings_on_home")
         val SHOW_UPCOMING_EVENTS_ON_HOME = booleanPreferencesKey("show_upcoming_events_on_home")
+        val ISLAMIC_EVENT_PERSPECTIVE = stringPreferencesKey("islamic_event_perspective")
     }
 
     val settingsFlow: Flow<UserSettings> = context.dataStore.data
@@ -227,7 +228,8 @@ class SettingsRepository(private val context: Context) {
                 selectedExtraPrayerTimings = preferences[PreferencesKeys.SELECTED_EXTRA_PRAYER_TIMINGS] ?: emptySet(),
                 extraPrayerNotifications = preferences[PreferencesKeys.EXTRA_PRAYER_NOTIFICATIONS] ?: emptySet(),
                 showExtraPrayerTimingsOnHome = preferences[PreferencesKeys.SHOW_EXTRA_PRAYER_TIMINGS_ON_HOME] ?: false,
-                showUpcomingEventsOnHome = preferences[PreferencesKeys.SHOW_UPCOMING_EVENTS_ON_HOME] ?: true
+                showUpcomingEventsOnHome = preferences[PreferencesKeys.SHOW_UPCOMING_EVENTS_ON_HOME] ?: true,
+                islamicEventPerspective = preferences[PreferencesKeys.ISLAMIC_EVENT_PERSPECTIVE] ?: "UNIVERSAL"
             )
         }
 
@@ -336,6 +338,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateShowUpcomingEventsOnHome(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.SHOW_UPCOMING_EVENTS_ON_HOME] = enabled }
+    }
+
+    suspend fun updateIslamicEventPerspective(perspective: String) {
+        context.dataStore.edit { it[PreferencesKeys.ISLAMIC_EVENT_PERSPECTIVE] = perspective }
     }
 
     suspend fun setTasbeehVolumeEnabled(enabled: Boolean) {
@@ -635,5 +641,6 @@ data class UserSettings(
     val selectedExtraPrayerTimings: Set<String> = emptySet(),
     val extraPrayerNotifications: Set<String> = emptySet(),
     val showExtraPrayerTimingsOnHome: Boolean = false,
-    val showUpcomingEventsOnHome: Boolean = true
+    val showUpcomingEventsOnHome: Boolean = true,
+    val islamicEventPerspective: String = "UNIVERSAL"
 )

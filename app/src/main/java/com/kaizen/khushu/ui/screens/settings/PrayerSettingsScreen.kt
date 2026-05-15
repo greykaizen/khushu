@@ -102,6 +102,13 @@ private val alertStyleLabels = mapOf(
     "SILENT" to "Silent"
 )
 
+private val eventPerspectiveLabels = mapOf(
+    "UNIVERSAL" to "Universal only",
+    "SUNNI" to "Sunni + universal",
+    "SHIA" to "Shia + universal",
+    "ALL" to "Show all",
+)
+
 private fun prayerSettingLabel(value: String, labels: Map<String, String>): String {
     return labels[value] ?: value
 }
@@ -179,6 +186,7 @@ fun PrayerSettingsScreen(
     val madhabs = listOf("SHAFI", "HANAFI")
     val sources = listOf("LOCAL", "API")
     val alertStyleOptions = listOf("CUSTOM_SOUND", "SYSTEM_SOUND", "VIBRATION", "SILENT")
+    val eventPerspectiveOptions = listOf("UNIVERSAL", "SUNNI", "SHIA", "ALL")
     val prayerNotificationPreferences = listOf(
         PrayerNotificationPreference("Fajr", settings.fajrPrayerNotificationEnabled, settings.fajrPrePrayerNotificationEnabled, settings.fajrPrePrayerMinutes),
         PrayerNotificationPreference("Dhuhr", settings.dhuhrPrayerNotificationEnabled, settings.dhuhrPrePrayerNotificationEnabled, settings.dhuhrPrePrayerMinutes),
@@ -448,9 +456,27 @@ fun PrayerSettingsScreen(
                     title = "Show Islamic events on Home",
                     subtitle = "Keep the monthly events strip visible.",
                     checked = settings.showUpcomingEventsOnHome,
-                    onCheckedChange = viewModel::toggleShowUpcomingEventsOnHome,
-                    showDivider = false
+                    onCheckedChange = viewModel::toggleShowUpcomingEventsOnHome
                 )
+
+                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    SettingsDropdown(
+                        title = "Event perspective",
+                        subtitle = "Choose whether Home shows universal events only or includes Sunni/Shia-specific observances.",
+                        options = eventPerspectiveOptions,
+                        selectedOption = settings.islamicEventPerspective,
+                        optionLabel = { eventPerspectiveLabels[it] ?: it },
+                        onOptionSelected = viewModel::setIslamicEventPerspective
+                    )
+                }
+
+                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) {
+                    Text(
+                        text = "Localization groundwork is already in place through translation catalogs. Full app-string localization will build on this next.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = BeVietnamPro),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             SettingsGroup(

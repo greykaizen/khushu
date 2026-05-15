@@ -20,6 +20,7 @@ data class IslamicMonthEventJson(
     val description: String,
     val type: String,
     val notes: String? = null,
+    val perspective: String = "UNIVERSAL",
 )
 
 data class IslamicCalendarEvent(
@@ -31,6 +32,7 @@ data class IslamicCalendarEvent(
     val description: String,
     val type: String,
     val notes: String? = null,
+    val perspective: String = "UNIVERSAL",
 )
 
 class IslamicEventsRepository(
@@ -41,8 +43,8 @@ class IslamicEventsRepository(
     @Volatile
     private var cachedEvents: List<IslamicCalendarEvent>? = null
 
-    fun getUpcomingEvents(limit: Int = 6): List<IslamicCalendarEvent> {
-        return getAllEvents().let { events ->
+    fun getUpcomingEvents(limit: Int = 6, perspective: String = "UNIVERSAL"): List<IslamicCalendarEvent> {
+        return getAllEvents(perspective).let { events ->
             if (events.isEmpty()) return emptyList()
 
             val today = HijrahDate.now()
@@ -61,19 +63,27 @@ class IslamicEventsRepository(
         }
     }
 
-    fun getEventsForMonth(month: Int): List<IslamicCalendarEvent> {
-        return getAllEvents()
+    fun getEventsForMonth(month: Int, perspective: String = "UNIVERSAL"): List<IslamicCalendarEvent> {
+        return getAllEvents(perspective)
             .filter { it.month == month }
             .sortedWith(compareBy({ it.day }, { it.title }))
     }
 
-    fun getAllEvents(): List<IslamicCalendarEvent> {
-        cachedEvents?.let { return it }
-        val mergedEvents = loadEvents()
+    fun getAllEvents(perspective: String = "UNIVERSAL"): List<IslamicCalendarEvent> {
+        val allEvents = cachedEvents ?: loadEvents()
             .sortedWith(compareBy({ it.month }, { it.day }, { it.title }))
             .mergeConsecutiveSpans()
-        cachedEvents = mergedEvents
-        return mergedEvents
+            .also { cachedEvents = it }
+        return when (perspective) {
+            "ALL" -> allEvents
+            "SUNNI" -> allEvents.filter {
+                it.perspective == "UNIVERSAL" || it.perspective == "SUNNI"
+            }
+            "SHIA" -> allEvents.filter {
+                it.perspective == "UNIVERSAL" || it.perspective == "SHIA"
+            }
+            else -> allEvents.filter { it.perspective == "UNIVERSAL" }
+        }
     }
 
     private fun loadEvents(): List<IslamicCalendarEvent> {
@@ -91,7 +101,8 @@ class IslamicEventsRepository(
                             title = event.title,
                             description = event.description,
                             type = event.type,
-                            notes = event.notes
+                            notes = event.notes,
+                            perspective = event.perspective.ifBlank { "UNIVERSAL" }
                         )
                     }
                 }
@@ -113,6 +124,7 @@ class IslamicEventsRepository(
                 last.description == event.description &&
                 last.type == event.type &&
                 last.notes == event.notes &&
+                last.perspective == event.perspective &&
                 event.day == last.endDay + 1
             ) {
                 merged[merged.lastIndex] = last.copy(endDay = event.day)

@@ -421,6 +421,10 @@ class SettingsViewModel(
         viewModelScope.launch { repository.updateShowUpcomingEventsOnHome(enabled) }
     }
 
+    fun setIslamicEventPerspective(perspective: String) {
+        viewModelScope.launch { repository.updateIslamicEventPerspective(perspective) }
+    }
+
     fun refreshLocation() {
         val hasFineLocation =
             ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) ==
