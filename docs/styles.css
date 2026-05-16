@@ -1,0 +1,325 @@
+:root {
+    --bg: #071614;
+    --surface: rgba(255, 255, 255, 0.07);
+    --text: #eef8f5;
+    --muted: #aac7c0;
+    --teal: #61d6c3;
+    --gold: #e8c981;
+    --border: rgba(255, 255, 255, 0.12);
+    --font-main: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.text-center { text-align: center; }
+
+/* Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+section {
+    padding: 8rem 0;
+    position: relative;
+}
+
+/* Ambient Glows */
+.glow {
+    position: absolute;
+    width: 40vw;
+    height: 40vw;
+    background: radial-gradient(circle, rgba(97, 214, 195, 0.15) 0%, rgba(7, 22, 20, 0) 70%);
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.glow-1 { top: -10%; left: -10%; }
+.glow-2 { bottom: 10%; right: -10%; background: radial-gradient(circle, rgba(232, 201, 129, 0.1) 0%, rgba(7, 22, 20, 0) 70%); }
+
+/* Navigation */
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1.5rem 0;
+    background: rgba(7, 22, 20, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.logo img { height: 32px; }
+
+.nav-links {
+    display: flex;
+    gap: 2.5rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover { color: var(--teal); }
+
+/* Hero Section */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: 8rem;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.hero-eyebrow {
+    font-size: 1.5rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.hero-title {
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    margin-bottom: 1.5rem;
+    background: linear-gradient(to bottom, #fff, var(--muted));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-body {
+    font-size: 1.25rem;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+}
+
+.hero-ctas {
+    display: flex;
+    gap: 1.25rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 1rem 2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--teal);
+    color: #071614;
+    box-shadow: 0 10px 20px -5px rgba(97, 214, 195, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgba(97, 214, 195, 0.4);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+/* Phone Stack */
+.phone-stack {
+    position: relative;
+    height: 600px;
+}
+
+.phone-card {
+    position: absolute;
+    width: 280px;
+    border-radius: 2rem;
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--bg);
+}
+
+.phone-1 { top: 0; right: 10%; z-index: 3; }
+.phone-2 { top: 100px; right: 40%; z-index: 2; transform: rotate(-5deg); opacity: 0.8; }
+.phone-3 { top: 200px; right: 0; z-index: 1; transform: rotate(5deg); opacity: 0.6; }
+
+.phone-card img {
+    width: 100%;
+    display: block;
+}
+
+/* Promise Section */
+.promise {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+.promise h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--gold);
+}
+
+.promise p {
+    font-size: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--text);
+}
+
+/* Feature Cards */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card-item {
+    padding: 3rem;
+    background: var(--surface);
+    border-radius: 2rem;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.feature-card-item:hover {
+    border-color: var(--teal);
+    transform: translateY(-5px);
+}
+
+.feature-card-item h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--teal);
+}
+
+.feature-card-item p {
+    color: var(--muted);
+}
+
+/* Support Section */
+.support {
+    text-align: center;
+}
+
+.support h2 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+}
+
+/* Footer */
+footer {
+    padding: 4rem 0;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.footer-links a {
+    color: var(--muted);
+    text-decoration: none;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 4rem;
+    }
+    .hero-body { margin: 0 auto 2.5rem; }
+    .hero-ctas { justify-content: center; }
+    .phone-stack {
+        display: none; /* Hide stack on mobile for simplicity, or we could show one card */
+    }
+    .nav-links { display: none; }
+}
+
+@media (max-width: 768px) {
+    section { padding: 4rem 0; }
+    .hero-title { font-size: 3rem; }
+}

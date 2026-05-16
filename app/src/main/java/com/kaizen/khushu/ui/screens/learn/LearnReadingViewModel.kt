@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaizen.khushu.data.model.ContentBlock
 import com.kaizen.khushu.data.repository.LearnRepository
+import com.kaizen.khushu.data.repository.QuranScriptFontRepository
 import com.kaizen.khushu.data.repository.TranslationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,7 @@ class LearnReadingViewModel(application: Application) : AndroidViewModel(applica
     fun loadScript(context: android.content.Context, script: String) {
         viewModelScope.launch(Dispatchers.IO) {
             // "uthmani" uses tajweedMap (already loaded) or block.textUthmani
-            if (script == "uthmani") {
+            if (script == "uthmani" || script == QuranScriptFontRepository.UTHMANIC_HAFS) {
                 withContext(Dispatchers.Main) {
                     scriptMap.value = emptyMap()
                 }

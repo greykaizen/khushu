@@ -13,10 +13,12 @@ import androidx.lifecycle.viewModelScope
 import com.kaizen.khushu.data.model.CustomBeadStyle
 import com.kaizen.khushu.data.model.DEFAULT_CUSTOM_BEAD_STYLE_ID
 import com.kaizen.khushu.data.model.defaultCustomBeadStyle
+import com.kaizen.khushu.data.repository.QuranScriptFontRepository
 import com.kaizen.khushu.data.repository.SettingsRepository
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.util.AppIconManager
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -28,6 +30,9 @@ class SettingsViewModel(
     private val appContext: Context,
 ) : ViewModel() {
     private var hasAttemptedGpsRefresh = false
+    val availableQuranScripts = MutableStateFlow(QuranScriptFontRepository.availableScripts(appContext))
+    val downloadingQuranScript = MutableStateFlow<String?>(null)
+    val quranScriptDownloadProgress = MutableStateFlow(0f)
 
     val settings: StateFlow<UserSettings> = repository.settingsFlow.stateIn(
         scope = viewModelScope,
@@ -53,6 +58,8 @@ class SettingsViewModel(
             showTajweed = false,
             customBeadStyles = listOf(defaultCustomBeadStyle()),
             activeBeadStyleId = DEFAULT_CUSTOM_BEAD_STYLE_ID,
+            tasbihSoundEnabled = true,
+            tasbihSoundId = "1",
         )
     )
 
@@ -75,6 +82,30 @@ class SettingsViewModel(
                     hasAttemptedGpsRefresh = false
                 }
             }
+        }
+    }
+
+    fun downloadQuranScript(script: String) {
+        if (downloadingQuranScript.value != null) return
+        if (QuranScriptFontRepository.isDownloaded(appContext, script)) {
+            availableQuranScripts.value = QuranScriptFontRepository.availableScripts(appContext)
+            return
+        }
+        if (script != QuranScriptFontRepository.UTHMANIC_HAFS) return
+
+        viewModelScope.launch {
+            downloadingQuranScript.value = script
+            quranScriptDownloadProgress.value = 0f
+            val downloaded = runCatching {
+                QuranScriptFontRepository.downloadUthmanicHafs(appContext) { progress ->
+                    quranScriptDownloadProgress.value = progress
+                }
+            }.getOrDefault(false)
+            if (downloaded) {
+                availableQuranScripts.value = QuranScriptFontRepository.availableScripts(appContext)
+            }
+            downloadingQuranScript.value = null
+            quranScriptDownloadProgress.value = 0f
         }
     }
 
@@ -152,6 +183,14 @@ class SettingsViewModel(
 
     fun toggleTasbeehVolumeAnimation(enabled: Boolean) {
         viewModelScope.launch { repository.setTasbeehVolumeAnimation(enabled) }
+    }
+
+    fun toggleTasbihSoundEnabled(enabled: Boolean) {
+        viewModelScope.launch { repository.setTasbihSoundEnabled(enabled) }
+    }
+
+    fun setTasbihSoundId(id: String) {
+        viewModelScope.launch { repository.setTasbihSoundId(id) }
     }
 
     fun setOnboardingCompleted(completed: Boolean) {
@@ -356,6 +395,10 @@ class SettingsViewModel(
         viewModelScope.launch { repository.updatePrayerNotificationAlertStyle(style) }
     }
 
+    fun setPrayerNotificationCustomSoundUri(uri: String) {
+        viewModelScope.launch { repository.updatePrayerNotificationCustomSoundUri(uri) }
+    }
+
     fun toggleExtraPrayerTiming(id: String, enabled: Boolean) {
         val updated = settings.value.selectedExtraPrayerTimings.toMutableSet().apply {
             if (enabled) add(id) else remove(id)
@@ -376,6 +419,10 @@ class SettingsViewModel(
 
     fun toggleShowUpcomingEventsOnHome(enabled: Boolean) {
         viewModelScope.launch { repository.updateShowUpcomingEventsOnHome(enabled) }
+    }
+
+    fun setIslamicEventPerspective(perspective: String) {
+        viewModelScope.launch { repository.updateIslamicEventPerspective(perspective) }
     }
 
     fun refreshLocation() {

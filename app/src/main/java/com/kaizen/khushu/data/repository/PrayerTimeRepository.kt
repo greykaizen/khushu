@@ -1,14 +1,17 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package com.kaizen.khushu.data.repository
 
-import com.batoulapps.adhan.CalculationMethod
-import com.batoulapps.adhan.CalculationParameters
-import com.batoulapps.adhan.Coordinates
-import com.batoulapps.adhan.Madhab
-import com.batoulapps.adhan.PrayerTimes
-import com.batoulapps.adhan.SunnahTimes
-import com.batoulapps.adhan.data.DateComponents
+import com.batoulapps.adhan2.CalculationMethod
+import com.batoulapps.adhan2.CalculationParameters
+import com.batoulapps.adhan2.Coordinates
+import com.batoulapps.adhan2.Madhab
+import com.batoulapps.adhan2.PrayerTimes
+import com.batoulapps.adhan2.SunnahTimes
+import com.batoulapps.adhan2.data.DateComponents
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -17,6 +20,8 @@ import java.net.URLEncoder
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
+
+fun Instant.toDate(): Date = Date(this.toEpochMilliseconds())
 
 @Serializable
 data class AlAdhanResponse(val code: Int, val data: AlAdhanData)
@@ -29,6 +34,11 @@ class PrayerTimeRepository(
 ) {
     private val client = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
+
+    fun usesApiSource(settings: UserSettings): Boolean {
+        return settings.prayerSourceType == "API" ||
+            !supportsLocalCalculationMethod(settings.prayerCalculationMethod)
+    }
 
     fun supportsLocalCalculationMethod(methodStr: String): Boolean {
         return when (methodStr) {
@@ -62,11 +72,11 @@ class PrayerTimeRepository(
     ): PrayerTimes {
         val coordinates = Coordinates(lat, lng)
         val calendar = Calendar.getInstance().apply { time = date }
-        val dateComponents = DateComponents.from(date)
+        val dateComponents = DateComponents(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH))
         
-        val parameters = getCalculationParameters(methodStr).apply {
+        val parameters = getCalculationParameters(methodStr).copy(
             madhab = if (madhabStr == "HANAFI") Madhab.HANAFI else Madhab.SHAFI
-        }
+        )
 
         return PrayerTimes(coordinates, dateComponents, parameters)
     }
@@ -79,8 +89,7 @@ class PrayerTimeRepository(
         date: Date,
         settings: UserSettings
     ): Map<String, Date> {
-        val localMethodSupported = supportsLocalCalculationMethod(settings.prayerCalculationMethod)
-        val isApiSource = settings.prayerSourceType == "API" || !localMethodSupported
+        val isApiSource = usesApiSource(settings)
         val localPrayerTimes = getLocalPrayerTimes(
             date = date,
             lat = settings.locationLat.toDouble(),
@@ -120,11 +129,11 @@ class PrayerTimeRepository(
 
         fun applyOffset(time: Date, minutes: Int): Date = Date(time.time + minutes * 60_000L)
 
-        val fajr = if (isApiSource) parseApiTime("Fajr", localPrayerTimes.fajr) else localPrayerTimes.fajr
-        val dhuhr = if (isApiSource) parseApiTime("Dhuhr", localPrayerTimes.dhuhr) else localPrayerTimes.dhuhr
-        val asr = if (isApiSource) parseApiTime("Asr", localPrayerTimes.asr) else localPrayerTimes.asr
-        val maghrib = if (isApiSource) parseApiTime("Maghrib", localPrayerTimes.maghrib) else localPrayerTimes.maghrib
-        val isha = if (isApiSource) parseApiTime("Isha", localPrayerTimes.isha) else localPrayerTimes.isha
+        val fajr = if (isApiSource) parseApiTime("Fajr", localPrayerTimes.fajr.toDate()) else localPrayerTimes.fajr.toDate()
+        val dhuhr = if (isApiSource) parseApiTime("Dhuhr", localPrayerTimes.dhuhr.toDate()) else localPrayerTimes.dhuhr.toDate()
+        val asr = if (isApiSource) parseApiTime("Asr", localPrayerTimes.asr.toDate()) else localPrayerTimes.asr.toDate()
+        val maghrib = if (isApiSource) parseApiTime("Maghrib", localPrayerTimes.maghrib.toDate()) else localPrayerTimes.maghrib.toDate()
+        val isha = if (isApiSource) parseApiTime("Isha", localPrayerTimes.isha.toDate()) else localPrayerTimes.isha.toDate()
 
         return mapOf(
             "Fajr" to applyOffset(fajr, settings.fajrOffsetMinutes),
@@ -139,8 +148,7 @@ class PrayerTimeRepository(
         date: Date,
         settings: UserSettings
     ): Map<String, Date> {
-        val localMethodSupported = supportsLocalCalculationMethod(settings.prayerCalculationMethod)
-        val isApiSource = settings.prayerSourceType == "API" || !localMethodSupported
+        val isApiSource = usesApiSource(settings)
         val localPrayerTimes = getLocalPrayerTimes(
             date = date,
             lat = settings.locationLat.toDouble(),
@@ -185,14 +193,14 @@ class PrayerTimeRepository(
             }
         }
 
-        val localSunrise = localPrayerTimes.sunrise
-        val localSunset = localPrayerTimes.maghrib
-        val localImsak = Date(localPrayerTimes.fajr.time - TimeUnit.MINUTES.toMillis(10))
+        val localSunrise = localPrayerTimes.sunrise.toDate()
+        val localSunset = localPrayerTimes.maghrib.toDate()
+        val localImsak = Date(localPrayerTimes.fajr.toDate().time - TimeUnit.MINUTES.toMillis(10))
         val sunnahTimes = getSunnahTimes(localPrayerTimes)
-        val localMidnight = sunnahTimes.middleOfTheNight
-        val localLastThird = sunnahTimes.lastThirdOfTheNight
-        val firstThirdMillis = localPrayerTimes.maghrib.time +
-            ((nextDayPrayerTimes.fajr.time - localPrayerTimes.maghrib.time) / 3L)
+        val localMidnight = sunnahTimes.middleOfTheNight.toDate()
+        val localLastThird = sunnahTimes.lastThirdOfTheNight.toDate()
+        val firstThirdMillis = localPrayerTimes.maghrib.toDate().time +
+            ((nextDayPrayerTimes.fajr.toDate().time - localPrayerTimes.maghrib.toDate().time) / 3L)
         val localFirstThird = Date(firstThirdMillis)
 
         return mapOf(
@@ -257,6 +265,7 @@ class PrayerTimeRepository(
 
     private fun getCalculationParameters(methodStr: String): CalculationParameters {
         return when (methodStr) {
+            "SHIA_ITHNA_ASHARI" -> CalculationParameters(fajrAngle = 16.0, ishaAngle = 14.0)
             "MUSLIM_WORLD_LEAGUE" -> CalculationMethod.MUSLIM_WORLD_LEAGUE.parameters
             "EGYPTIAN" -> CalculationMethod.EGYPTIAN.parameters
             "KARACHI" -> CalculationMethod.KARACHI.parameters
@@ -267,33 +276,50 @@ class PrayerTimeRepository(
             "KUWAIT" -> CalculationMethod.KUWAIT.parameters
             "QATAR" -> CalculationMethod.QATAR.parameters
             "SINGAPORE" -> CalculationMethod.SINGAPORE.parameters
-            "ALGERIA" -> CalculationParameters(18.0, 17.0).apply { method = CalculationMethod.OTHER }
-            "TUNISIA" -> CalculationParameters(18.0, 18.0).apply { method = CalculationMethod.OTHER }
-            "FRANCE_UOIF" -> CalculationParameters(12.0, 12.0).apply { method = CalculationMethod.OTHER }
-            "FRANCE_15" -> CalculationParameters(15.0, 15.0).apply { method = CalculationMethod.OTHER }
-            "FRANCE_18" -> CalculationParameters(18.0, 17.0).apply { method = CalculationMethod.OTHER }
+            "ALGERIA" -> CalculationParameters(fajrAngle = 18.0, ishaAngle = 17.0)
+            "TUNISIA" -> CalculationParameters(fajrAngle = 18.0, ishaAngle = 18.0)
+            "FRANCE_UOIF" -> CalculationParameters(fajrAngle = 12.0, ishaAngle = 12.0)
+            "FRANCE_15" -> CalculationParameters(fajrAngle = 15.0, ishaAngle = 15.0)
+            "FRANCE_18" -> CalculationParameters(fajrAngle = 18.0, ishaAngle = 17.0)
             "TEHRAN" -> CalculationMethod.OTHER.parameters
             "TURKEY" -> CalculationMethod.OTHER.parameters
+            "RUSSIA" -> CalculationParameters(fajrAngle = 16.0, ishaAngle = 15.0)
+            "MALAYSIA" -> CalculationParameters(fajrAngle = 18.0, ishaAngle = 18.0)
+            "INDONESIA" -> CalculationParameters(fajrAngle = 20.0, ishaAngle = 18.0)
+            "MOROCCO" -> CalculationParameters(fajrAngle = 19.0, ishaAngle = 17.0)
+            "JORDAN" -> CalculationParameters(fajrAngle = 18.0, ishaAngle = 18.0)
+            "GULF_REGION" -> CalculationParameters(fajrAngle = 19.5, ishaAngle = 90.0)
+            "PORTUGAL" -> CalculationParameters(fajrAngle = 18.0, ishaAngle = 15.0)
             else -> CalculationMethod.MUSLIM_WORLD_LEAGUE.parameters
         }
     }
 
     private fun getApiMethodId(methodStr: String): Int {
         return when (methodStr) {
+            "SHIA_ITHNA_ASHARI" -> 0
             "KARACHI" -> 1
             "NORTH_AMERICA" -> 2
             "MUSLIM_WORLD_LEAGUE" -> 3
             "UMM_AL_QURA" -> 4
             "EGYPTIAN" -> 5
             "TEHRAN" -> 7
-            "DUBAI" -> 16
+            "GULF_REGION" -> 8
             "KUWAIT" -> 9
             "QATAR" -> 10
             "SINGAPORE" -> 11
+            "FRANCE_UOIF" -> 12
             "TURKEY" -> 13
+            "RUSSIA" -> 14
             "MOON_SIGHTING_COMMITTEE" -> 15
-            "ALGERIA", "TUNISIA", "FRANCE_UOIF", "FRANCE_15", "FRANCE_18" -> 99
-            else -> 3
+            "DUBAI" -> 16
+            "MALAYSIA" -> 17
+            "TUNISIA" -> 18
+            "ALGERIA" -> 19
+            "INDONESIA" -> 20
+            "MOROCCO" -> 21
+            "PORTUGAL" -> 22
+            "JORDAN" -> 23
+            else -> 99 // Fallback to custom for others or default
         }
     }
 }

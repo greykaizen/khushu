@@ -43,6 +43,7 @@ import com.kaizen.khushu.ui.components.TranslationPickerSheet
 import com.kaizen.khushu.ui.screens.settings.SettingsViewModel
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import com.kaizen.khushu.ui.theme.ScheherazadeNew
+import com.kaizen.khushu.ui.theme.rememberArabicScriptFontFamily
 
 // ── Translation helpers ────────────────────────────────────────────────────────
 
@@ -115,6 +116,10 @@ fun LearnReadingScreen(
     }
 
     val settings by settingsViewModel.settings.collectAsState()
+    val availableQuranScripts by settingsViewModel.availableQuranScripts.collectAsState()
+    val downloadingQuranScript by settingsViewModel.downloadingQuranScript.collectAsState()
+    val quranScriptDownloadProgress by settingsViewModel.quranScriptDownloadProgress.collectAsState()
+    val arabicScriptFontFamily = rememberArabicScriptFontFamily(settings.selectedScript, availableQuranScripts)
     val scheme = readingColorScheme(settings.readingTheme, settings.dynamicColor)
 
     MaterialTheme(colorScheme = scheme) {
@@ -230,6 +235,7 @@ fun LearnReadingScreen(
                                     bg = bg,
                                     translationMap = translationMap,
                                     tajweedMap = tajweedMap,
+                                    arabicFontFamily = arabicScriptFontFamily,
                                     onBlockClick = { activeBlock = it to index },
                                     modifier = Modifier.padding(vertical = 6.dp)
                                 )
@@ -257,6 +263,7 @@ fun LearnReadingScreen(
             if (showSettings) {
                 ReadingSettingsSheet(
                     settings = settings,
+                    isQuranContext = false,
                     onDismiss = { showSettings = false },
                     onThemeChange = { settingsViewModel.setReadingTheme(it) },
                     onArabicSizeChange = { settingsViewModel.setArabicSizeSp(it) },
@@ -271,6 +278,10 @@ fun LearnReadingScreen(
                     onOpenTafsirPicker = { showSettings = false },
                     onReciterChange = { settingsViewModel.setSelectedReciterId(it) },
                     onScriptChange = { settingsViewModel.setSelectedScript(it) },
+                    availableQuranScripts = availableQuranScripts,
+                    downloadingQuranScript = downloadingQuranScript,
+                    quranScriptDownloadProgress = quranScriptDownloadProgress,
+                    onDownloadQuranScript = { settingsViewModel.downloadQuranScript(it) },
                     onOpenTranslationPicker = { showSettings = false; showTranslationPicker = true },
                     onDownloadAudio = {}
                 )

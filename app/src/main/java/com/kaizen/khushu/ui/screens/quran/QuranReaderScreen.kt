@@ -3,6 +3,7 @@ package com.kaizen.khushu.ui.screens.quran
 import android.widget.Toast
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -38,12 +39,14 @@ import com.kaizen.khushu.ui.components.BlockActionSheet
 import com.kaizen.khushu.ui.components.ReadingSettingsSheet
 import com.kaizen.khushu.ui.components.TranslationPickerSheet
 import com.kaizen.khushu.ui.components.TafsirPickerSheet
+import com.kaizen.khushu.ui.components.VerseContentSheet
 import com.kaizen.khushu.data.repository.TranslationRepository
 import com.kaizen.khushu.data.repository.QuranAudioRepository
 import com.kaizen.khushu.ui.screens.learn.BlockRenderer
 import com.kaizen.khushu.ui.screens.settings.SettingsViewModel
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import com.kaizen.khushu.ui.theme.ScheherazadeNew
+import com.kaizen.khushu.ui.theme.rememberArabicScriptFontFamily
 
 // ── Theme helpers ──────────────────────────────────────────────────────────────
 
@@ -149,6 +152,7 @@ private fun SajdaIndicator(type: String, contentColor: Color) {
 @Composable
 fun QuranReaderScreen(
     surahNumber: Int,
+    initialAyahIndex: Int? = null,
     onBack: () -> Unit,
     onNextSurah: (Int) -> Unit,
     viewModel: QuranViewModel,
@@ -165,11 +169,17 @@ fun QuranReaderScreen(
     val isTafsirDownloading by viewModel.isTafsirDownloading
     val tafsirDownloadProgress by viewModel.tafsirDownloadProgress
     val chapters by viewModel.chapters
+    val reflections by viewModel.reflections
+    val reflectionsLoading by viewModel.reflectionsLoading
     val settings by settingsViewModel.settings.collectAsState()
+    val availableQuranScripts by settingsViewModel.availableQuranScripts.collectAsState()
+    val downloadingQuranScript by settingsViewModel.downloadingQuranScript.collectAsState()
+    val quranScriptDownloadProgress by settingsViewModel.quranScriptDownloadProgress.collectAsState()
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val listState = rememberLazyListState()
+    val arabicScriptFontFamily = rememberArabicScriptFontFamily(settings.selectedScript, availableQuranScripts)
 
     val playingAyahIndex by quranAudioViewModel.playingAyahIndex
     val audioState by quranAudioViewModel.audioState
@@ -247,6 +257,13 @@ fun QuranReaderScreen(
     var showSettings by remember { mutableStateOf(false) }
     var showTranslationPicker by remember { mutableStateOf(false) }
     var showTafsirPicker by remember { mutableStateOf(false) }
+    // "verse_by_verse" or "reading"
+    var readingMode by remember { mutableStateOf("verse_by_verse") }
+
+    // Verse content sheet (Tafsir / Reflections)
+    var activeVerseForSheet by remember { mutableStateOf<AyahBlock?>(null) }
+    var sheetInitialTab by remember { mutableIntStateOf(0) } // 0=Tafsir, 1=Reflections
+    val verseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(surahNumber, settings.selectedTranslationLang) {
         viewModel.loadChapters()
@@ -263,8 +280,13 @@ fun QuranReaderScreen(
         viewModel.loadScript(context, settings.selectedScript)
     }
 
+    LaunchedEffect(surahNumber, initialAyahIndex, ayahs.size) {
+        val targetAyah = initialAyahIndex ?: return@LaunchedEffect
+        if (ayahs.isEmpty()) return@LaunchedEffect
+        listState.scrollToItem(targetAyah.coerceIn(0, ayahs.lastIndex))
+    }
+
     val surah = chapters.find { it.id == surahNumber }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     // Auto-scroll to playing ayah
     LaunchedEffect(playingAyahIndex) {
@@ -309,38 +331,23 @@ fun QuranReaderScreen(
                 .clip(androidx.compose.foundation.shape.RoundedCornerShape(32.dp))
                 .background(bg)
         ) {
-            val titleFraction = scrollBehavior.state.collapsedFraction
-            val titleFontSize = androidx.compose.ui.util.lerp(28f, 20f, titleFraction).sp
-
             Scaffold(
                 containerColor = Color.Transparent,
                 modifier = modifier
-                    .nestedScroll(nestedScrollConnection)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    .nestedScroll(nestedScrollConnection),
                 topBar = {
-                    LargeTopAppBar(
+                    TopAppBar(
                         title = {
-                            surah?.let {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(
-                                        text = it.nameSimple,
-                                        fontFamily = BeVietnamPro,
-                                        fontSize = titleFontSize,
-                                        color = fg
-                                    )
-                                    Text(
-                                        text = "·",
-                                        fontFamily = BeVietnamPro,
-                                        fontSize = titleFontSize,
-                                        color = fg.copy(alpha = 0.5f)
-                                    )
-                                    Text(
-                                        text = it.nameArabic,
-                                        fontFamily = ScheherazadeNew,
-                                        fontSize = titleFontSize * 1.1f,
-                                        color = fg
-                                    )
-                                }
+                            // Pill-style mode toggle — centred in the bar
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                ReadingModeToggle(
+                                    mode = readingMode,
+                                    onModeChange = { readingMode = it },
+                                    fg = fg
+                                )
                             }
                         },
                         navigationIcon = {
@@ -380,7 +387,6 @@ fun QuranReaderScreen(
                                 )
                             }
                         },
-                        scrollBehavior = scrollBehavior,
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                             scrolledContainerColor = bg.copy(alpha = 0.9f),
@@ -408,18 +414,80 @@ fun QuranReaderScreen(
                             contentPadding = PaddingValues(bottom = 32.dp),
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (surahNumber != 9 && surahNumber != 1) {
-                                item {
-                                    Text(
-                                        text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
-                                        textAlign = TextAlign.Center,
-                                        fontFamily = ScheherazadeNew,
-                                        fontSize = 28.sp,
-                                        color = fg,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 32.dp)
-                                    )
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    surah?.let {
+                                        Text(
+                                            text = it.nameArabic,
+                                            style = MaterialTheme.typography.displaySmall.copy(
+                                                fontFamily = ScheherazadeNew,
+                                                color = fg
+                                            ),
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Text(
+                                            text = it.nameSimple,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                        
+                                        Row(
+                                            modifier = Modifier.padding(top = 12.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Surface(
+                                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                                shape = RoundedCornerShape(12.dp)
+                                            ) {
+                                                Text(
+                                                    text = it.revelationPlace.uppercase(),
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = BeVietnamPro),
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                            Text(
+                                                text = "${it.versesCount} VERSES",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = BeVietnamPro),
+                                                color = fg.copy(alpha = 0.6f)
+                                            )
+                                        }
+                                        
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 24.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            HorizontalDivider(
+                                                modifier = Modifier.fillMaxWidth(0.5f),
+                                                color = fg.copy(alpha = 0.15f)
+                                            )
+                                        }
+                                    }
+                                    
+                                    // Show Bismillah for all surahs except At-Tawbah (9)
+                                    // and NOT for Al-Fatihah (1) since bismillah is its first verse
+                                    if (surahNumber != 9 && surahNumber != 1) {
+                                        Spacer(Modifier.height(8.dp))
+                                        Text(
+                                            text = "بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ",
+                                            textAlign = TextAlign.Center,
+                                            fontFamily = ScheherazadeNew,
+                                            fontSize = 26.sp,
+                                            color = fg.copy(alpha = 0.85f),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 }
                             }
 
@@ -437,9 +505,12 @@ fun QuranReaderScreen(
                                         SajdaIndicator(type = meta.sajda, contentColor = fg)
                                     }
 
+                                    val topicId = "quran_surah_$surahNumber"
+                                    val isBookmarked = settings.bookmarkedAyahs.contains("$topicId:$index")
                                     val translationMap = remember(translations) {
                                         translations.mapKeys { it.key.toString() }
                                     }
+                                    
                                     BlockRenderer(
                                         block = block,
                                         settings = settings,
@@ -447,9 +518,32 @@ fun QuranReaderScreen(
                                         bg = bg,
                                         translationMap = translationMap,
                                         scriptMap = scriptMap,
+                                        arabicFontFamily = arabicScriptFontFamily,
                                         isHighlighted = playingAyahIndex == index,
+                                        readingMode = readingMode,
+                                        source = ContentSource.QF,
                                         onBlockClick = { activeBlock = it to index },
-                                        modifier = Modifier.padding(vertical = 4.dp)
+                                        onPlayClick = {
+                                            quranAudioViewModel.playAyah(surahNumber, index, blocks, settings.selectedReciterId, sequence = false)
+                                        },
+                                        onBookmarkClick = {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                            settingsViewModel.toggleBookmark(topicId, index)
+                                            val msg = if (isBookmarked) "Bookmark removed" else "Bookmark added"
+                                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                        },
+                                        onTafsirClick = {
+                                            sheetInitialTab = 0
+                                            activeVerseForSheet = block
+                                            if (!settings.showTafsir) {
+                                                settingsViewModel.setShowTafsir(true)
+                                            }
+                                        },
+                                        onReflectionsClick = {
+                                            sheetInitialTab = 1
+                                            activeVerseForSheet = block
+                                            viewModel.loadReflections(block.surah, block.ayah)
+                                        },
                                     )
                                 }
                             }
@@ -555,6 +649,7 @@ fun QuranReaderScreen(
                 ReadingSettingsSheet(
                     settings = settings,
                     supportsTafsirSelection = true,
+                    isQuranContext = true,
                     reciterDownloadStates = reciterDownloadStates,
                     isReciterDownloaded = { quranAudioViewModel.isReciterDownloaded(it) },
                     onDismiss = { showSettings = false },
@@ -574,6 +669,10 @@ fun QuranReaderScreen(
                     },
                     onReciterChange = { settingsViewModel.setSelectedReciterId(it) },
                     onScriptChange = { settingsViewModel.setSelectedScript(it) },
+                    availableQuranScripts = availableQuranScripts,
+                    downloadingQuranScript = downloadingQuranScript,
+                    quranScriptDownloadProgress = quranScriptDownloadProgress,
+                    onDownloadQuranScript = { settingsViewModel.downloadQuranScript(it) },
                     onOpenTranslationPicker = {
                         showSettings = false
                         showTranslationPicker = true
@@ -635,6 +734,90 @@ fun QuranReaderScreen(
                     onDismiss = { showTafsirPicker = false }
                 )
             }
+
+            // ── Verse Content Sheet (Tafsir + Reflections) ────────────────────
+            activeVerseForSheet?.let { activeVerse ->
+                val verseKey = "${activeVerse.surah}:${activeVerse.ayah}"
+                val verseTranslation = translations[activeVerse.ayah]
+                    ?: activeVerse.translationEn.orEmpty()
+
+                VerseContentSheet(
+                    surah = activeVerse.surah,
+                    ayah = activeVerse.ayah,
+                    surahName = surah?.nameSimple ?: "Surah ${activeVerse.surah}",
+                    arabicText = activeVerse.textUthmani.orEmpty(),
+                    translationText = verseTranslation,
+                    tafsirText = activeVerse.tafsirText,
+                    isTafsirSource = ContentSource.QF.supportsTafsir,
+                    reflections = reflections[verseKey] ?: emptyList(),
+                    isReflectionsLoading = reflectionsLoading.contains(verseKey),
+                    isReflectionsSource = ContentSource.QF.supportsReflections,
+                    initialTab = sheetInitialTab,
+                    sheetState = verseSheetState,
+                    onDismiss = { activeVerseForSheet = null },
+                    arabicSizeSp = settings.arabicSizeSp,
+                    translationSizeSp = settings.translationSizeSp,
+                )
+            }
+        }
+    }
+}
+
+
+/**
+ * Pill-style segmented toggle matching Quran.com's "Verse by Verse | Reading" switcher.
+ */
+@Composable
+private fun ReadingModeToggle(
+    mode: String,
+    onModeChange: (String) -> Unit,
+    fg: Color,
+    modifier: Modifier = Modifier,
+) {
+    val isVerseByVerse = mode == "verse_by_verse"
+    val activeColor = fg
+    val inactiveColor = fg.copy(alpha = 0.45f)
+    val pillBg = fg.copy(alpha = 0.1f)
+    val activeBg = fg.copy(alpha = 0.18f)
+
+    Row(
+        modifier = modifier
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+            .background(pillBg),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Verse by Verse tab
+        Box(
+            modifier = Modifier
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                .background(if (isVerseByVerse) activeBg else Color.Transparent)
+                .clickable { onModeChange("verse_by_verse") }
+                .padding(horizontal = 14.dp, vertical = 7.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Verse by Verse",
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = BeVietnamPro),
+                color = if (isVerseByVerse) activeColor else inactiveColor,
+                fontWeight = if (isVerseByVerse) FontWeight.SemiBold else FontWeight.Normal
+            )
+        }
+
+        // Reading tab
+        Box(
+            modifier = Modifier
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                .background(if (!isVerseByVerse) activeBg else Color.Transparent)
+                .clickable { onModeChange("reading") }
+                .padding(horizontal = 14.dp, vertical = 7.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Reading",
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = BeVietnamPro),
+                color = if (!isVerseByVerse) activeColor else inactiveColor,
+                fontWeight = if (!isVerseByVerse) FontWeight.SemiBold else FontWeight.Normal
+            )
         }
     }
 }

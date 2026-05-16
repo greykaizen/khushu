@@ -1,5 +1,7 @@
 package com.kaizen.khushu.ui.screens.tasbeeh
-
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -8,15 +10,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
+
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +33,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+import com.kaizen.khushu.data.model.CustomBeadStyle
+import com.kaizen.khushu.data.model.TasbeehCanvasPresetDomain
+import com.kaizen.khushu.data.repository.UserSettings
+import com.kaizen.khushu.data.model.TasbeehCollection
+
+
+
 import androidx.graphics.shapes.RoundedPolygon
 import com.kaizen.khushu.R
-import com.kaizen.khushu.data.model.TasbeehCollection
 import com.kaizen.khushu.ui.components.KhushuAppBar
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import com.kaizen.khushu.ui.screens.settings.SettingsViewModel
@@ -46,8 +61,10 @@ import kotlinx.coroutines.launch
 fun TasbeehScreen(
     viewModel: TasbeehViewModel,
     settingsViewModel: SettingsViewModel,
+    canvasViewModel: TasbeehCanvasViewModel,
     onCollectionTap: (TasbeehCollection) -> Unit,
     onEditCollection: () -> Unit,
+    onCustomizeCanvas: () -> Unit,
     onSettingsClick: () -> Unit,
     hazeState: HazeState,
     contentPadding: PaddingValues = PaddingValues(),
@@ -211,11 +228,14 @@ fun TasbeehScreen(
         CollectionDetailSheet(
             collection = collection,
             accentColor = if (settings.tasbeehDynamicColors) resolvedBg else MaterialTheme.colorScheme.primary,
+            settingsViewModel = settingsViewModel,
+            canvasViewModel = canvasViewModel,
             onDismiss = { selectedCollection = null },
             onStart = {
                 onCollectionTap(collection)
                 selectedCollection = null
             },
+            onCustomizeCanvas = onCustomizeCanvas,
             onEdit = {
                 viewModel.loadCollectionForEdit(collection)
                 selectedCollection = null
@@ -228,20 +248,29 @@ fun TasbeehScreen(
         )
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CollectionDetailSheet(
     collection: TasbeehCollection,
     accentColor: Color,
+    settingsViewModel: SettingsViewModel,
+    canvasViewModel: TasbeehCanvasViewModel,
     onDismiss: () -> Unit,
     onStart: () -> Unit,
+    onCustomizeCanvas: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showBeadCustomizer by remember { mutableStateOf(false) }
+    var showPresets by remember { mutableStateOf(false) }
+    var showCustomization by remember { mutableStateOf(false) }
+    
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+    val layout by canvasViewModel.layout.collectAsStateWithLifecycle()
+    val presets by canvasViewModel.presets.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -251,7 +280,7 @@ private fun CollectionDetailSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.63f)
+                .fillMaxHeight(0.85f)
                 .navigationBarsPadding(),
         ) {
             // Header (Sticky)
@@ -262,30 +291,61 @@ private fun CollectionDetailSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(
-                    text = "Edit",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onEdit() }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    if (showCustomization) {
+                        Text(
+                            text = "Back",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showCustomization = false }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "Edit",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onEdit() }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                        Text(
+                            text = "Customize",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showCustomization = true }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
 
-                Text(
-                    text = "Close",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            scope.launch {
-                                sheetState.hide()
-                                onDismiss()
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Close",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                scope.launch {
+                                    sheetState.hide()
+                                    onDismiss()
+                                }
                             }
-                        }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
             }
 
             // Scrollable Content
@@ -295,70 +355,123 @@ private fun CollectionDetailSheet(
                     .weight(1f),
                 contentPadding = PaddingValues(start = 28.dp, end = 28.dp, bottom = 8.dp),
             ) {
-                item {
-                    Spacer(Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                if (showCustomization) {
+                    item {
+                        Spacer(Modifier.height(10.dp))
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            PrepPreviewCard(
+                                title = "Screen UI",
+                                cardHeight = 236.dp,
+                                onClick = { showPresets = true }
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    MiniTasbihScreenPreview(
+                                        collection = collection,
+                                        layout = layout,
+                                        settings = settings,
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .padding(vertical = 10.dp)
+                                            .aspectRatio(0.54f)
+                                    )
+                                }
+                            }
+
+                            PrepPreviewCard(
+                                title = "Bead Style",
+                                cardHeight = 96.dp,
+                                onClick = { showBeadCustomizer = true }
+                            ) {
+                               val customBeadStyle = settings.customBeadStyles.find { it.id == settings.activeBeadStyleId }
+                               val legacyBeadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
+                               val customShape = customBeadStyle?.let { beadShapeTypeToShape(it.shapeType) }
+                               val noiseShader = GlobalNoiseShader.value
+                               val noiseBrush = remember(noiseShader) { ShaderBrush(noiseShader) }
+
+                               Canvas(modifier = Modifier.size(52.dp)) {
+                                   val r = size.minDimension / 2f
+                                   drawBeadWrapper(
+                                       center = Offset(r, r),
+                                       radius = r,
+                                       legacyStyle = legacyBeadStyle,
+                                       customStyle = customBeadStyle,
+                                       customShape = customShape,
+                                       noiseBrush = noiseBrush
+                                   )
+                               }
+                            }
+                        }
+                        Spacer(Modifier.height(28.dp))
+                    }
+                } else {
+                    item {
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = collection.title?.takeIf { it.isNotBlank() } ?: "Collection",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontFamily = BeVietnamPro,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable { showDeleteConfirm = true }
+                                    .padding(8.dp)
+                                    .padding(top = 20.dp, end = 10.dp, bottom = 0.dp)
+                            )
+                        }
                         Text(
-                            text = collection.title?.takeIf { it.isNotBlank() } ?: "Collection",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontFamily = BeVietnamPro,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                            text = "${collection.items.size} dhikr items",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Icon(
-                            imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { showDeleteConfirm = true }
-                                .padding(8.dp)
-                                .padding(top = 20.dp, end = 10.dp, bottom = 0.dp)
+                        Spacer(Modifier.height(24.dp))
+                        Text(
+                            text = "DHIKR LIST",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
-//                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "${collection.items.size} dhikr items",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(20.dp))
-                }
 
-//                item {
-//                    HorizontalDivider(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-//                    )
-//                    Spacer(Modifier.height(16.dp))
-//                }
-
-                items(collection.items) { item ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = item.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            text = "×${item.targetCount}",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(start = 16.dp),
-                        )
+                    items(collection.items) { item ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = item.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                text = "×${item.targetCount}",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 16.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -399,6 +512,188 @@ private fun CollectionDetailSheet(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    if (showBeadCustomizer) {
+        TasbihBeadCustomizerSheet(
+            settingsViewModel = settingsViewModel,
+            onDismiss = { showBeadCustomizer = false }
+        )
+    }
+
+    if (showPresets) {
+        PrepPresetsPickerSheet(
+            presets = presets,
+            onLoad = { canvasViewModel.loadPreset(it) },
+            onCustomizeMyOwn = { 
+                showPresets = false
+                onDismiss()
+                onCustomizeCanvas()
+            },
+            onDismiss = { showPresets = false }
+        )
+    }
+}
+
+@Composable
+private fun MiniTasbihScreenPreview(
+    collection: TasbeehCollection,
+    layout: TasbeehCanvasLayout,
+    settings: UserSettings,
+    modifier: Modifier = Modifier,
+) {
+    val currentItem = collection.items.firstOrNull()
+    val customBeadStyle = settings.customBeadStyles.find { it.id == settings.activeBeadStyleId }
+    val beadStyle = if (settings.tasbihBeadStyle == "DARK_ONYX") BeadStyle.DARK_ONYX else BeadStyle.CLASSIC_AMBER
+
+    BoxWithConstraints(
+        modifier = modifier
+            .padding(horizontal = 6.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(layout.backgroundColorInt.toLong()))
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+                shape = RoundedCornerShape(16.dp)
+            )
+    ) {
+        val previewWidth = constraints.maxWidth.toFloat()
+        val previewHeight = constraints.maxHeight.toFloat()
+        val scaleMultiplier = 0.24f
+
+        layout.widgets.sortedBy { it.zIndex }.forEach { widget ->
+            Box(
+                modifier = Modifier.graphicsLayer {
+                    translationX = (widget.offsetX * previewWidth) - (size.width / 2f)
+                    translationY = (widget.offsetY * previewHeight) - (size.height / 2f)
+                    scaleX = widget.scale * scaleMultiplier
+                    scaleY = widget.scale * scaleMultiplier
+                    transformOrigin = TransformOrigin.Center
+                    clip = false
+                }
+            ) {
+                TasbihWidgetRenderer(
+                    widget = widget,
+                    currentCount = (currentItem?.targetCount ?: 33) / 3,
+                    currentItem = currentItem,
+                    countedBeads = (currentItem?.targetCount ?: 33) / 3,
+                    totalBeads = currentItem?.targetCount ?: 33,
+                    beadStyle = beadStyle,
+                    customBeadStyle = customBeadStyle,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrepPreviewCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    cardHeight: Dp = 104.dp,
+    onClick: () -> Unit,
+    previewContent: @Composable BoxScope.() -> Unit
+) {
+    OutlinedCard(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(cardHeight),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.Center,
+                content = previewContent
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    .padding(vertical = 6.dp), 
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title, 
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Icon(Icons.Default.Tune, null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PrepPresetsPickerSheet(
+    presets: List<TasbeehCanvasPresetDomain>,
+    onLoad: (TasbeehCanvasPresetDomain) -> Unit,
+    onCustomizeMyOwn: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "Choose Screen Preset",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.heightIn(max = 300.dp)
+            ) {
+                items(presets) { preset ->
+                    OutlinedCard(
+                        onClick = { onLoad(preset); onDismiss() },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                    ) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text(preset.name, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                            Text(
+                                "${preset.widgets.size} widgets", 
+                                style = MaterialTheme.typography.labelSmall, 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+            
+            Button(
+                onClick = onCustomizeMyOwn,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+            ) {
+                Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Customize my own")
             }
         }
     }

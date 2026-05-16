@@ -3,14 +3,19 @@ package com.kaizen.khushu.ui.screens.settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import com.kaizen.khushu.ui.screens.tasbeeh.TasbihBeadCustomizerSheet
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbihSoundCatalog
+import com.kaizen.khushu.ui.screens.tasbeeh.TasbihSoundPlayer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +26,13 @@ fun TasbeehCustomizeScreen(
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val context = LocalContext.current
+    val soundPlayer = remember { TasbihSoundPlayer(context) }
     var showBeadSheet by remember { mutableStateOf(false) }
+
+    DisposableEffect(soundPlayer) {
+        onDispose { soundPlayer.release() }
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -45,7 +56,7 @@ fun TasbeehCustomizeScreen(
 
             SettingsGroup(
                 title = "Layout",
-                description = "Open the editor or change how beads are styled."
+//                description = "Open the editor or change how beads are styled."
             ) {
                 SettingsMenuItem(
                     title = "Edit Tasbih Screen",
@@ -62,7 +73,7 @@ fun TasbeehCustomizeScreen(
 
             SettingsGroup(
                 title = "Behavior",
-                description = "How the Tasbih screen reacts while you count."
+//                description = "How the Tasbih screen reacts while you count."
             ) {
                 SettingsToggleItem(
                     title = "Dynamic Colors",
@@ -91,6 +102,39 @@ fun TasbeehCustomizeScreen(
                         onCheckedChange = { viewModel.toggleTasbeehVolumeAnimation(it) },
                         showDivider = false
                     )
+                }
+            }
+
+            SettingsGroup(
+                title = "Sound",
+//                description = "Bundled Tasbih sounds that play when a count lands."
+            ) {
+                SettingsToggleItem(
+                    title = "Tasbih Sound",
+                    subtitle = "Play a soft sound when a bead count commits.",
+                    checked = settings.tasbihSoundEnabled,
+                    onCheckedChange = { viewModel.toggleTasbihSoundEnabled(it) },
+                    showDivider = settings.tasbihSoundEnabled
+                )
+                if (settings.tasbihSoundEnabled) {
+                    Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        SettingsDropdown(
+                            title = "Sound Style",
+                            subtitle = "Choose the bundled Tasbih sound.",
+                            options = TasbihSoundCatalog.options.map { it.id },
+                            selectedOption = settings.tasbihSoundId,
+                            optionLabel = { id -> TasbihSoundCatalog.optionFor(id).label },
+                            onOptionSelected = viewModel::setTasbihSoundId
+                        )
+                    }
+                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                        OutlinedButton(
+                            onClick = { soundPlayer.play(settings.tasbihSoundId) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Preview Sound")
+                        }
+                    }
                 }
             }
             

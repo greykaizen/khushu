@@ -62,6 +62,10 @@ class TasbeehViewModel(private val dao: TasbeehDao) : ViewModel() {
         pendingFocusId = id
     }
 
+    fun clearPendingFocus() {
+        pendingFocusId = null
+    }
+
     fun removeDhikrRow(id: Int) {
         createDhikrRows.removeAll { it.id == id }
     }

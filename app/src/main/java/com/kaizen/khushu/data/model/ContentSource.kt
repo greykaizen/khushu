@@ -7,6 +7,7 @@ enum class ContentSource(
     val supportsTafsir: Boolean = false,
     val supportsAudio: Boolean = false,
     val supportsPerAyahAudio: Boolean = false,
+    val supportsReflections: Boolean = false,
 ) {
     QF(
         displayName = "Quran Foundation",
@@ -15,6 +16,7 @@ enum class ContentSource(
         supportsTafsir = true,
         supportsAudio = true,
         supportsPerAyahAudio = true,
+        supportsReflections = true,
     ),
     FAWAZ(
         displayName = "fawazahmed0",

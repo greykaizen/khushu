@@ -87,6 +87,9 @@ fun HadithReaderScreen(
     val hadiths by viewModel.currentHadiths
     val isLoading by viewModel.isLoading
     val settings by settingsViewModel.settings.collectAsState()
+    val availableQuranScripts by settingsViewModel.availableQuranScripts.collectAsState()
+    val downloadingQuranScript by settingsViewModel.downloadingQuranScript.collectAsState()
+    val quranScriptDownloadProgress by settingsViewModel.quranScriptDownloadProgress.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val context = LocalContext.current
     
@@ -192,6 +195,7 @@ fun HadithReaderScreen(
             if (showSettings) {
                 ReadingSettingsSheet(
                     settings = settings,
+                    isQuranContext = false,
                     onDismiss = { showSettings = false },
                     onThemeChange = { settingsViewModel.setReadingTheme(it) },
                     onArabicSizeChange = { settingsViewModel.setArabicSizeSp(it) },
@@ -206,6 +210,10 @@ fun HadithReaderScreen(
                     onOpenTafsirPicker = { showSettings = false },
                     onReciterChange = { settingsViewModel.setSelectedReciterId(it) },
                     onScriptChange = { settingsViewModel.setSelectedScript(it) },
+                    availableQuranScripts = availableQuranScripts,
+                    downloadingQuranScript = downloadingQuranScript,
+                    quranScriptDownloadProgress = quranScriptDownloadProgress,
+                    onDownloadQuranScript = { settingsViewModel.downloadQuranScript(it) },
                     onOpenTranslationPicker = {
                         showSettings = false
                         showTranslationPicker = true

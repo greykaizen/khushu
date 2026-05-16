@@ -1,9 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package com.kaizen.khushu.ui.screens.home
 
 import androidx.compose.ui.graphics.Color
 
+import kotlinx.datetime.Instant
+
 // ── Placeholder data — to be replaced by HomeViewModel + real prayer times ──
 enum class CalculationSource { LOCAL, API }
+
+enum class HomeQuickAction {
+    QIBLA,
+    MOSQUES,
+    EVENTS,
+}
 
 data class PrayerInfo(
     val name: String,
@@ -16,7 +26,7 @@ data class PrayerInfo(
     /** Per-prayer colour dot (not theme-able — it represents the sky colour at that time) */
     val dotColorLight: Color,
     val dotColorDark: Color,
-    val rawTime: Long = 0L,
+    val rawTime: Instant,
     val isExtra: Boolean = false,
 )
 
@@ -49,14 +59,15 @@ data class HomeUiState(
     val events: List<IslamicEvent> = emptyList(),
     val calendarEvents: List<IslamicEvent> = emptyList(),
     val eventsHeader: String = "",
-    val hijriDate: String = "",
+    val hijriDate: String = runCatching {
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy")
+        java.time.chrono.HijrahDate.now().format(formatter)
+    }.getOrDefault(""),
 //    val ayahText: String = "Verily, in the remembrance of Allah do hearts find rest.",
     val ayahRef: String = "Ar-Ra\u02bbd \u00b7 13:28",
-    /** Fractional position of the sun/moon on the day arc (0..1) */
-    val sunArcT: Float = 0.5f,
-    val currentTimeMillis: Long = 0L,
     val isRefreshing: Boolean = false,
     val usingPreviewTime: Boolean = false,
+    val previewTime: Instant? = null,
     val lastPrayerRefreshEpochMs: Long = 0L,
     val locationLat: Float = 0f,
     val locationLng: Float = 0f,
@@ -71,31 +82,31 @@ val PLACEHOLDER_PRAYERS = listOf(
         name = "Fajr", ar = "\u0627\u0644\u0641\u062c\u0631",
         time = "5:14 AM", hour = 5, minute = 14, arcT = 0.08f,
         dotColorLight = Color(0xFF4a70b0), dotColorDark = Color(0xFF6890d8),
-        rawTime = 1734000000000L,
+        rawTime = Instant.fromEpochMilliseconds(1734000000000L),
     ),
     PrayerInfo(
         name = "Dhuhr", ar = "\u0627\u0644\u0638\u0647\u0631",
         time = "12:48 PM", hour = 12, minute = 48, arcT = 0.52f,
         dotColorLight = Color(0xFFa87010), dotColorDark = Color(0xFFd4a828),
-        rawTime = 1734015000000L,
+        rawTime = Instant.fromEpochMilliseconds(1734015000000L),
     ),
     PrayerInfo(
         name = "Asr", ar = "\u0627\u0644\u0639\u0635\u0631",
         time = "4:22 PM", hour = 16, minute = 22, arcT = 0.66f,
         dotColorLight = Color(0xFFa06020), dotColorDark = Color(0xFFd08840),
-        rawTime = 1734028000000L,
+        rawTime = Instant.fromEpochMilliseconds(1734028000000L),
     ),
     PrayerInfo(
         name = "Maghrib", ar = "\u0627\u0644\u0645\u063a\u0631\u0628",
         time = "7:03 PM", hour = 19, minute = 3, arcT = 0.82f,
         dotColorLight = Color(0xFF9a3828), dotColorDark = Color(0xFFe06050),
-        rawTime = 1734038000000L,
+        rawTime = Instant.fromEpochMilliseconds(1734038000000L),
     ),
     PrayerInfo(
         name = "Isha", ar = "\u0627\u0644\u0639\u0634\u0627\u0621",
         time = "8:31 PM", hour = 20, minute = 31, arcT = 0.93f,
         dotColorLight = Color(0xFF584898), dotColorDark = Color(0xFF9070d0),
-        rawTime = 1734043000000L,
+        rawTime = Instant.fromEpochMilliseconds(1734043000000L),
     ),
 )
 

@@ -50,18 +50,18 @@ fun SalahCustomizeScreen(
 
             SettingsGroup(
                 title = "Layout",
-                description = "Edit the custom Pray layout used by the immersive screen."
+//                description = "Edit the custom Pray layout used by the immersive screen."
             ) {
-                Box(modifier = Modifier.padding(16.dp)) {
+                Box(modifier = Modifier.padding(3.dp)) {
                     Surface(
                         onClick = { onCustomizeLayout(4) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        )
+//                        shape = RoundedCornerShape(24.dp),
+//                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+//                        border = androidx.compose.foundation.BorderStroke(
+//                            1.dp,
+//                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+//                        )
                     ) {
                         Row(
                             modifier = Modifier.padding(20.dp),
@@ -93,7 +93,7 @@ fun SalahCustomizeScreen(
 
             SettingsGroup(
                 title = "Session",
-                description = "What appears while you move through a guided prayer."
+//                description = "What appears while you move through a guided prayer."
             ) {
                 SettingsToggleItem(
                     title = "Show Exit Button",

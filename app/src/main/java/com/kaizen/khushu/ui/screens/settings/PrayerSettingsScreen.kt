@@ -1,8 +1,12 @@
 package com.kaizen.khushu.ui.screens.settings
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -43,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import com.kaizen.khushu.ui.theme.BeVietnamPro
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import com.kaizen.khushu.data.repository.EXTRA_PRAYER_TIMINGS
 import com.kaizen.khushu.receiver.PrayerAlarmReceiver
@@ -51,23 +56,33 @@ import java.util.Date
 import java.util.Locale
 
 private val calculationMethodLabels = mapOf(
-    "MUSLIM_WORLD_LEAGUE" to "Muslim World League",
+    "ALGERIA" to "Algeria",
+    "PORTUGAL" to "Comunidade Islâmica de Lisboa (Portugal)",
+    "TURKEY" to "Diyanet İşleri Başkanlığı (Turkey)",
+    "DUBAI" to "Dubai (UAE)",
     "EGYPTIAN" to "Egyptian General Authority of Survey",
-    "KARACHI" to "University of Islamic Sciences, Karachi",
-    "UMM_AL_QURA" to "Umm al-Qura University, Makkah",
-    "DUBAI" to "Dubai, UAE",
-    "MOON_SIGHTING_COMMITTEE" to "Moonsighting Committee Worldwide",
-    "NORTH_AMERICA" to "Islamic Society of North America",
-    "KUWAIT" to "Kuwait",
-    "QATAR" to "Qatar",
-    "SINGAPORE" to "Majlis Ugama Islam Singapura",
-    "TEHRAN" to "Institute of Geophysics, University of Tehran",
-    "TURKEY" to "Diyanet Isleri Baskanligi, Turkey",
-    "ALGERIA" to "Algerian Ministry of Religious Affairs",
-    "TUNISIA" to "Tunisian Ministry of Religious Affairs",
-    "FRANCE_UOIF" to "Union des Organisations Islamiques de France (12°)",
     "FRANCE_15" to "France (15°)",
-    "FRANCE_18" to "France / Grande Mosquée de Paris"
+    "FRANCE_18" to "France (18°) / Grande Mosquée de Paris",
+    "GULF_REGION" to "Gulf Region",
+    "TEHRAN" to "Institute of Geophysics, University of Tehran",
+    "NORTH_AMERICA" to "Islamic Society of North America (ISNA)",
+    "MALAYSIA" to "Jabatan Kemajuan Islam Malaysia (JAKIM)",
+    "JORDAN" to "Jordan",
+    "INDONESIA" to "Kementerian Agama Republik Indonesia (KEMENAG)",
+    "KUWAIT" to "Kuwait",
+    "SINGAPORE" to "Majlis Ugama Islam Singapura, Singapore",
+    "MOON_SIGHTING_COMMITTEE" to "Moonsighting Committee",
+    "MOROCCO" to "Morocco",
+    "MUSLIM_WORLD_LEAGUE" to "Muslim World League",
+    "QATAR" to "Qatar",
+    "SHIA_ITHNA_ASHARI" to "Shia Ithna-Ashari, Leva Institute, Qum",
+    "RUSSIA" to "Spiritual Administration of Muslims of Russia",
+    "TUNISIA" to "Tunisia",
+    "UMM_AL_QURA" to "Umm Al-Qura University, Makkah",
+    "FRANCE_UOIF" to "Union Organization Islamique de France",
+    "KARACHI" to "University of Islamic Sciences, Karachi",
+    "LOCAL" to "Local Calculation (Offline)",
+    "API" to "AlAdhan API (Online)"
 )
 
 private val madhabLabels = mapOf(
@@ -87,8 +102,22 @@ private val alertStyleLabels = mapOf(
     "SILENT" to "Silent"
 )
 
+private val eventPerspectiveLabels = mapOf(
+    "UNIVERSAL" to "Universal only",
+    "SUNNI" to "Sunni + universal",
+    "SHIA" to "Shia + universal",
+    "ALL" to "Show all",
+)
+
 private fun prayerSettingLabel(value: String, labels: Map<String, String>): String {
     return labels[value] ?: value
+}
+
+private fun customPrayerSoundLabel(context: Context, uriString: String): String {
+    if (uriString.isBlank()) return "System default alarm"
+    val uri = runCatching { Uri.parse(uriString) }.getOrNull() ?: return "Selected custom sound"
+    val ringtone = runCatching { RingtoneManager.getRingtone(context, uri) }.getOrNull()
+    return ringtone?.getTitle(context).orEmpty().ifBlank { "Selected custom sound" }
 }
 
 private data class PrayerNotificationPreference(
@@ -132,16 +161,32 @@ fun PrayerSettingsScreen(
     val notificationsPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }
+    val customSoundPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val pickedUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            result.data?.getParcelableExtra(
+                RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
+                Uri::class.java
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+        }
+        viewModel.setPrayerNotificationCustomSoundUri(pickedUri?.toString().orEmpty())
+    }
 
     val calculationMethods = listOf(
-        "MUSLIM_WORLD_LEAGUE", "EGYPTIAN", "KARACHI", "UMM_AL_QURA",
-        "DUBAI", "MOON_SIGHTING_COMMITTEE", "NORTH_AMERICA", "KUWAIT",
-        "QATAR", "SINGAPORE", "ALGERIA", "TUNISIA", "FRANCE_UOIF", 
-        "FRANCE_15", "FRANCE_18", "TEHRAN", "TURKEY"
+        "SHIA_ITHNA_ASHARI", "KARACHI", "NORTH_AMERICA", "MUSLIM_WORLD_LEAGUE",
+        "UMM_AL_QURA", "EGYPTIAN", "TEHRAN", "GULF_REGION", "KUWAIT", "QATAR",
+        "SINGAPORE", "FRANCE_UOIF", "TURKEY", "RUSSIA", "MOON_SIGHTING_COMMITTEE",
+        "DUBAI", "MALAYSIA", "TUNISIA", "ALGERIA", "INDONESIA", "MOROCCO",
+        "PORTUGAL", "JORDAN", "FRANCE_15", "FRANCE_18"
     )
     val madhabs = listOf("SHAFI", "HANAFI")
     val sources = listOf("LOCAL", "API")
     val alertStyleOptions = listOf("CUSTOM_SOUND", "SYSTEM_SOUND", "VIBRATION", "SILENT")
+    val eventPerspectiveOptions = listOf("UNIVERSAL", "SUNNI", "SHIA", "ALL")
     val prayerNotificationPreferences = listOf(
         PrayerNotificationPreference("Fajr", settings.fajrPrayerNotificationEnabled, settings.fajrPrePrayerNotificationEnabled, settings.fajrPrePrayerMinutes),
         PrayerNotificationPreference("Dhuhr", settings.dhuhrPrayerNotificationEnabled, settings.dhuhrPrePrayerNotificationEnabled, settings.dhuhrPrePrayerMinutes),
@@ -179,7 +224,7 @@ fun PrayerSettingsScreen(
 
             SettingsGroup(
                 title = "Calculation",
-                description = "How Khushu computes the daily prayer times."
+//                description = "How Khushu computes the daily prayer times."
             ) {
                 Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                     SettingsDropdown(
@@ -217,7 +262,7 @@ fun PrayerSettingsScreen(
 
             SettingsGroup(
                 title = "Location",
-                description = "Use GPS or your saved coordinates for local prayer times."
+//                description = "Use GPS or your saved coordinates for local prayer times."
             ) {
                 SettingsToggleItem(
                     title = "Use Device GPS",
@@ -293,7 +338,7 @@ fun PrayerSettingsScreen(
 
             SettingsGroup(
                 title = "Reminders",
-                description = "Global alert style and per-prayer reminder controls."
+//                description = "Global alert style and per-prayer reminder controls."
             ) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationsAllowed) {
                     Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
@@ -319,6 +364,55 @@ fun PrayerSettingsScreen(
                     )
                 }
 
+                if (settings.prayerNotificationAlertStyle == "CUSTOM_SOUND") {
+                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                        SettingsSectionCard(
+                            title = "Custom Sound",
+                            subtitle = customPrayerSoundLabel(context, settings.prayerNotificationCustomSoundUri),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            FilledTonalButton(
+                                onClick = {
+                                    val pickerIntent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+                                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                                        putExtra(
+                                            RingtoneManager.EXTRA_RINGTONE_EXISTING_URI,
+                                            settings.prayerNotificationCustomSoundUri
+                                                .takeIf { it.isNotBlank() }
+                                                ?.let(Uri::parse)
+                                        )
+                                        putExtra(
+                                            RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
+                                            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                                        )
+                                    }
+                                    val canOpenPicker = pickerIntent.resolveActivity(context.packageManager) != null
+                                    if (canOpenPicker) {
+                                        customSoundPickerLauncher.launch(pickerIntent)
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "No ringtone picker is available on this device.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Choose Alarm Sound", fontFamily = BeVietnamPro)
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.setPrayerNotificationCustomSoundUri("") },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Use System Default", fontFamily = BeVietnamPro)
+                            }
+                        }
+                    }
+                }
+
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     prayerNotificationPreferences.forEach { preference ->
                         PrayerReminderCard(
@@ -335,7 +429,7 @@ fun PrayerSettingsScreen(
 
             SettingsGroup(
                 title = "Extra Timings",
-                description = "Optional non-fard timings and whether they appear on Home."
+//                description = "Optional non-fard timings and whether they appear on Home."
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     extraTimingPreferences.forEach { preference ->
@@ -362,14 +456,32 @@ fun PrayerSettingsScreen(
                     title = "Show Islamic events on Home",
                     subtitle = "Keep the monthly events strip visible.",
                     checked = settings.showUpcomingEventsOnHome,
-                    onCheckedChange = viewModel::toggleShowUpcomingEventsOnHome,
-                    showDivider = false
+                    onCheckedChange = viewModel::toggleShowUpcomingEventsOnHome
                 )
+
+                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    SettingsDropdown(
+                        title = "Event perspective",
+                        subtitle = "Choose whether Home shows universal events only or includes Sunni/Shia-specific observances.",
+                        options = eventPerspectiveOptions,
+                        selectedOption = settings.islamicEventPerspective,
+                        optionLabel = { eventPerspectiveLabels[it] ?: it },
+                        onOptionSelected = viewModel::setIslamicEventPerspective
+                    )
+                }
+
+                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) {
+                    Text(
+                        text = "Localization groundwork is already in place through translation catalogs. Full app-string localization will build on this next.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = BeVietnamPro),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             SettingsGroup(
                 title = "Advanced",
-                description = "Offsets, diagnostics, and debugging tools."
+//                description = "Offsets, diagnostics, and debugging tools."
             ) {
                 ExpandableSettingsCard(
                     title = "Prayer Offsets",
@@ -428,7 +540,12 @@ fun PrayerSettingsScreen(
                         ) {
                             Icon(Icons.Default.Notifications, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Notify", fontFamily = BeVietnamPro)
+                            Text(
+                                text = "Notify",
+                                fontFamily = BeVietnamPro,
+                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                         OutlinedButton(
                             onClick = {
@@ -446,7 +563,12 @@ fun PrayerSettingsScreen(
                         ) {
                             Icon(Icons.Default.BugReport, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Pre-notify", fontFamily = BeVietnamPro)
+                            Text(
+                                text = "Pre-notify",
+                                fontFamily = BeVietnamPro,
+                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                     }
                 }
@@ -593,7 +715,9 @@ private fun PrayerReminderCard(
         )
         if (preference.prePrayerEnabled) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {

@@ -50,7 +50,7 @@ fun SettingsScreen(
 
             SettingsGroup(
                 title = "Preferences",
-                description = "Prayer, appearance, interaction, and app information."
+//                description = "Prayer, appearance, interaction, and app information."
             ) {
                 SettingsMenuItem(
                     title = "Prayer Times",

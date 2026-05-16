@@ -32,17 +32,8 @@ key_base64.txt
 
 google-services.json
 
-# Claude Code
-CLAUDE.md
-CLAUDE-2.md
-GEMINI.md
-.claude/
-.gemini/
-.codex
+.agents/
 tasks/
-nav-bar.md
-design.md
-AGENTS.md
 graphify-out/
 .vscode/
 .idea/
@@ -50,7 +41,6 @@ graphify-out/
 
 # Figma exports
 figma/
-/OnePlus-CPH2691-Android-16_2026-04-03_215208.logcat
 
 # Local secrets
 .env

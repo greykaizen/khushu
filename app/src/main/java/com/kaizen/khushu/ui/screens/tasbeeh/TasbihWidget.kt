@@ -2,8 +2,11 @@ package com.kaizen.khushu.ui.screens.tasbeeh
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -17,10 +20,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kaizen.khushu.data.model.CustomBeadStyle
 import com.kaizen.khushu.data.model.DhikrItem
@@ -223,7 +227,10 @@ fun TasbihWidgetRenderer(
         scrollOffsetProvider: () -> Float = { 0f },
         modifier: Modifier = Modifier,
 ) {
-    val baseModifier = modifier.graphicsLayer { alpha = widget.alpha }
+    val baseModifier = modifier.graphicsLayer {
+        alpha = widget.alpha
+        clip = false
+    }
 
     // Shader/Brush cache for custom beads
     val noiseShader = GlobalNoiseShader.value
@@ -430,7 +437,10 @@ fun TasbihWidgetRenderer(
 
 
         is TasbihWidget.DhikrNameWidget -> {
-            Box(modifier = baseModifier) {
+            BoxWithConstraints(
+                modifier = baseModifier
+                    .defaultMinSize(minWidth = 180.dp)
+            ) {
                 Text(
                         text = currentItem?.name ?: "سُبْحَانَ اللَّهِ",
                         style =
@@ -446,17 +456,23 @@ fun TasbihWidgetRenderer(
                                                 else Fill,
                                         platformStyle =
                                                 PlatformTextStyle(includeFontPadding = false)
-                                )
+                                ),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        modifier = Modifier.fillMaxWidth()
                 )
             }
         }
         is TasbihWidget.CounterWidget -> {
-            Column(modifier = baseModifier) {
+            Column(
+                modifier = baseModifier.defaultMinSize(minWidth = 156.dp),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+            ) {
                 Text(
                         text = currentCount.toString(),
                         style =
                                 TextStyle(
-                                        color = Color(widget.color),
+                                    color = Color(widget.color),
                                         fontSize = 96.sp,
                                         fontWeight =
                                                 if (widget.isBold) FontWeight.Bold
@@ -467,12 +483,18 @@ fun TasbihWidgetRenderer(
                                                 else Fill,
                                         platformStyle =
                                                 PlatformTextStyle(includeFontPadding = false)
-                                )
+                                ),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.width(156.dp)
                 )
                 Text(
                         text = "out of ${currentItem?.targetCount ?: 0}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(widget.color).copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.width(156.dp)
                 )
             }
         }
@@ -524,6 +546,7 @@ fun TasbihWidgetRenderer(
                                             else Fill,
                                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                             ),
+                    textAlign = TextAlign.Center,
                     modifier = baseModifier
             )
         }

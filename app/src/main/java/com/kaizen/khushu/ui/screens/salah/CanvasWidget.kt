@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.kaizen.khushu.ui.theme.Antonio
 import com.kaizen.khushu.ui.theme.BeVietnamPro
@@ -60,29 +62,35 @@ fun WidgetRenderer(
 
     when (widget) {
         is CanvasWidget.RakatCount -> {
-            androidx.compose.animation.AnimatedContent(
-                targetState = isComplete,
-                transitionSpec = {
-                    fadeIn(tween(800)) togetherWith
-                    fadeOut(tween(800)) using
-                    SizeTransform(clip = false)
-                },
-                contentAlignment = Alignment.Center,
-                label = "completion_crossfade",
-                modifier = modifier
-            ) { complete ->
-                Text(
-                    text = if (complete) completionText else currentRakats.toString(),
-                    fontFamily = widgetFontFamily,
-                    fontSize = if (complete) (widget.fontSizeSp * 0.35f).sp else widget.fontSizeSp.sp,
-                    fontWeight = FontWeight(widget.fontWeight),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    style = TextStyle(
-                        color = Color(widget.color).copy(alpha = widget.opacity),
-                        drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
-                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+            Box(
+                modifier = if (isComplete) modifier.fillMaxWidth(0.82f) else modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.animation.AnimatedContent(
+                    targetState = isComplete,
+                    transitionSpec = {
+                        fadeIn(tween(800)) togetherWith
+                        fadeOut(tween(800)) using
+                        SizeTransform(clip = false)
+                    },
+                    contentAlignment = Alignment.Center,
+                    label = "completion_crossfade",
+                ) { complete ->
+                    Text(
+                        text = if (complete) completionText else currentRakats.toString(),
+                        fontFamily = widgetFontFamily,
+                        fontSize = if (complete) (widget.fontSizeSp * 0.30f).sp else widget.fontSizeSp.sp,
+                        fontWeight = FontWeight(widget.fontWeight),
+                        textAlign = TextAlign.Center,
+                        maxLines = if (complete) 2 else 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = TextStyle(
+                            color = Color(widget.color).copy(alpha = widget.opacity),
+                            drawStyle = if (widget.isOutline) Stroke(width = 4f, join = StrokeJoin.Round) else Fill,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        )
                     )
-                )
+                }
             }
         }
         is CanvasWidget.ClockWidget -> {

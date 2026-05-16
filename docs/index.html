@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khushu — A calm space for your deen</title>
+    <meta name="description" content="Khushu is a private, free, ad-free Islamic app for Salah times, Tasbeeh, Rakat counting, Quran, Tafsir, Hadith, and mindful worship.">
+    <meta property="og:title" content="Khushu — A calm space for your deen">
+    <meta property="og:description" content="Private, free, ad-free Islamic tools for worship focus.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#071614">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+:root {
+    --bg: #071614;
+    --surface: rgba(255, 255, 255, 0.04);
+    --text: #eef8f5;
+    --muted: #aac7c0;
+    --teal: #61d6c3;
+    --gold: #e8c981;
+    --border: rgba(255, 255, 255, 0.08);
+    --font-main: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.text-center { text-align: center; }
+
+/* Layout */
+.container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+section {
+    padding: 10rem 0;
+    position: relative;
+}
+
+/* Ambient Glows */
+.glow {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(97, 214, 195, 0.08) 0%, rgba(7, 22, 20, 0) 70%);
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.glow-1 { top: -20%; left: -10%; }
+.glow-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(232, 201, 129, 0.05) 0%, rgba(7, 22, 20, 0) 70%); }
+
+/* Navigation - Floating Quiet Signature */
+nav {
+    position: fixed;
+    top: 24px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+}
+
+.logo img { height: 28px; }
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.link-muted {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.link-muted:hover { color: var(--text); }
+
+.btn-pill-sm {
+    padding: 0.5rem 1.25rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--bg);
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-pill-sm:hover {
+    transform: translateY(-1px);
+    background: #fff;
+}
+
+/* Hero Section - Editorial Center */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 12rem;
+    text-align: center;
+}
+
+.hero-eyebrow {
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    display: block;
+    opacity: 0.9;
+}
+
+.hero-title {
+    font-size: clamp(3.5rem, 8vw, 5rem);
+    margin-bottom: 2rem;
+    color: #fff;
+}
+
+.hero-body {
+    font-size: 1.25rem;
+    color: var(--muted);
+    margin-bottom: 3.5rem;
+    max-width: 640px;
+    margin-inline: auto;
+}
+
+.hero-ctas {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 6rem;
+}
+
+/* Product Shrine - Intentional Staging */
+.product-shrine {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    height: 500px;
+    perspective: 1000px;
+}
+
+.phone-mockup {
+    position: absolute;
+    width: 260px;
+    border-radius: 2.25rem;
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: #000;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.phone-mockup img { width: 100%; display: block; }
+
+.phone-main {
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.phone-side-left {
+    left: 15%;
+    top: 60px;
+    z-index: 5;
+    transform: rotateY(20deg) scale(0.85);
+    opacity: 0.5;
+}
+
+.phone-side-right {
+    right: 15%;
+    top: 60px;
+    z-index: 5;
+    transform: rotateY(-20deg) scale(0.85);
+    opacity: 0.5;
+}
+
+/* Promise Section - Quiet Clarity */
+.promise {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.promise-content {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.promise h2 {
+    font-size: 2.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.promise p {
+    font-size: 1.4rem;
+    color: var(--text);
+    opacity: 0.9;
+}
+
+/* Feature Cards - Refined Surfaces */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.feature-card-item {
+    padding: 3rem;
+    background: var(--surface);
+    border-radius: 2rem;
+    border: 1px solid transparent;
+    transition: all 0.4s ease;
+}
+
+.feature-card-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border);
+}
+
+.feature-card-item h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--teal);
+    letter-spacing: -0.01em;
+}
+
+.feature-card-item p {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 1rem 2.5rem;
+    border-radius: 100px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-teal {
+    background: var(--teal);
+    color: var(--bg);
+}
+
+.btn-teal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -10px rgba(97, 214, 195, 0.3);
+}
+
+.btn-outline {
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.btn-outline:hover {
+    background: var(--surface);
+    transform: translateY(-2px);
+}
+
+/* Footer */
+footer {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border);
+    opacity: 0.6;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2.5rem;
+}
+
+.footer-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .phone-side-left, .phone-side-right { display: none; }
+    .hero-title { font-size: 3.5rem; }
+    section { padding: 6rem 0; }
+}
+
+@media (max-width: 768px) {
+    .hero-ctas { flex-direction: column; align-items: stretch; }
+    .nav-actions { gap: 1rem; }
+}
+    </style>
+    <link rel="icon" type="image/svg+xml" href="images/khushu-logo-teal-final.svg">
+</head>
+<body>
+
+    <!-- Ambient Glows -->
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <nav>
+        <div class="container nav-content">
+            <a href="#" class="logo">
+                <img src="images/khushu-logo-teal-final.svg" alt="Khushu Logo">
+                <span>Khushu</span>
+            </a>
+            <div class="nav-actions">
+                <a href="https://github.com/greykaizen/khushu" class="link-muted">GitHub</a>
+                <a href="https://f-droid.org/packages/com.kaizen.khushu/" class="btn-pill-sm">Download</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <span class="hero-eyebrow">﷽</span>
+                <h1 class="hero-title">A calm space<br>for your deen.</h1>
+                <p class="hero-body">Salah, dhikr, Quran, Hadith, and prayer tracking — private, free, and intentionally distraction-free.</p>
+                <div class="hero-ctas">
+                    <a href="https://f-droid.org/packages/com.kaizen.khushu/" class="btn btn-teal">Download on F-Droid</a>
+                    <a href="https://github.com/greykaizen/khushu" class="btn btn-outline">View source</a>
+                </div>
+                
+                <div class="product-shrine">
+                    <div class="phone-mockup phone-side-left">
+                        <img src="images/screenshots/poster_2.jpg" alt="Tasbeeh Collection">
+                    </div>
+                    <div class="phone-mockup phone-side-right">
+                        <img src="images/screenshots/poster_3.jpg" alt="Quran Reading">
+                    </div>
+                    <div class="phone-mockup phone-main">
+                        <img src="images/screenshots/poster_1.jpg" alt="Salah Tracker">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Promise Section -->
+        <section id="promise" class="promise text-center">
+            <div class="container reveal">
+                <div class="promise-content">
+                    <h2>Your worship is between you and Allah.</h2>
+                    <p>Khushu is and will remain free, private, ad-free, tracker-free, and built with the intention of serving the Ummah.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Cards Section -->
+        <section id="features">
+            <div class="container">
+                <div class="features-grid">
+                    <article class="feature-card-item reveal">
+                        <h3>Prayer times</h3>
+                        <p>Accurate Salah timing with a focused, distraction-free interface.</p>
+                    </article>
+                    <article class="feature-card-item reveal">
+                        <h3>Tasbeeh</h3>
+                        <p>Customizable dhikr collections with a calm tactile experience.</p>
+                    </article>
+                    <article class="feature-card-item reveal">
+                        <h3>Salah tracking</h3>
+                        <p>Rakat and prayer flow tools designed to support focus and presence.</p>
+                    </article>
+                    <article class="feature-card-item reveal">
+                        <h3>Sunpath visuals</h3>
+                        <p>Beautiful daily rhythm indicators for prayer and reflection.</p>
+                    </article>
+                    <article class="feature-card-item reveal">
+                        <h3>Quran & Tafsir</h3>
+                        <p>Reading, listening, and study surfaces designed for calm focus.</p>
+                    </article>
+                    <article class="feature-card-item reveal">
+                        <h3>Hadith</h3>
+                        <p>A simple way to explore beneficial reminders without digital noise.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support Section -->
+        <section class="support reveal text-center">
+            <div class="container">
+                <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; color: #fff;">Built as sadaqah jariyah.</h2>
+                <p style="color: var(--muted); margin-bottom: 3rem; max-width: 600px; margin-inline: auto;">Khushu is open source and community-supported. Star the project, share it, contribute, or support development.</p>
+                <a href="https://github.com/greykaizen/khushu" class="btn btn-teal">Support the journey</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2026 Khushu. Licensed under GPLv3.</p>
+            <div class="footer-links">
+                <a href="https://github.com/greykaizen/khushu" target="_blank">GitHub</a>
+                <a href="https://f-droid.org/packages/com.kaizen.khushu/" target="_blank">F-Droid</a>
+                <a href="https://android.izzysoft.de/repo/apk/com.kaizen.khushu" target="_blank">IzzyOnDroid</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+    <script src="animations.js"></script>
+</body>
+</html>

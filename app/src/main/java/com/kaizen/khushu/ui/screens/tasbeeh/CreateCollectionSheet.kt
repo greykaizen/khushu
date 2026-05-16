@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -28,14 +30,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -48,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,14 +86,15 @@ fun CreateCollectionSheet(
     onDismiss: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    // skipPartiallyExpanded = false allows the "half-open" state.
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    // skipPartiallyExpanded = true prevents the 'half-open' state from expanding weirdly on focus
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val settings by settingsViewModel.settings.collectAsState()
-    val isImeVisible = WindowInsets.isImeVisible
-
+    
     val dhikrRows = viewModel.createDhikrRows
     val selectedColor = KhushuColors.Palette[viewModel.createColorIndex]
-    val canSave = dhikrRows.any { it.name.isNotBlank() && it.count.toIntOrNull() != null }
+    val lazyListState = rememberLazyListState()
+
+    val canSave = dhikrRows.any { it.name.trim().isNotBlank() && it.count.toIntOrNull() != null }
 
     val transparentColors = TextFieldDefaults.colors(
         focusedContainerColor = Color.Transparent,
@@ -100,211 +111,113 @@ fun CreateCollectionSheet(
         sheetState = sheetState,
         dragHandle = null,
     ) {
-        // .fillMaxHeight(0.95f) allows the sheet to expand to full view when swiped up.
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.95f)
-                .navigationBarsPadding(),
-            contentPadding = PaddingValues(horizontal = 28.dp, vertical = 30.dp),
+                .fillMaxHeight(0.92f)
+                .navigationBarsPadding()
+                .imePadding()
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "New Tasbih",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "Close",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                scope.launch {
-                                    sheetState.hide()
-                                    viewModel.resetCreateState()
-                                    onDismiss()
-                                }
-                            }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-                Spacer(Modifier.height(24.dp))
-            }
-
-            item {
-                OutlinedTextField(
-                    value = viewModel.createTitle,
-                    onValueChange = { viewModel.updateCreateTitle(it) },
-                    label = { Text("Tasbih name") },
-                    placeholder = { Text("Optional") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(20.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                        focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    ),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Done,
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(24.dp))
-            }
-
-            if (!settings.tasbeehDynamicColors) {
-                item {
-                    Text(
-                        text = "Color",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        itemsIndexed(KhushuColors.Palette) { index, color ->
-                            val isSelected = index == viewModel.createColorIndex
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .then(
-                                        if (isSelected) Modifier.border(
-                                            width = 2.5.dp,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            shape = CircleShape,
-                                        ) else Modifier
-                                    )
-                                    .clickable { viewModel.updateCreateColorIndex(index) },
-                            ) {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(28.dp))
-                }
-            }
-
-            item {
+            // Header (Sticky)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp, vertical = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = "Dhikr Items",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "New Tasbih",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
-                Spacer(Modifier.height(12.dp))
-            }
-
-            item {
-                key(dhikrRows.size) {
-                    ReorderableColumn(
-                        list = dhikrRows,
-                        onSettle = { from, to ->
-                            viewModel.moveDhikrRow(from, to)
-                        },
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                    ) { index, row, isDragging ->
-                        key(row.id) {
-                            ReorderableItem {
-                                val focusRequester = remember { FocusRequester() }
-                                
-                                LaunchedEffect(viewModel.pendingFocusId) {
-                                    if (viewModel.pendingFocusId == row.id) {
-                                        delay(50)
-                                        try {
-                                            focusRequester.requestFocus()
-                                        } catch (_: Exception) {}
-                                        viewModel.pendingFocusId = null
-                                    }
-                                }
-
-                                Column {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .then(
-                                                if (isDragging)
-                                                    Modifier.shadow(
-                                                        elevation = 8.dp,
-                                                        shape = RoundedCornerShape(12.dp),
-                                                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                                    ).background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                                else Modifier
-                                            )
-                                            .padding(horizontal = 16.dp),
-                                    ) {
-                                        TextField(
-                                            value = row.name,
-                                            onValueChange = { viewModel.updateDhikrName(row.id, it) },
-                                            placeholder = { Text("Dhikr name") },
-                                            singleLine = true,
-                                            keyboardOptions = KeyboardOptions(
-                                                capitalization = KeyboardCapitalization.Sentences,
-                                                imeAction = ImeAction.Next,
-                                            ),
-                                            colors = transparentColors,
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .focusRequester(focusRequester),
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        TextField(
-                                            value = row.count,
-                                            onValueChange = { viewModel.updateDhikrCount(row.id, it) },
-                                            placeholder = { Text("33") },
-                                            singleLine = true,
-                                            keyboardOptions = KeyboardOptions(
-                                                keyboardType = KeyboardType.Number,
-                                                imeAction = ImeAction.Done,
-                                            ),
-                                            colors = transparentColors,
-                                            modifier = Modifier.width(72.dp),
-                                        )
-                                    }
-
-                                    if (index < dhikrRows.lastIndex) {
-                                        HorizontalDivider(
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                                            modifier = Modifier.padding(horizontal = 16.dp),
-                                        )
-                                    }
-                                }
+                Text(
+                    text = "Close",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            scope.launch {
+                                sheetState.hide()
+                                viewModel.resetCreateState()
+                                onDismiss()
                             }
                         }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(horizontal = 28.dp),
+            ) {
+                item {
+                    OutlinedTextField(
+                        value = viewModel.createTitle,
+                        onValueChange = { viewModel.updateCreateTitle(it) },
+                        label = { Text("Tasbih name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Sentences,
+                            imeAction = ImeAction.Next
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = selectedColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    )
+                    Spacer(Modifier.height(24.dp))
+                }
+
+                itemsIndexed(dhikrRows) { index, row ->
+                    DhikrRowItem(
+                        row = row,
+                        index = index,
+                        color = selectedColor,
+                        autoFocus = viewModel.pendingFocusId == row.id,
+                        transparentColors = transparentColors,
+                        onNameChange = { viewModel.updateDhikrName(row.id, it) },
+                        onCountChange = { viewModel.updateDhikrCount(row.id, it) },
+                        onFocusConsumed = viewModel::clearPendingFocus,
+                        onRemove = { viewModel.removeDhikrRow(row.id) }
+                    )
+                }
+
+                item {
+                    TextButton(
+                        onClick = { 
+                            viewModel.addDhikrRow()
+                            scope.launch {
+                                // Delay slightly to allow the item to be added to the list
+                                kotlinx.coroutines.delay(100)
+                                lazyListState.animateScrollToItem(dhikrRows.size)
+                            }
+                        },
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Add Dhikr Item")
                     }
+                    Spacer(Modifier.height(100.dp)) // Buffer for keyboard
                 }
             }
 
-            item {
-                Spacer(Modifier.height(8.dp))
-                TextButton(
-                    onClick = { viewModel.addDhikrRow() },
-                    modifier = Modifier.padding(start = 4.dp),
-                ) { Text("+ Add Dhikr") }
-                Spacer(Modifier.height(20.dp))
-            }
-
-            item {
+            // Footer (Sticky Save Button)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                tonalElevation = 1.dp,
+                shadowElevation = 0.dp
+            ) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+                )
                 Button(
                     onClick = {
                         val items = dhikrRows
@@ -323,13 +236,80 @@ fun CreateCollectionSheet(
                         }
                     },
                     enabled = canSave,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                ) { Text("Save") }
-                Spacer(Modifier.height(32.dp))
+                        .padding(horizontal = 28.dp, vertical = 16.dp)
+                        .height(52.dp),
+                ) { Text("Save Tasbih") }
             }
         }
+    }
+}
+
+@Composable
+private fun DhikrRowItem(
+    row: CreateDhikrRow,
+    index: Int,
+    color: Color,
+    autoFocus: Boolean,
+    transparentColors: androidx.compose.material3.TextFieldColors,
+    onNameChange: (String) -> Unit,
+    onCountChange: (String) -> Unit,
+    onFocusConsumed: () -> Unit,
+    onRemove: () -> Unit
+) {
+    val nameFocusRequester = remember { FocusRequester() }
+    val latestOnFocusConsumed by rememberUpdatedState(onFocusConsumed)
+
+    LaunchedEffect(autoFocus) {
+        if (autoFocus) {
+            nameFocusRequester.requestFocus()
+            latestOnFocusConsumed()
+        }
+    }
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextField(
+                value = row.name,
+                onValueChange = onNameChange,
+                placeholder = { Text("Dhikr name") },
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(nameFocusRequester),
+                colors = transparentColors,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Next,
+                )
+            )
+            Spacer(Modifier.width(4.dp))
+            TextField(
+                value = row.count,
+                onValueChange = onCountChange,
+                placeholder = { Text("33") },
+                modifier = Modifier.width(72.dp),
+                colors = transparentColors,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done,
+                )
+            )
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f))
+            }
+        }
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
     }
 }

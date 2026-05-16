@@ -29,7 +29,10 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 val settings = SettingsRepository(context.applicationContext).settingsFlow.first()
-                PrayerNotificationScheduler.createNotificationChannels(context)
+                PrayerNotificationScheduler.createNotificationChannels(
+                    context,
+                    settings.prayerNotificationCustomSoundUri
+                )
                 PrayerNotificationPublisher.publish(
                     context = context,
                     settings = settings,

@@ -10,9 +10,12 @@ import com.kaizen.khushu.data.repository.LearnRepository
 import com.kaizen.khushu.data.repository.VerseMeta
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.data.model.ContentSource
+import com.kaizen.khushu.data.model.ReflectionPost
 import com.kaizen.khushu.data.model.TafsirMeta
 import com.kaizen.khushu.data.repository.CatalogRepository
 import com.kaizen.khushu.data.repository.TafsirRepository
+import com.kaizen.khushu.data.repository.QuranReflectRepository
+import com.kaizen.khushu.data.repository.QuranScriptFontRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,6 +32,10 @@ class QuranViewModel(application: Application) : AndroidViewModel(application) {
     val isTafsirDownloading = mutableStateOf(false)
     val tafsirDownloadProgress = mutableStateOf(0f)
     val downloadingTafsirId = mutableStateOf<String?>(null)
+
+    // Reflections: verseKey ("surah:ayah") -> posts
+    val reflections = mutableStateOf<Map<String, List<ReflectionPost>>>(emptyMap())
+    val reflectionsLoading = mutableStateOf<Set<String>>(emptySet())
 
     fun loadTafsirIfEnabled(context: android.content.Context, settings: UserSettings, surahNumber: Int) {
         if (!settings.showTafsir || settings.selectedTafsirId.isBlank()) {
@@ -137,7 +144,7 @@ class QuranViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadScript(context: android.content.Context, script: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (script == "uthmani") {
+            if (script == "uthmani" || script == QuranScriptFontRepository.UTHMANIC_HAFS) {
                 withContext(Dispatchers.Main) {
                     scriptMap.value = emptyMap()
                 }
@@ -146,6 +153,27 @@ class QuranViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.Main) {
                     scriptMap.value = map
                 }
+            }
+        }
+    }
+
+    fun loadReflections(surah: Int, ayah: Int) {
+        val key = "$surah:$ayah"
+        // Already loaded or in flight
+        if (QuranReflectRepository.isLoaded(surah, ayah)) {
+            reflections.value = reflections.value + (key to QuranReflectRepository.getCached(surah, ayah))
+            return
+        }
+        if (reflectionsLoading.value.contains(key)) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                reflectionsLoading.value = reflectionsLoading.value + key
+            }
+            val posts = QuranReflectRepository.fetch(surah, ayah)
+            withContext(Dispatchers.Main) {
+                reflections.value = reflections.value + (key to posts)
+                reflectionsLoading.value = reflectionsLoading.value - key
             }
         }
     }

@@ -37,6 +37,7 @@ object LearnRepository {
     fun getScriptMap(context: Context, script: String): Map<String, String> {
         scriptCache[script]?.let { return it }
         val filename = when (script) {
+            QuranScriptFontRepository.UTHMANIC_HAFS -> "uthmani.json"
             "indopak"       -> "indopak.json"
             "uthmani_simple"-> "uthmani_simple.json"
             "imlaei"        -> "imlaei.json"

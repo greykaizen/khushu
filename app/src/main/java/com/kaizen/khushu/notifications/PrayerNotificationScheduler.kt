@@ -93,10 +93,9 @@ class PrayerNotificationScheduler(
     private val alarmManager = appContext.getSystemService(AlarmManager::class.java)
 
     suspend fun syncNotifications(settings: UserSettings? = null) {
-        createNotificationChannels(appContext)
-        cancelAllScheduledNotifications()
-
         val currentSettings = settings ?: settingsRepository.settingsFlow.first()
+        createNotificationChannels(appContext, currentSettings.prayerNotificationCustomSoundUri)
+        cancelAllScheduledNotifications()
         if (!hasAnyNotificationEnabled(currentSettings)) return
 
         val now = System.currentTimeMillis()
@@ -411,11 +410,14 @@ class PrayerNotificationScheduler(
 
     companion object {
         const val CHANNEL_SYSTEM_SOUND = "prayer_reminders_system_sound_v2"
-        const val CHANNEL_CUSTOM_SOUND = "prayer_reminders_custom_sound_v2"
+        const val CHANNEL_CUSTOM_SOUND_PREFIX = "prayer_reminders_custom_sound_v3_"
         const val CHANNEL_VIBRATION = "prayer_reminders_vibration_v2"
         const val CHANNEL_SILENT = "prayer_reminders_silent_v2"
 
-        fun createNotificationChannels(context: Context) {
+        fun createNotificationChannels(
+            context: Context,
+            customSoundUriString: String = "",
+        ) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
             val notificationManager = context.getSystemService(NotificationManager::class.java)
@@ -423,6 +425,10 @@ class PrayerNotificationScheduler(
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                 .build()
+            val customSoundUri = customSoundUriString
+                .takeIf { it.isNotBlank() }
+                ?.let(Uri::parse)
+                ?: defaultCustomSoundUri()
             val channels = listOf(
                 NotificationChannel(
                     CHANNEL_SYSTEM_SOUND,
@@ -435,12 +441,12 @@ class PrayerNotificationScheduler(
                     lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
                 NotificationChannel(
-                    CHANNEL_CUSTOM_SOUND,
+                    customSoundChannelId(customSoundUriString),
                     "Prayer Reminders Custom",
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     description = "Prayer reminders with a stronger alarm-style tone and heads-up alerts"
-                    setSound(defaultCustomSoundUri(), audioAttributes)
+                    setSound(customSoundUri, audioAttributes)
                     enableVibration(true)
                     lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
@@ -472,18 +478,27 @@ class PrayerNotificationScheduler(
             }
         }
 
-        fun channelIdForStyle(style: String): String {
+        fun channelIdForStyle(
+            style: String,
+            customSoundUriString: String = "",
+        ): String {
             return when (style) {
-                "CUSTOM_SOUND" -> CHANNEL_CUSTOM_SOUND
+                "CUSTOM_SOUND" -> customSoundChannelId(customSoundUriString)
                 "VIBRATION" -> CHANNEL_VIBRATION
                 "SILENT" -> CHANNEL_SILENT
                 else -> CHANNEL_SYSTEM_SOUND
             }
         }
 
-        fun defaultSoundUriForStyle(style: String): Uri? {
+        fun defaultSoundUriForStyle(
+            style: String,
+            customSoundUriString: String = "",
+        ): Uri? {
             return when (style) {
-                "CUSTOM_SOUND" -> defaultCustomSoundUri()
+                "CUSTOM_SOUND" -> customSoundUriString
+                    .takeIf { it.isNotBlank() }
+                    ?.let(Uri::parse)
+                    ?: defaultCustomSoundUri()
                 "SYSTEM_SOUND" -> RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                 else -> null
             }
@@ -506,6 +521,11 @@ class PrayerNotificationScheduler(
 
         private fun defaultCustomSoundUri(): Uri {
             return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        }
+
+        private fun customSoundChannelId(customSoundUriString: String): String {
+            val channelSuffix = customSoundUriString.ifBlank { "default" }.hashCode().toString().replace("-", "n")
+            return "$CHANNEL_CUSTOM_SOUND_PREFIX$channelSuffix"
         }
     }
 }

@@ -19,6 +19,7 @@
 <p align="center"><i>Available on</i></p>
 <p align="center">
   <a href="https://github.com/greykaizen/khushu/releases/latest"><img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.svg" height="104" align="middle"></a>&nbsp;&nbsp;
+  <a href="https://f-droid.org/packages/com.kaizen.khushu/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="104" align="middle"></a>&nbsp;&nbsp;
   <a href="https://android.izzysoft.de/repo/apk/com.kaizen.khushu"><img src="https://gitlab.com/izzyondroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="104" align="middle"></a>&nbsp;&nbsp;
   <a href="http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/greykaizen/khushu"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" height="70" align="middle"></a>
 </p>
@@ -49,20 +50,12 @@ There are no ads, no trackers, no subscriptions, and no selling of your data. Yo
 
 Khushu is packed with accurate prayer times, sunpath visuals, immersive Salah tracking, deeply customizable Tasbeeh collections, and a complete suite for reading and listening to the Quran, Tafsir, and Hadith—all wrapped in a deeply immersive aesthetic designed to help you attain *Khushu* (true focus and humility) in your worship.
 
-<table align="center">
-  <tr>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_1.jpg" width="180"></kbd></td>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_2.jpg" width="180"></kbd></td>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_3.jpg" width="180"></kbd></td>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_4.jpg" width="180"></kbd></td>
-  </tr>
-  <tr>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_5.jpg" width="180"></kbd></td>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_6.jpg" width="180"></kbd></td>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_7.jpg" width="180"></kbd></td>
-    <td align="center"><kbd><img src="docs/images/screenshots/poster_8.jpg" width="180"></kbd></td>
-  </tr>
-</table>
+<p align="center">
+  <kbd><img src="docs/images/screenshots/1.jpg" width="420" alt="Khushu stitched screenshot 1"></kbd>
+</p>
+<p align="center">
+  <kbd><img src="docs/images/screenshots/2.jpg" width="420" alt="Khushu stitched screenshot 2"></kbd>
+</p>
 
 
 ---

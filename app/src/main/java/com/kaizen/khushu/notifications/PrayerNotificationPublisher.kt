@@ -46,7 +46,10 @@ object PrayerNotificationPublisher {
 
         val builder = NotificationCompat.Builder(
             context,
-            PrayerNotificationScheduler.channelIdForStyle(alertStyle)
+            PrayerNotificationScheduler.channelIdForStyle(
+                style = alertStyle,
+                customSoundUriString = settings.prayerNotificationCustomSoundUri
+            )
         )
             .setSmallIcon(R.drawable.ic_notification_glyph)
             .setColor(ContextCompat.getColor(context, R.color.splash_background))
@@ -68,7 +71,12 @@ object PrayerNotificationPublisher {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             when (alertStyle) {
                 "CUSTOM_SOUND", "SYSTEM_SOUND" -> {
-                    builder.setSound(PrayerNotificationScheduler.defaultSoundUriForStyle(alertStyle))
+                    builder.setSound(
+                        PrayerNotificationScheduler.defaultSoundUriForStyle(
+                            style = alertStyle,
+                            customSoundUriString = settings.prayerNotificationCustomSoundUri
+                        )
+                    )
                     builder.setDefaults(NotificationCompat.DEFAULT_LIGHTS)
                     builder.setVibrate(longArrayOf(0L, 180L, 120L, 180L))
                 }

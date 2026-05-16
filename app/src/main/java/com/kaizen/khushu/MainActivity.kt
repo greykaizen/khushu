@@ -101,6 +101,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var prayerTimeRepository: PrayerTimeRepository
     private lateinit var homeViewModel: com.kaizen.khushu.ui.screens.home.HomeViewModel
 
+    // Tracks whether the tasbeeh immersive screen is currently active so that
+    // volume key interception only fires there and not app-wide.
+    var isOnTasbeehImmersive: Boolean = false
+
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val media3Controller: MediaController?
         get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
@@ -137,13 +141,15 @@ class MainActivity : ComponentActivity() {
         prayerTimeRepository = PrayerTimeRepository(settingsRepository)
         val islamicEventsRepository = IslamicEventsRepository(applicationContext)
         val prayerNotificationScheduler = PrayerNotificationScheduler(applicationContext)
+        val prayerManager = com.kaizen.khushu.logic.PrayerManager(settingsRepository, prayerTimeRepository)
 
         homeViewModel = ViewModelProvider(
             this as ViewModelStoreOwner,
             com.kaizen.khushu.ui.screens.home.HomeViewModel.factory(
                 settingsRepository,
                 prayerTimeRepository,
-                islamicEventsRepository
+                islamicEventsRepository,
+                prayerManager
             )
         )[com.kaizen.khushu.ui.screens.home.HomeViewModel::class.java]
 
@@ -254,7 +260,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         val settings = settingsViewModel.settings.value
-        if (settings.volumeCounting &&
+        // Only intercept volume keys when the tasbeeh immersive screen is active
+        // and the user has volume-counting enabled. Everywhere else, pass the
+        // event to the OS so the system volume slider works normally.
+        if (isOnTasbeehImmersive &&
+            settings.volumeCounting &&
             (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
                     keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
         ) {
@@ -290,6 +300,13 @@ private fun KhushuApp(
     val currentRoute = navBackStackEntry?.destination?.route
     val hazeState = remember { HazeState() }
     val showNavBar = AppDestinations.entries.any { it.route == currentRoute }
+
+    // Keep MainActivity.isOnTasbeehImmersive in sync with the current route so that
+    // volume key interception is scoped to the Tasbih immersive screen only.
+    val activity = LocalContext.current as? MainActivity
+    SideEffect {
+        activity?.isOnTasbeehImmersive = currentRoute?.startsWith("tasbeeh/immersive") == true
+    }
     val currentDestination = AppDestinations.fromRoute(currentRoute) ?: AppDestinations.SALAH
     val showDeveloperWelcome = !settings.developerWelcomeDismissed && currentRoute != ONBOARDING_ROUTE
 
@@ -379,10 +396,12 @@ private fun KhushuApp(
                         TasbeehScreen(
                             viewModel = tasbeehViewModel,
                             settingsViewModel = settingsViewModel,
+                            canvasViewModel = tasbeehCanvasViewModel,
                             onCollectionTap = { collection ->
                                 navController.navigate("tasbeeh/immersive/${collection.id}")
                             },
                             onEditCollection = { showCreateSheet = true },
+                            onCustomizeCanvas = { navController.navigate("tasbeeh/canvas") },
                             onSettingsClick = { showSettingsSheet = true },
                             hazeState = hazeState,
                             contentPadding = screenContentPadding
@@ -404,8 +423,12 @@ private fun KhushuApp(
                                 if (topicId == "quran_browser") {
                                     navController.navigate("quran")
                                 } else if (topicId.startsWith("quran_surah_")) {
-                                    val surahId = topicId.removePrefix("quran_surah_")
-                                    navController.navigate("quran/$surahId")
+                                    val surahPayload = topicId.removePrefix("quran_surah_")
+                                    val surahId = surahPayload.substringBefore("?")
+                                    val ayahIndex = surahPayload.substringAfter("?ayah=", "").toIntOrNull()
+                                    navController.navigate(
+                                        if (ayahIndex != null) "quran/$surahId?ayah=$ayahIndex" else "quran/$surahId"
+                                    )
                                 } else if (topicId.startsWith("hadith_book_")) {
                                     val bookId = topicId.removePrefix("hadith_book_")
                                     navController.navigate("hadith/$bookId")
@@ -434,16 +457,25 @@ private fun KhushuApp(
                     }
 
                     composable(
-                        route = "quran/{surahNumber}",
-                        arguments = listOf(navArgument("surahNumber") { type = NavType.IntType }),
+                        route = "quran/{surahNumber}?ayah={ayah}",
+                        arguments = listOf(
+                            navArgument("surahNumber") { type = NavType.IntType },
+                            navArgument("ayah") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        ),
                         enterTransition = { subScreenEnter() },
                         exitTransition = { subScreenExit() },
                         popEnterTransition = { subScreenPopEnter() },
                         popExitTransition = { subScreenPopExit() },
                     ) { backStackEntry ->
                         val surahNumber = backStackEntry.arguments?.getInt("surahNumber") ?: 1
+                        val initialAyahIndex = backStackEntry.arguments?.getString("ayah")?.toIntOrNull()
                         com.kaizen.khushu.ui.screens.quran.QuranReaderScreen(
                             surahNumber = surahNumber,
+                            initialAyahIndex = initialAyahIndex,
                             onBack = { navController.popBackStack() },
                             onNextSurah = { next ->
                                 navController.navigate("quran/$next") {
@@ -519,8 +551,12 @@ private fun KhushuApp(
                             onBack = { navController.popBackStack() },
                             onCardTap = { topicId ->
                                 if (topicId.startsWith("quran_surah_")) {
-                                    val surahId = topicId.removePrefix("quran_surah_")
-                                    navController.navigate("quran/$surahId")
+                                    val surahPayload = topicId.removePrefix("quran_surah_")
+                                    val surahId = surahPayload.substringBefore("?")
+                                    val ayahIndex = surahPayload.substringAfter("?ayah=", "").toIntOrNull()
+                                    navController.navigate(
+                                        if (ayahIndex != null) "quran/$surahId?ayah=$ayahIndex" else "quran/$surahId"
+                                    )
                                 } else if (topicId.startsWith("hadith_book_")) {
                                     val bookId = topicId.removePrefix("hadith_book_")
                                     navController.navigate("hadith/$bookId")

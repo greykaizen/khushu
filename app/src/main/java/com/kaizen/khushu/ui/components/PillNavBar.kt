@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -39,8 +40,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.kaizen.khushu.ui.navigation.AppDestinations
 import dev.chrisbanes.haze.HazeState
@@ -58,82 +61,81 @@ fun PillNavBar(
     hazeState: HazeState,
     modifier: Modifier = Modifier,
 ) {
-    val tabPositions = remember { mutableStateMapOf<AppDestinations, Float>() }
-    var rowCoords: LayoutCoordinates? by remember { mutableStateOf(null) }
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        val tabPositions = remember { mutableStateMapOf<AppDestinations, Float>() }
+        var rowCoords: LayoutCoordinates? by remember { mutableStateOf(null) }
 
-    val indicatorTargetX by animateFloatAsState(
-        targetValue = tabPositions[currentDestination] ?: 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow,
-        ),
-        label = "indicatorX",
-    )
-
-    Box(
-        modifier = modifier
-            .clip(PillShape)
-            .background(Color.Black.copy(alpha = 0.2f)) // Stabilize background during transitions
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = PillShape,
-            )
-    ) {
-        // Background blur layer
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .hazeEffect(
-                    state = hazeState,
-                    style = HazeStyle(
-                        backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                        blurRadius = 20.dp,
-                        tints = listOf(HazeTint(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))),
-                    )
-                )
+        val indicatorTargetX by animateFloatAsState(
+            targetValue = tabPositions[currentDestination] ?: 0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+            label = "indicatorX",
         )
 
-        // Contents Layer
-        Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
-            Row(
-                modifier = Modifier.onGloballyPositioned { rowCoords = it },
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                AppDestinations.entries.forEach { destination ->
-                    PillNavItem(
-                        destination = destination,
-                        isSelected = destination == currentDestination,
-                        onClick = { onDestinationSelected(destination) },
-                        onPositioned = { coords ->
-                            val row = rowCoords ?: return@PillNavItem
-                            val centerX = row.localPositionOf(
-                                sourceCoordinates = coords,
-                                relativeToSource = Offset(x = coords.size.width / 2f, y = 0f),
-                            ).x
-                            tabPositions[destination] = centerX
-                        },
-                    )
-                }
-            }
-
-            // Sliding indicator
+        Box(
+            modifier = modifier
+                .clip(PillShape)
+                .background(Color.Black.copy(alpha = 0.2f))
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    shape = PillShape,
+                )
+        ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .offset {
-                        IntOffset(
-                            x = (indicatorTargetX - 12.5.dp.toPx()).roundToInt(),
-                            y = 0,
+                    .matchParentSize()
+                    .hazeEffect(
+                        state = hazeState,
+                        style = HazeStyle(
+                            backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            blurRadius = 20.dp,
+                            tints = listOf(HazeTint(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))),
+                        )
+                    )
+            )
+
+            Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
+                Row(
+                    modifier = Modifier.onGloballyPositioned { rowCoords = it },
+                    horizontalArrangement = Arrangement.spacedBy(0.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AppDestinations.entries.forEach { destination ->
+                        PillNavItem(
+                            destination = destination,
+                            isSelected = destination == currentDestination,
+                            onClick = { onDestinationSelected(destination) },
+                            onPositioned = { coords ->
+                                val row = rowCoords ?: return@PillNavItem
+                                val centerX = row.localPositionOf(
+                                    sourceCoordinates = coords,
+                                    relativeToSource = Offset(x = coords.size.width / 2f, y = 0f),
+                                ).x
+                                tabPositions[destination] = centerX
+                            },
                         )
                     }
-                    .padding(bottom = 2.dp)
-                    .width(25.dp)
-                    .height(3.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary),
-            )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .offset {
+                            IntOffset(
+                                x = (indicatorTargetX - 12.5.dp.toPx()).roundToInt(),
+                                y = 0,
+                            )
+                        }
+                        .padding(bottom = 2.dp)
+                        .width(25.dp)
+                        .height(3.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondary),
+                )
+            }
         }
     }
 }

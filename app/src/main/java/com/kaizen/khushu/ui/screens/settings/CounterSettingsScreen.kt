@@ -41,7 +41,7 @@ fun CounterSettingsScreen(
 
             SettingsGroup(
                 title = "Haptics",
-                description = "Physical feedback that applies across Khushu counters."
+//                description = "Physical feedback that applies across Khushu counters."
             ) {
                 SettingsToggleItem(
                     title = "Haptic Feedback",
@@ -54,7 +54,7 @@ fun CounterSettingsScreen(
 
             SettingsGroup(
                 title = "Hardware",
-                description = "Optional device-level controls for counting."
+//                description = "Optional device-level controls for counting."
             ) {
                 SettingsToggleItem(
                     title = "Volume Key Counting",

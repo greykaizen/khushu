@@ -8,8 +8,10 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +38,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,136 +61,190 @@ fun KhushuAppBar(
     onSettingsClick: () -> Unit,
     onBookmarksClick: (() -> Unit)? = null,
     showLogoTitle: Boolean = false,
-    // Pass non-null to show the grid/list toggle in the actions area.
-    // isListMode drives which button is highlighted; both callbacks are required together.
+    titleContent: (@Composable () -> Unit)? = null,
+    centerOverlayContent: (@Composable () -> Unit)? = null,
+    startContent: (@Composable () -> Unit)? = null,
     isListMode: Boolean? = null,
     onGridClick: (() -> Unit)? = null,
     onListClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-//    hazeState: HazeState? = null,
 ) {
     val expressiveShape = MaterialShapes.Circle.toShape()
+
+    // Simple Row layout when startContent is provided — no TopAppBar, no overlay hacks
+    if (startContent != null) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+                .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            startContent()
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(expressiveShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable(
+                        onClick = onSettingsClick,
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_menu),
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+        return
+    }
+
+    val hideDefaultTitle = titleContent == null && title.isBlank() && !showLogoTitle
     
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
                 color = MaterialTheme.colorScheme.background,
-//                shape = ConvexBottomTabShape(cornerRadius = 28.dp)
             )
             .statusBarsPadding()
     ) {
-        TopAppBar(
-            title = {
-                Column(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .offset(x = (-8).dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-
+        Box(modifier = Modifier.fillMaxWidth()) {
+            TopAppBar(
+                title = {
+                    Column(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .offset(x = if (titleContent == null) (-8).dp else 0.dp),
+                        horizontalAlignment = if (titleContent != null) Alignment.Start else Alignment.CenterHorizontally,
                     ) {
-                    AnimatedContent(
-                        targetState = showLogoTitle,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(220, delayMillis = 90)) togetherWith
-                                    fadeOut(animationSpec = tween(90))
-                        },
-                        label = "AppBarTitleTransition"
-                    ) { isLogoTitle ->
-                        if (isLogoTitle) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_khushu_logo),
-                                contentDescription = "Khushu",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(64.dp)
-                            )
-                        } else {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.displaySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
+                        if (titleContent != null) {
+                            titleContent()
+                        } else if (!hideDefaultTitle) {
+                            AnimatedContent(
+                                targetState = showLogoTitle,
+                                transitionSpec = {
+                                    fadeIn(animationSpec = tween(220, delayMillis = 90)) togetherWith
+                                            fadeOut(animationSpec = tween(90))
+                                },
+                                label = "AppBarTitleTransition"
+                            ) { isLogoTitle ->
+                                if (isLogoTitle) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_khushu_logo),
+                                        contentDescription = "Khushu",
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.size(64.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.displaySmall,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
+                            }
+                        }
+                        if (titleContent == null && !hideDefaultTitle) {
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Box(
+                                modifier = Modifier
+                                    .width(28.dp)
+                                    .height(3.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Box(
-                        modifier = Modifier
-                            .width(28.dp)
-                            .height(3.dp)
-                            .clip(CircleShape)
-//                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                    )
-                }
-            },
-            actions = {
-                if (isListMode != null && onGridClick != null && onListClick != null) {
-                    AppBarIconButton(
-                        iconRes = R.drawable.ic_toggle,
-                        contentDescription = "Grid view",
-                        selected = !isListMode,
-                        onClick = onGridClick,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    AppBarIconButton(
-                        iconRes = R.drawable.ic_list_view,
-                        contentDescription = "List view",
-                        selected = isListMode,
-                        onClick = onListClick,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-                if (onBookmarksClick != null) {
+                },
+                actions = {
+                    if (isListMode != null && onGridClick != null && onListClick != null) {
+                        AppBarIconButton(
+                            iconRes = R.drawable.ic_toggle,
+                            contentDescription = "Grid view",
+                            selected = !isListMode,
+                            onClick = onGridClick,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        AppBarIconButton(
+                            iconRes = R.drawable.ic_list_view,
+                            contentDescription = "List view",
+                            selected = isListMode,
+                            onClick = onListClick,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    if (onBookmarksClick != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(expressiveShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .clickable(
+                                    onClick = onBookmarksClick,
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Bookmarks,
+                                contentDescription = "Bookmarks",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(15.dp))
+                    }
                     Box(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(expressiveShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
                             .clickable(
-                                onClick = onBookmarksClick,
+                                onClick = onSettingsClick,
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Bookmarks,
-                            contentDescription = "Bookmarks",
+                            painter = painterResource(id = R.drawable.ic_menu),
+                            contentDescription = "Settings",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(20.dp),
                         )
                     }
-                    Spacer(modifier = Modifier.width(15.dp))
-                }
+                },
+                windowInsets = WindowInsets(0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                modifier = Modifier.padding(top = 12.dp, start = 20.dp, end = 20.dp),
+            )
+
+            if (centerOverlayContent != null) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(expressiveShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clickable(
-                            onClick = onSettingsClick,
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                        ),
-                    contentAlignment = Alignment.Center,
+                        .matchParentSize()
+                        .padding(top = 12.dp, start = 20.dp, end = 68.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_menu),
-                        contentDescription = "Settings",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp),
-                    )
+                    centerOverlayContent()
                 }
-            },
-            windowInsets = WindowInsets(0),
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent,
-                titleContentColor = MaterialTheme.colorScheme.onSurface,
-                actionIconContentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-            modifier = Modifier.padding(top = 12.dp, start = 20.dp, end = 20.dp),
-        )
+            }
+        }
     }
 }
 
