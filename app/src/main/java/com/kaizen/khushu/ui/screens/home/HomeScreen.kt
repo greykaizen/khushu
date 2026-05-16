@@ -74,9 +74,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -315,16 +319,16 @@ private fun HomeHijriBadge(
         badge: HomeHijriBadgeParts,
         modifier: Modifier = Modifier,
 ) {
-    val label =
-            remember(badge) {
-                buildString {
-                    append(badge.dayMonth)
-                    if (badge.year.isNotBlank()) {
-                        append("  |  ")
-                        append(badge.year)
-                    }
-                }
+    val baseColor = MaterialTheme.colorScheme.onSurface
+    val label = remember(badge, baseColor) {
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = baseColor)) { append(badge.dayMonth) }
+            if (badge.year.isNotBlank()) {
+                append("  ")
+                withStyle(SpanStyle(color = baseColor.copy(alpha = 0.4f))) { append(badge.year) }
             }
+        }
+    }
 
     Surface(
             modifier = modifier,
@@ -332,11 +336,6 @@ private fun HomeHijriBadge(
             color = MaterialTheme.colorScheme.surfaceContainer,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
-            // border =
-            //         androidx.compose.foundation.BorderStroke(
-            //                 0.8.dp,
-            //                 MaterialTheme.colorScheme.outline.copy(alpha = 0.20f)
-            //         )
             ) {
         Text(
                 text = label,
@@ -346,7 +345,6 @@ private fun HomeHijriBadge(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                         ),
-                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
@@ -472,7 +470,7 @@ fun HomeScreen(
     val density = LocalDensity.current
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    
+
     var currentInstant by remember { mutableStateOf(Instant.fromEpochMilliseconds(System.currentTimeMillis())) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -480,7 +478,7 @@ fun HomeScreen(
             kotlinx.coroutines.delay(1000L)
         }
     }
-    
+
     val currentTimeMillis = uiState.previewTime?.toEpochMilliseconds() ?: currentInstant.toEpochMilliseconds()
     val refreshThresholdPx = with(density) { 118.dp.toPx() }
     val refreshHoldPx = with(density) { 74.dp.toPx() }
@@ -559,7 +557,7 @@ fun HomeScreen(
                 displayPrayers
             }
     val nextPrayer = findNextPrayer(homeVisibleTimings, currentTimeMillis)
-    
+
     val sunArcT by derivedStateOf {
         val fajrMs = displayPrayers.firstOrNull { it.name == "Fajr" }?.rawTime?.toEpochMilliseconds() ?: 0L
         val ishaMs = displayPrayers.firstOrNull { it.name == "Isha" }?.rawTime?.toEpochMilliseconds() ?: 1L
@@ -569,7 +567,7 @@ fun HomeScreen(
             (0.08f + ratio * (0.93f - 0.08f)).coerceIn(-0.1f, 1.1f)
         }
     }
-    
+
     val doneCount = doneStates.values.count { it }
     val locationLabel by
             produceState(
@@ -897,7 +895,7 @@ fun HomeScreen(
                         if (action == HomeQuickAction.QIBLA) {
                             Text(
                                 text = "Coordinates: ${"%.4f".format(Locale.US, uiState.locationLat)}, ${"%.4f".format(Locale.US, uiState.locationLng)}",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

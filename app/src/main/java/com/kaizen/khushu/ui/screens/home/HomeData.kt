@@ -59,7 +59,10 @@ data class HomeUiState(
     val events: List<IslamicEvent> = emptyList(),
     val calendarEvents: List<IslamicEvent> = emptyList(),
     val eventsHeader: String = "",
-    val hijriDate: String = "",
+    val hijriDate: String = runCatching {
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy")
+        java.time.chrono.HijrahDate.now().format(formatter)
+    }.getOrDefault(""),
 //    val ayahText: String = "Verily, in the remembrance of Allah do hearts find rest.",
     val ayahRef: String = "Ar-Ra\u02bbd \u00b7 13:28",
     val isRefreshing: Boolean = false,

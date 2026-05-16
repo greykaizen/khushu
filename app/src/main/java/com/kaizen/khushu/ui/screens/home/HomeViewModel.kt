@@ -88,14 +88,32 @@ class HomeViewModel(
         val adjustedMaghrib = effectivePrayerTimes["Maghrib"] ?: prayerState.allPrayers.maghrib
         val adjustedIsha = effectivePrayerTimes["Isha"] ?: prayerState.allPrayers.isha
 
-        val fajrMs = adjustedFajr.toEpochMilliseconds()
-        val ishaMs = adjustedIsha.toEpochMilliseconds()
+        val extraPrayerTimes = runCatching {
+            prayerTimeRepository.getExtraPrayerDateTimes(
+                date = effectiveDate,
+                settings = settings
+            )
+        }.getOrDefault(emptyMap())
 
+        val sunriseInstant =
+            extraPrayerTimes["SUNRISE"]?.let { kotlinx.datetime.Instant.fromEpochMilliseconds(it.time) }
+                ?: prayerState.allPrayers.sunrise
+        val sunsetInstant = adjustedMaghrib
+
+        // --- NEW SUNPATH MATH: Center on Solar Noon (Zawal) ---
+        // We define Solar Noon as the midpoint between Sunrise and Sunset.
+        val solarNoonMs = (sunriseInstant.toEpochMilliseconds() + sunsetInstant.toEpochMilliseconds()) / 2L
+        val dayMs = 24 * 60 * 60 * 1000L
+
+        /**
+         * Maps a timestamp to a 0..1 range representing a 24-hour window
+         * centered EXACTLY on Solar Noon (t=0.5).
+         */
         fun tToArc(ms: Long): Float {
-            val total = (ishaMs - fajrMs).toFloat()
-            if (total <= 0) return 0.5f
-            val ratio = (ms - fajrMs).toFloat() / total
-            return 0.08f + ratio * (0.93f - 0.08f)
+            val offsetFromNoon = ms - solarNoonMs
+            val ratio = offsetFromNoon.toFloat() / dayMs.toFloat()
+            // Center is 0.5. 12 hours before is 0.0, 12 hours after is 1.0.
+            return (0.5f + ratio).coerceIn(-0.2f, 1.2f)
         }
 
         fun formatInstant(instant: kotlinx.datetime.Instant): String {
@@ -118,7 +136,7 @@ class HomeViewModel(
                 name = "Fajr", ar = "الفجر",
                 time = formatInstant(adjustedFajr),
                 hour = fajrHr, minute = fajrMin,
-                arcT = tToArc(fajrMs),
+                arcT = tToArc(adjustedFajr.toEpochMilliseconds()),
                 dotColorLight = androidx.compose.ui.graphics.Color(0xFF4a70b0), dotColorDark = androidx.compose.ui.graphics.Color(0xFF6890d8),
                 rawTime = adjustedFajr
             ),
@@ -150,21 +168,11 @@ class HomeViewModel(
                 name = "Isha", ar = "العشاء",
                 time = formatInstant(adjustedIsha),
                 hour = ishaHr, minute = ishaMin,
-                arcT = tToArc(ishaMs),
+                arcT = tToArc(adjustedIsha.toEpochMilliseconds()),
                 dotColorLight = androidx.compose.ui.graphics.Color(0xFF584898), dotColorDark = androidx.compose.ui.graphics.Color(0xFF9070d0),
                 rawTime = adjustedIsha
             )
         )
-
-        val extraPrayerTimes = runCatching {
-            prayerTimeRepository.getExtraPrayerDateTimes(
-                date = effectiveDate,
-                settings = settings
-            )
-        }.getOrDefault(emptyMap())
-        val sunriseInstant =
-            extraPrayerTimes["SUNRISE"]?.let { kotlinx.datetime.Instant.fromEpochMilliseconds(it.time) }
-                ?: prayerState.allPrayers.sunrise
 
         val selectedExtraTimings = settings.selectedExtraPrayerTimings
         val mappedExtraTimings = selectedExtraTimings.mapNotNull { id ->
@@ -208,19 +216,19 @@ class HomeViewModel(
             tStart = tToArc(sunriseInstant.toEpochMilliseconds()),
             tEnd = tToArc(sunriseInstant.toEpochMilliseconds() + min20),
             label = "Sunrise",
-            description = "Disliked to pray until the sun rises a spear’s height (~20 min after sunrise)"
+            description = "Disliked to pray until the sun rises a spear's height (~20 min). \"Whoever catches a rak'ah of Fajr before sunrise has caught Fajr.\" — Bukhari 579, Muslim 608"
         )
         val makruhZawal = MakruhZone(
             tStart = tToArc(adjustedDhuhr.toEpochMilliseconds() - min15),
             tEnd = tToArc(adjustedDhuhr.toEpochMilliseconds()),
             label = "Zawal",
-            description = "Sun at exact zenith — forbidden to pray at this moment, just before Dhuhr begins"
+            description = "Sun at zenith — prayer is forbidden at this moment. \"The Prophet ﷺ forbade prayer when the sun is at its peak (Zawal) until it declines.\" — Muslim 831"
         )
         val makruhSunset = MakruhZone(
             tStart = tToArc(adjustedMaghrib.toEpochMilliseconds() - min15),
             tEnd = tToArc(adjustedMaghrib.toEpochMilliseconds()),
             label = "Sunset",
-            description = "Disliked to pray as the sun sets until it fully disappears below the horizon"
+            description = "Disliked to pray as the sun sets. \"Whoever catches a rak'ah of Asr before sunset has caught Asr.\" — Bukhari 556, Muslim 608"
         )
 
         val todayHijri = runCatching { java.time.chrono.HijrahDate.now() }.getOrNull()

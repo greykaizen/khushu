@@ -238,7 +238,7 @@ fun KhushuAppBar(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .padding(start = 20.dp, end = 68.dp),
+                        .padding(top = 12.dp, start = 20.dp, end = 68.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     centerOverlayContent()

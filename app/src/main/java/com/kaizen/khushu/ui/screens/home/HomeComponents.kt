@@ -26,10 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,17 +41,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -687,83 +690,6 @@ fun SunArcCard(
                                         )
                                 }
                         }
-
-                        // Makruh overlay
-                        AnimatedVisibility(
-                                visible = activeMk != null,
-                                enter = slideInVertically { it / 2 },
-                                exit = slideOutVertically { it / 2 }
-                        ) {
-                                if (activeMk != null) {
-                                        Box(
-                                                modifier =
-                                                        Modifier.fillMaxSize()
-                                                                .background(
-                                                                        Color.Black.copy(
-                                                                                alpha = 0.84f
-                                                                        )
-                                                                )
-                                                                .clickable { activeMk = null }
-                                                                .padding(15.dp),
-                                                contentAlignment = Alignment.Center
-                                        ) {
-                                                Column {
-                                                        val mk = makruhZones[activeMk!!]
-                                                        Text(
-                                                                text =
-                                                                        "Makruh · ${mk.label}".uppercase(),
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .labelSmall.copy(
-                                                                                fontSize = 7.5.sp,
-                                                                                fontWeight =
-                                                                                        FontWeight
-                                                                                                .Bold,
-                                                                                letterSpacing =
-                                                                                        0.09.sp
-                                                                        ),
-                                                                color = Color(0xFFF06045),
-                                                                modifier =
-                                                                        Modifier.padding(
-                                                                                bottom = 6.dp
-                                                                        )
-                                                        )
-                                                        Text(
-                                                                text = mk.description,
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .bodySmall.copy(
-                                                                                fontSize = 10.5.sp,
-                                                                                fontWeight =
-                                                                                        FontWeight
-                                                                                                .Light,
-                                                                                lineHeight = 16.sp
-                                                                        ),
-                                                                color =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.8f
-                                                                        )
-                                                        )
-                                                        Text(
-                                                                text = "Tap to dismiss",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .labelSmall.copy(
-                                                                                fontSize = 8.sp
-                                                                        ),
-                                                                color =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.3f
-                                                                        ),
-                                                                modifier =
-                                                                        Modifier.padding(
-                                                                                top = 10.dp
-                                                                        )
-                                                        )
-                                                }
-                                        }
-                                }
-                        }
                 }
         }
 }
@@ -907,25 +833,27 @@ fun PrayerSunMergedCardShimmer(modifier: Modifier = Modifier) {
                                 contentAlignment = Alignment.Center
                         ) {
                                 Canvas(modifier = Modifier.fillMaxSize()) {
-                                        val hPad = 20.dp.toPx()
+                                        val hPad = 22.dp.toPx()
                                         val lineY = 38.dp.toPx()
-                                        val curveHeight = 7.dp.toPx()
-                                        val path = Path().apply {
-                                                moveTo(hPad, lineY)
-                                                quadraticTo(
-                                                        size.width / 2f,
-                                                        lineY - curveHeight,
-                                                        size.width - hPad,
-                                                        lineY
-                                                )
-                                        }
+                                        val curveHeight = 9.dp.toPx()
+                                        val path =
+                                                Path().apply {
+                                                        moveTo(hPad, lineY)
+                                                        quadraticTo(
+                                                                size.width / 2f,
+                                                                lineY - curveHeight,
+                                                                size.width - hPad,
+                                                                lineY
+                                                        )
+                                                }
                                         drawPath(
                                                 path = path,
                                                 brush = brush,
-                                                style = Stroke(
-                                                        width = 2.5.dp.toPx(),
-                                                        cap = StrokeCap.Round
-                                                )
+                                                style =
+                                                        Stroke(
+                                                                width = 2.5.dp.toPx(),
+                                                                cap = StrokeCap.Round
+                                                        )
                                         )
                                 }
                         }
@@ -993,6 +921,18 @@ fun PrayerSunMergedCard(
         val pastPrayerTs =
                 allPrayers.filterNot { it.isExtra }.filter { sunT > it.arcT }.map { it.arcT }
 
+        val currentMkZone = makruhZones.find { sunT >= it.tStart && sunT <= it.tEnd }
+
+        // Dynamic background colors for active Makruh zones
+        val makruhOverlayColor =
+                when {
+                        currentMkZone == null -> Color.Transparent
+                        currentMkZone.label.contains("Sunrise", ignoreCase = true) ||
+                                currentMkZone.label.contains("Sunset", ignoreCase = true) ->
+                                Color(0xFFFFD54F).copy(alpha = 0.12f) // Subtle Yellow
+                        else -> Color(0xFFE57373).copy(alpha = 0.12f) // Subtle Red (Peak)
+                }
+
         Surface(
                 modifier = modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -1003,7 +943,7 @@ fun PrayerSunMergedCard(
                 Box {
                         Column {
                                 // ── Dual-tone prayer section ───────────────────────
-                                Row(modifier = Modifier.fillMaxWidth().height(72.dp)) {
+                                Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                                         // Left — Current prayer
                                         Box(
                                                 modifier =
@@ -1021,7 +961,7 @@ fun PrayerSunMergedCard(
                                                                 )
                                         ) {
                                                 Column(
-                                                        modifier = Modifier.fillMaxSize(),
+                                                        modifier = Modifier.fillMaxWidth(),
                                                         verticalArrangement =
                                                                 Arrangement.spacedBy(5.dp)
                                                 ) {
@@ -1099,7 +1039,7 @@ fun PrayerSunMergedCard(
                                                                                         .displaySmall
                                                                                         .copy(
                                                                                                 fontSize =
-                                                                                                        24.sp
+                                                                                                        20.sp
                                                                                         ),
                                                                         color =
                                                                                 MaterialTheme
@@ -1118,7 +1058,7 @@ fun PrayerSunMergedCard(
                                                                                                 fontFamily =
                                                                                                         Antonio,
                                                                                                 fontSize =
-                                                                                                        14.sp
+                                                                                                        17.sp
                                                                                         ),
                                                                         color =
                                                                                 MaterialTheme
@@ -1165,7 +1105,7 @@ fun PrayerSunMergedCard(
                                                 Column(
                                                         modifier = Modifier.fillMaxSize(),
                                                         verticalArrangement =
-                                                                Arrangement.spacedBy(5.dp)
+                                                                Arrangement.SpaceBetween
                                                 ) {
                                                         Text(
                                                                 text = "NEXT PRAYER",
@@ -1200,7 +1140,7 @@ fun PrayerSunMergedCard(
                                                                                         .displaySmall
                                                                                         .copy(
                                                                                                 fontSize =
-                                                                                                        24.sp
+                                                                                                        17.sp
                                                                                         ),
                                                                         color =
                                                                                 MaterialTheme
@@ -1219,7 +1159,7 @@ fun PrayerSunMergedCard(
                                                                                                 fontFamily =
                                                                                                         Antonio,
                                                                                                 fontSize =
-                                                                                                        14.sp
+                                                                                                        13.sp
                                                                                         ),
                                                                         color =
                                                                                 MaterialTheme
@@ -1256,618 +1196,824 @@ fun PrayerSunMergedCard(
                                         modifier =
                                                 Modifier.fillMaxWidth()
                                                         .height(100.dp)
+                                                        .clipToBounds()
                                                         .background(
                                                                 MaterialTheme.colorScheme
                                                                         .surfaceContainerLow
+                                                                        .copy(alpha = if (currentMkZone != null) 0.5f else 1f)
                                                         )
-                                                        .pointerInput(makruhZones) {
-                                                                detectTapGestures { offset ->
-                                                                        val hPad = 20.dp.toPx()
-                                                                        val lineLen =
-                                                                                size.width -
-                                                                                        2 * hPad
-                                                                        val lineY = 38.dp.toPx()
-                                                                        val tapped =
-                                                                                ((offset.x - hPad) /
-                                                                                                lineLen)
-                                                                                        .coerceIn(
-                                                                                                0f,
-                                                                                                1f
-                                                                                        )
-                                                                        var found = false
-                                                                        for (i in
-                                                                                makruhZones
-                                                                                        .indices) {
-                                                                                val mk =
-                                                                                        makruhZones[
-                                                                                                i]
-                                                                                if (tapped >=
-                                                                                                mk.tStart -
-                                                                                                        0.04f &&
-                                                                                                tapped <=
-                                                                                                        mk.tEnd +
+                                                        .background(makruhOverlayColor)
+                                                                .pointerInput(makruhZones) {
+                                                                        detectTapGestures { offset
+                                                                                ->
+                                                                                val hPad =
+                                                                                        20.dp.toPx()
+                                                                                val lineLen =
+                                                                                        size.width -
+                                                                                                2 *
+                                                                                                        hPad
+                                                                                val lineY =
+                                                                                        38.dp.toPx()
+                                                                                val tapped =
+                                                                                        ((offset.x -
+                                                                                                        hPad) /
+                                                                                                        lineLen)
+                                                                                                .coerceIn(
+                                                                                                        0f,
+                                                                                                        1f
+                                                                                                )
+                                                                                var found = false
+                                                                                for (i in
+                                                                                        makruhZones
+                                                                                                .indices) {
+                                                                                        val mk =
+                                                                                                makruhZones[
+                                                                                                        i]
+                                                                                        if (tapped >=
+                                                                                                        mk.tStart -
                                                                                                                 0.04f &&
-                                                                                                kotlin.math
-                                                                                                        .abs(
-                                                                                                                offset.y -
-                                                                                                                        lineY
-                                                                                                        ) <
-                                                                                                        38.dp.toPx()
-                                                                                ) {
-                                                                                        activeMk =
-                                                                                                if (activeMk ==
+                                                                                                        tapped <=
+                                                                                                                mk.tEnd +
+                                                                                                                        0.04f &&
+                                                                                                        kotlin.math
+                                                                                                                .abs(
+                                                                                                                        offset.y -
+                                                                                                                                lineY
+                                                                                                                ) <
+                                                                                                                38.dp.toPx()
+                                                                                        ) {
+                                                                                                activeMk =
+                                                                                                        if (activeMk ==
+                                                                                                                        i
+                                                                                                        )
+                                                                                                                null
+                                                                                                        else
                                                                                                                 i
-                                                                                                )
-                                                                                                        null
-                                                                                                else
-                                                                                                        i
-                                                                                        found = true
-                                                                                        break
+                                                                                                found =
+                                                                                                        true
+                                                                                                break
+                                                                                        }
                                                                                 }
+                                                                                if (!found)
+                                                                                        activeMk =
+                                                                                                null
                                                                         }
-                                                                        if (!found) activeMk = null
                                                                 }
-                                                        }
-                                ) {
-                                        Canvas(modifier = Modifier.fillMaxSize()) {
-                                                val hPad = 20.dp.toPx()
-                                                val lineY = 38.dp.toPx()
-                                                val lineStartX = hPad
-                                                val lineEndX = size.width - hPad
-                                                val lineLen = lineEndX - lineStartX
-                                                fun tToX(t: Float) = lineStartX + t * lineLen
-                                                fun curveY(t: Float): Float {
-                                                        val centered = ((t.coerceIn(0f, 1f) - 0.5f) * 2f)
-                                                        val archFactor = (1f - centered * centered).coerceIn(0f, 1f)
-                                                        return lineY - 7.dp.toPx() * archFactor
-                                                }
-                                                fun pointAt(t: Float): Offset =
-                                                        Offset(tToX(t), curveY(t))
-                                                val sunX = tToX(sunT)
+                                        ) {
+                                                val onSurfaceColor =
+                                                        MaterialTheme.colorScheme.onSurface.toArgb()
+                                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                                        val hPad = 22.dp.toPx()
+                                                        val lineY = 40.dp.toPx()
+                                                        val lineStartX = hPad
+                                                        val lineEndX = size.width - hPad
+                                                        val lineLen = lineEndX - lineStartX
 
-                                                // Night zone boundaries
-                                                val dayStartT =
-                                                        makruhZones
-                                                                .firstOrNull {
-                                                                        it.label.contains(
-                                                                                "Sunrise",
-                                                                                ignoreCase = true
-                                                                        )
-                                                                }
-                                                                ?.tStart
-                                                                ?: 0.10f
-                                                val dayEndT =
-                                                        makruhZones
-                                                                .firstOrNull {
-                                                                        it.label.contains(
-                                                                                "Sunset",
-                                                                                ignoreCase = true
-                                                                        )
-                                                                }
-                                                                ?.tEnd
-                                                                ?: 0.85f
-                                                val dayStartX = tToX(dayStartT)
-                                                val dayEndX = tToX(dayEndT)
+                                                        // Night zone boundaries derived from Makruh
+                                                        // zones
+                                                        val dayStartT =
+                                                                makruhZones
+                                                                        .firstOrNull {
+                                                                                it.label.contains(
+                                                                                        "Sunrise",
+                                                                                        ignoreCase =
+                                                                                                true
+                                                                                )
+                                                                        }
+                                                                        ?.tStart
+                                                                        ?: 0.25f
+                                                        val dayEndT =
+                                                                makruhZones
+                                                                        .firstOrNull {
+                                                                                it.label.contains(
+                                                                                        "Sunset",
+                                                                                        ignoreCase =
+                                                                                                true
+                                                                                )
+                                                                        }
+                                                                        ?.tEnd
+                                                                        ?: 0.75f
+                                                        val dayDurationT = dayEndT - dayStartT
+                                                        val nightDurationT = 1.0f - dayDurationT
 
-                                                // Stars in left / right night zones
-                                                STARS.forEachIndexed { i, star ->
-                                                        val isRight = i >= 11
-                                                        val frac = (star.x / 125f).coerceIn(0f, 1f)
-                                                        val sx =
-                                                                if (!isRight)
-                                                                        lineStartX +
-                                                                                frac *
-                                                                                        (dayStartX -
-                                                                                                lineStartX)
-                                                                else
-                                                                        dayEndX +
-                                                                                frac *
-                                                                                        (lineEndX -
-                                                                                                dayEndX)
-                                                        val sy =
-                                                                (lineY - 10.dp.toPx() +
-                                                                                (star.y / 55f) *
-                                                                                        14.dp.toPx())
-                                                                        .coerceIn(
-                                                                                4.dp.toPx(),
-                                                                                lineY - 3.dp.toPx()
-                                                                        )
-                                                        drawCircle(
-                                                                color = Color.White,
-                                                                radius = star.r.dp.toPx(),
-                                                                center = Offset(sx, sy),
-                                                                alpha =
-                                                                        if (darkTheme)
-                                                                                starAlphas[i].value
-                                                                        else
-                                                                                starAlphas[i]
-                                                                                        .value *
-                                                                                        0.3f
-                                                        )
-                                                }
+                                                        fun tToX(t: Float) =
+                                                                lineStartX + t * lineLen
 
-                                                // Base dashed line (future)
-                                                val dashPath =
-                                                        Path().apply {
-                                                                moveTo(lineStartX, lineY)
-                                                                quadraticTo(
-                                                                        size.width / 2f,
-                                                                        lineY - 7.dp.toPx(),
-                                                                        lineEndX,
-                                                                        lineY
-                                                                )
-                                                        }
-                                                drawPath(
-                                                        dashPath,
-                                                        arcBaseColor,
-                                                        style =
-                                                                Stroke(
-                                                                        width = 2.dp.toPx(),
-                                                                        cap = StrokeCap.Round,
-                                                                        pathEffect =
-                                                                                androidx.compose.ui
-                                                                                        .graphics
-                                                                                        .PathEffect
-                                                                                        .dashPathEffect(
-                                                                                                floatArrayOf(
-                                                                                                        4.dp.toPx(),
-                                                                                                        6.dp.toPx()
+                                                        /**
+                                                         * Continuous Sinusoidal Horizon:
+                                                         * - Day Arc: sin wave above horizon between
+                                                         * Sunrise and Sunset.
+                                                         * - Night Arc: sin wave below horizon
+                                                         * between Sunset and Sunrise.
+                                                         */
+                                                        fun curveY(t: Float): Float {
+                                                                return if (t in dayStartT..dayEndT
+                                                                ) {
+                                                                        val normalizedDayT =
+                                                                                (t - dayStartT) /
+                                                                                        dayDurationT
+                                                                        lineY -
+                                                                                14.dp.toPx() *
+                                                                                        kotlin.math
+                                                                                                .sin(
+                                                                                                        kotlin.math
+                                                                                                                .PI *
+                                                                                                                normalizedDayT
                                                                                                 )
-                                                                                        )
-                                                                )
-                                                )
+                                                                                                .toFloat()
+                                                                } else {
+                                                                        val normalizedNightT =
+                                                                                if (t > dayEndT) {
+                                                                                        (t -
+                                                                                                dayEndT) /
+                                                                                                nightDurationT
+                                                                                } else {
+                                                                                        (t +
+                                                                                                (1.0f -
+                                                                                                        dayEndT)) /
+                                                                                                nightDurationT
+                                                                                }
+                                                                        lineY +
+                                                                                9.dp.toPx() *
+                                                                                        kotlin.math
+                                                                                                .sin(
+                                                                                                        kotlin.math
+                                                                                                                .PI *
+                                                                                                                normalizedNightT
+                                                                                                )
+                                                                                                .toFloat()
+                                                                }
+                                                        }
 
-                                                // Past trail (solid)
-                                                if (sunX > lineStartX) {
-                                                        val pastProgress = sunT.coerceIn(0f, 1f)
-                                                        val pastSteps = 32
-                                                        val pastPath =
+                                                        fun pointAt(t: Float): Offset =
+                                                                Offset(tToX(t), curveY(t))
+                                                        val sunX = tToX(sunT)
+
+                                                        // ── 1. Stars/Glitter (Atmosphere)
+                                                        STARS.forEachIndexed { i, star ->
+                                                                val frac =
+                                                                        (star.x / 125f).coerceIn(
+                                                                                0f,
+                                                                                1f
+                                                                        )
+                                                                val sx = lineStartX + frac * lineLen
+                                                                val sy =
+                                                                        (lineY - 24.dp.toPx() +
+                                                                                        (star.y /
+                                                                                                60f) *
+                                                                                                48.dp.toPx())
+                                                                                .coerceIn(
+                                                                                        4.dp.toPx(),
+                                                                                        size.height -
+                                                                                                4.dp.toPx()
+                                                                                )
+
+                                                                drawCircle(
+                                                                        color = Color.White,
+                                                                        radius = star.r.dp.toPx(),
+                                                                        center = Offset(sx, sy),
+                                                                        alpha =
+                                                                                if (darkTheme)
+                                                                                        starAlphas[
+                                                                                                        i]
+                                                                                                .value
+                                                                                else
+                                                                                        starAlphas[
+                                                                                                        i]
+                                                                                                .value *
+                                                                                                0.5f
+                                                                )
+                                                        }
+
+                                                        // ── 2. The Horizon Baseline
+                                                        drawLine(
+                                                                color =
+                                                                        arcBaseColor.copy(
+                                                                                alpha = 0.08f
+                                                                        ),
+                                                                start = Offset(lineStartX, lineY),
+                                                                end = Offset(lineEndX, lineY),
+                                                                strokeWidth = 1.dp.toPx(),
+                                                                cap = StrokeCap.Round
+                                                        )
+
+                                                        // ── 3. The Full 24h Path (Dashed Base)
+                                                        val fullPath =
                                                                 Path().apply {
-                                                                        val first = pointAt(0f)
-                                                                        moveTo(first.x, first.y)
-                                                                        repeat(pastSteps) { index ->
-                                                                                val progress =
-                                                                                        pastProgress *
-                                                                                                ((index + 1).toFloat() / pastSteps.toFloat())
-                                                                                val point = pointAt(progress)
-                                                                                lineTo(point.x, point.y)
+                                                                        val steps = 60
+                                                                        moveTo(
+                                                                                lineStartX,
+                                                                                curveY(0f)
+                                                                        )
+                                                                        for (i in 1..steps) {
+                                                                                val t =
+                                                                                        i.toFloat() /
+                                                                                                steps
+                                                                                val p = pointAt(t)
+                                                                                lineTo(p.x, p.y)
                                                                         }
                                                                 }
                                                         drawPath(
-                                                                pastPath,
-                                                                arcSolidColor,
+                                                                fullPath,
+                                                                color = arcBaseColor,
                                                                 style =
                                                                         Stroke(
                                                                                 width =
-                                                                                        2.5f.dp
+                                                                                        1.5.dp
                                                                                                 .toPx(),
-                                                                                cap =
-                                                                                        StrokeCap
-                                                                                                .Round
+                                                                                pathEffect =
+                                                                                        PathEffect
+                                                                                                .dashPathEffect(
+                                                                                                        floatArrayOf(
+                                                                                                                4.dp.toPx(),
+                                                                                                                6.dp.toPx()
+                                                                                                        )
+                                                                                                )
                                                                         )
                                                         )
-                                                }
 
-                                                // Makruh zone highlights — thicker, higher alpha so
-                                                // they're
-                                                // clearly visible
-                                                makruhZones.forEach { mk ->
-                                                        val mkPath =
-                                                                Path().apply {
-                                                                        val steps = 12
-                                                                        val startPoint = pointAt(mk.tStart)
-                                                                        moveTo(startPoint.x, startPoint.y)
-                                                                        repeat(steps) { index ->
-                                                                                val progress =
-                                                                                        mk.tStart +
-                                                                                                ((mk.tEnd - mk.tStart) * ((index + 1).toFloat() / steps.toFloat()))
-                                                                                val point = pointAt(progress)
-                                                                                lineTo(point.x, point.y)
+                                                        // ── 4. The Past Trail (Solid Sinusoid)
+                                                        if (sunT > 0f) {
+                                                                val pastPath =
+                                                                        Path().apply {
+                                                                                val steps =
+                                                                                        (sunT * 60)
+                                                                                                .toInt()
+                                                                                                .coerceAtLeast(
+                                                                                                        1
+                                                                                                )
+                                                                                moveTo(
+                                                                                        lineStartX,
+                                                                                        curveY(0f)
+                                                                                )
+                                                                                for (i in
+                                                                                        1..steps) {
+                                                                                        val t =
+                                                                                                (i.toFloat() /
+                                                                                                        steps) *
+                                                                                                        sunT
+                                                                                        val p =
+                                                                                                pointAt(
+                                                                                                        t
+                                                                                                )
+                                                                                        lineTo(
+                                                                                                p.x,
+                                                                                                p.y
+                                                                                        )
+                                                                                }
                                                                         }
-                                                                }
-                                                        drawPath(
-                                                                mkPath,
-                                                                mkruhColor,
-                                                                style =
-                                                                        Stroke(
-                                                                                5.5f.dp.toPx(),
-                                                                                cap =
-                                                                                        StrokeCap
-                                                                                                .Round
-                                                                        ),
-                                                                alpha = 0.72f
-                                                        )
-                                                }
-
-                                                // Prayer dots
-                                                val prayers = allPrayers.filterNot { it.isExtra }
-                                                prayers.forEach { prayer ->
-                                                        val dotX = tToX(prayer.arcT)
-                                                        val dotY = curveY(prayer.arcT)
-                                                        val isNext = prayer.name == nextPrayer?.name
-                                                        val isPast = sunT > prayer.arcT
-                                                        when {
-                                                                isNext -> {
-                                                                        drawCircle(
-                                                                                arcNextColor,
-                                                                                8.5f.dp.toPx(),
-                                                                                Offset(dotX, dotY),
-                                                                                style =
-                                                                                        Stroke(
-                                                                                                1.1f.dp
-                                                                                                        .toPx()
-                                                                                        ),
-                                                                                alpha = 0.40f
-                                                                        )
-                                                                        drawCircle(
-                                                                                arcNextColor,
-                                                                                3.8f.dp.toPx(),
-                                                                                Offset(dotX, dotY)
-                                                                        )
-                                                                }
-                                                                isPast ->
-                                                                        drawCircle(
-                                                                                arcNextColor,
-                                                                                3.8f.dp.toPx(),
-                                                                                Offset(dotX, dotY),
-                                                                                alpha = 0.55f
-                                                                        )
-                                                                else ->
-                                                                        drawCircle(
-                                                                                arcNextColor,
-                                                                                2.5f.dp.toPx(),
-                                                                                Offset(dotX, dotY),
-                                                                                alpha = 0.25f
-                                                                        )
-                                                        }
-                                                }
-
-                                                // Sun / Moon marker
-                                                val sunCenter = Offset(sunX, curveY(sunT))
-                                                drawCircle(
-                                                        primaryColor.copy(alpha = 0.08f),
-                                                        22.dp.toPx(),
-                                                        sunCenter
-                                                )
-                                                if (!darkTheme) {
-                                                        drawCircle(
-                                                                Color(0xFFFAC82D)
-                                                                        .copy(alpha = 0.18f),
-                                                                13.dp.toPx(),
-                                                                sunCenter
-                                                        )
-                                                        drawCircle(
-                                                                Color(0xFFFFC328)
-                                                                        .copy(alpha = 0.32f),
-                                                                9.dp.toPx(),
-                                                                sunCenter
-                                                        )
-                                                        drawCircle(
-                                                                Color(0xFFF8C832)
-                                                                        .copy(alpha = 0.85f),
-                                                                7.dp.toPx(),
-                                                                sunCenter,
-                                                                style = Stroke(2.dp.toPx())
-                                                        )
-                                                        drawCircle(
-                                                                Color(0xFFFDE03C),
-                                                                4.dp.toPx(),
-                                                                sunCenter
-                                                        )
-                                                } else {
-                                                        drawCircle(
-                                                                Color(0xFFB4A2FF)
-                                                                        .copy(alpha = 0.15f),
-                                                                12.dp.toPx(),
-                                                                sunCenter
-                                                        )
-                                                        drawCircle(
-                                                                Color(0xFFB9A8FF)
-                                                                        .copy(alpha = 0.25f),
-                                                                8.dp.toPx(),
-                                                                sunCenter
-                                                        )
-                                                        drawCircle(
-                                                                Color(0xFFD2CCFC)
-                                                                        .copy(alpha = 0.9f),
-                                                                6.5f.dp.toPx(),
-                                                                sunCenter
-                                                        )
-                                                        drawCircle(
-                                                                surfaceColor,
-                                                                5.dp.toPx(),
-                                                                Offset(
-                                                                        sunCenter.x +
-                                                                                2.5f.dp.toPx(),
-                                                                        sunCenter.y - 0.8f.dp.toPx()
+                                                                drawPath(
+                                                                        pastPath,
+                                                                        color = arcSolidColor,
+                                                                        style =
+                                                                                Stroke(
+                                                                                        width =
+                                                                                                2.5.dp
+                                                                                                        .toPx(),
+                                                                                        cap =
+                                                                                                StrokeCap
+                                                                                                        .Round
+                                                                                )
                                                                 )
-                                                        )
-                                                }
+                                                        }
 
-                                                // Prayer name labels (native canvas text)
-                                                val rawColor =
-                                                        if (darkTheme) android.graphics.Color.WHITE
-                                                        else android.graphics.Color.BLACK
-                                                val namePaint =
-                                                        android.graphics.Paint().apply {
-                                                                isAntiAlias = true
-                                                                textSize = 7.5.sp.toPx()
-                                                                textAlign =
-                                                                        android.graphics.Paint.Align
-                                                                                .CENTER
-                                                                color = rawColor
-                                                                alpha = (255 * 0.38f).toInt()
+                                                        // ── 5. Makruh Zones (Thermal Shift
+                                                        // Highlights)
+                                                        makruhZones.forEach { mk ->
+                                                                val mkPath =
+                                                                        Path().apply {
+                                                                                val steps = 15
+                                                                                val startP =
+                                                                                        pointAt(
+                                                                                                mk.tStart
+                                                                                        )
+                                                                                moveTo(
+                                                                                        startP.x,
+                                                                                        startP.y
+                                                                                )
+                                                                                for (i in
+                                                                                        1..steps) {
+                                                                                        val t =
+                                                                                                mk.tStart +
+                                                                                                        (mk.tEnd -
+                                                                                                                mk.tStart) *
+                                                                                                                (i.toFloat() /
+                                                                                                                        steps)
+                                                                                        val p =
+                                                                                                pointAt(
+                                                                                                        t
+                                                                                                )
+                                                                                        lineTo(
+                                                                                                p.x,
+                                                                                                p.y
+                                                                                        )
+                                                                                }
+                                                                        }
+                                                                drawPath(
+                                                                        mkPath,
+                                                                        color = mkruhColor,
+                                                                        style =
+                                                                                Stroke(
+                                                                                        width =
+                                                                                                4.dp.toPx(),
+                                                                                        cap =
+                                                                                                StrokeCap
+                                                                                                        .Round
+                                                                                ),
+                                                                        alpha = 0.8f
+                                                                )
                                                         }
-                                                val nextPaint =
-                                                        android.graphics.Paint().apply {
-                                                                isAntiAlias = true
-                                                                textSize = 7.5.sp.toPx()
-                                                                textAlign =
-                                                                        android.graphics.Paint.Align
-                                                                                .CENTER
-                                                                color = rawColor
-                                                                alpha = (255 * 0.72f).toInt()
-                                                        }
-                                                drawIntoCanvas { canvas ->
-                                                        prayers.forEach { prayer ->
-                                                                val dotX = tToX(prayer.arcT)
-                                                                val dotY = curveY(prayer.arcT)
-                                                                val paint =
-                                                                        if (prayer.name ==
+
+                                                        // ── 6. Prayer Dots
+                                                        allPrayers
+                                                                .filterNot { it.isExtra }
+                                                                .forEach { prayer ->
+                                                                        val pPos =
+                                                                                pointAt(prayer.arcT)
+                                                                        val isNext =
+                                                                                prayer.name ==
                                                                                         nextPrayer
                                                                                                 ?.name
+                                                                        val isPast =
+                                                                                sunT > prayer.arcT
+
+                                                                        if (isNext) {
+                                                                                drawCircle(
+                                                                                        arcNextColor,
+                                                                                        9.dp.toPx(),
+                                                                                        pPos,
+                                                                                        style =
+                                                                                                Stroke(
+                                                                                                        1.2.dp
+                                                                                                                .toPx()
+                                                                                                ),
+                                                                                        alpha = 0.4f
+                                                                                )
+                                                                                drawCircle(
+                                                                                        arcNextColor,
+                                                                                        4.dp.toPx(),
+                                                                                        pPos
+                                                                                )
+                                                                        } else {
+                                                                                drawCircle(
+                                                                                        color =
+                                                                                                arcNextColor,
+                                                                                        radius =
+                                                                                                3.5.dp
+                                                                                                        .toPx(),
+                                                                                        center =
+                                                                                                pPos,
+                                                                                        alpha =
+                                                                                                if (isPast
+                                                                                                )
+                                                                                                        0.6f
+                                                                                                else
+                                                                                                        0.25f
+                                                                                )
+                                                                        }
+                                                                }
+
+                                                        // ── 7. The Sun/Moon Celestial Body
+                                                        val sunPos = pointAt(sunT)
+                                                        val glowColor =
+                                                                if (sunT in dayStartT..dayEndT)
+                                                                        Color(0xFFFAC82D)
+                                                                else Color(0xFFB4A2FF)
+
+                                                        // Outer Glow
+                                                        drawCircle(
+                                                                glowColor.copy(alpha = 0.15f),
+                                                                20.dp.toPx(),
+                                                                sunPos
+                                                        )
+
+                                                        if (sunT in dayStartT..dayEndT) {
+                                                                // Sun Core
+                                                                drawCircle(
+                                                                        glowColor,
+                                                                        6.dp.toPx(),
+                                                                        sunPos
+                                                                )
+                                                        } else {
+                                                                // Moon Crescent
+                                                                drawCircle(
+                                                                        glowColor.copy(
+                                                                                alpha = 0.3f
+                                                                        ),
+                                                                        6.dp.toPx(),
+                                                                        sunPos
+                                                                )
+                                                                drawCircle(
+                                                                        surfaceColor,
+                                                                        5.dp.toPx(),
+                                                                        Offset(
+                                                                                sunPos.x +
+                                                                                        2.5.dp
+                                                                                                .toPx(),
+                                                                                sunPos.y -
+                                                                                        1.dp.toPx()
                                                                         )
-                                                                                nextPaint
-                                                                        else namePaint
-                                                                canvas.nativeCanvas.drawText(
-                                                                        prayer.name,
-                                                                        dotX,
-                                                                        dotY + 19.dp.toPx(),
-                                                                        paint
                                                                 )
                                                         }
-                                                }
-                                        }
 
-                                        // Sunrise label: WbSunny + arrow-up prefix + time
-                                        Row(
-                                                modifier =
-                                                        Modifier.align(Alignment.BottomStart)
-                                                                .padding(
-                                                                        start = 18.dp,
-                                                                        bottom = 8.dp
-                                                                ),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                                Icon(
-                                                        Icons.Filled.WbSunny,
-                                                        contentDescription = null,
-                                                        tint =
-                                                                Color(0xFFFFB74D)
-                                                                        .copy(alpha = 0.75f),
-                                                        modifier = Modifier.size(12.dp)
-                                                )
-                                                Column {
-                                                        Text(
-                                                                "Sunrise ↑",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .labelSmall.copy(
-                                                                                fontSize = 9.sp,
-                                                                                fontWeight =
-                                                                                        FontWeight
-                                                                                                .Medium
-                                                                        ),
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .onSurface.copy(
-                                                                                alpha = 0.45f
-                                                                        )
-                                                        )
-                                                        if (sunriseTime.isNotBlank())
-                                                                Text(
-                                                                        sunriseTime,
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .labelSmall
-                                                                                        .copy(
-                                                                                                fontFamily =
-                                                                                                        BeVietnamPro,
-                                                                                                fontSize =
-                                                                                                        9.sp,
-                                                                                                fontWeight =
-                                                                                                        FontWeight
-                                                                                                                .Medium
-                                                                                        ),
-                                                                        color =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onSurface
-                                                                                        .copy(
-                                                                                                alpha =
-                                                                                                        0.45f
-                                                                                        )
-                                                                )
-                                                }
-                                        }
-
-                                        // Sunset label: moon-crescent look via Brightness3 +
-                                        // arrow-down
-                                        Row(
-                                                modifier =
-                                                        Modifier.align(Alignment.BottomEnd)
-                                                                .padding(
-                                                                        end = 18.dp,
-                                                                        bottom = 8.dp
-                                                                ),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                                Column(horizontalAlignment = Alignment.End) {
-                                                        Text(
-                                                                "↓ Sunset",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .labelSmall.copy(
-                                                                                fontSize = 9.sp,
-                                                                                fontWeight =
-                                                                                        FontWeight
-                                                                                                .Medium
-                                                                        ),
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .onSurface.copy(
-                                                                                alpha = 0.45f
-                                                                        )
-                                                        )
-                                                        if (sunsetTime.isNotBlank())
-                                                                Text(
-                                                                        sunsetTime,
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .labelSmall
-                                                                                        .copy(
-                                                                                                fontFamily =
-                                                                                                        BeVietnamPro,
-                                                                                                fontSize =
-                                                                                                        9.sp,
-                                                                                                fontWeight =
-                                                                                                        FontWeight
-                                                                                                                .Medium
-                                                                                        ),
-                                                                        color =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onSurface
-                                                                                        .copy(
-                                                                                                alpha =
-                                                                                                        0.45f
-                                                                                        )
-                                                                )
-                                                }
-                                                Icon(
-                                                        Icons.Filled.WbSunny,
-                                                        contentDescription = null,
-                                                        tint =
-                                                                Color(0xFF7986CB)
-                                                                        .copy(alpha = 0.60f),
-                                                        modifier =
-                                                                Modifier.size(12.dp).graphicsLayer {
-                                                                        rotationZ = 180f
+                                                        // ── 8. Text Labels (Native Canvas)
+                                                        val labelPaint =
+                                                                android.graphics.Paint().apply {
+                                                                        isAntiAlias = true
+                                                                        textSize = 7.sp.toPx()
+                                                                        textAlign =
+                                                                                android.graphics
+                                                                                        .Paint.Align
+                                                                                        .CENTER
+                                                                        color = onSurfaceColor
+                                                                        alpha =
+                                                                                (255 * 0.45f)
+                                                                                        .toInt()
                                                                 }
-                                                )
-                                        }
-                                }
-                                // Makruh zone info overlay — fills the timeline box as an overlay
-                                AnimatedVisibility(
-                                        visible = activeMk != null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        enter = fadeIn() + slideInVertically { it / 3 },
-                                        exit = fadeOut() + slideOutVertically { it / 3 }
-                                ) {
-                                        if (activeMk != null) {
-                                                Box(
-                                                        modifier =
-                                                                Modifier.fillMaxSize()
-                                                                        .background(
-                                                                                Color.Black.copy(
-                                                                                        alpha =
-                                                                                                0.86f
-                                                                                )
-                                                                        )
-                                                                        .clickable {
-                                                                                activeMk = null
+                                                        val nextLabelPaint =
+                                                                android.graphics.Paint().apply {
+                                                                        isAntiAlias = true
+                                                                        textSize = 7.5.sp.toPx()
+                                                                        textAlign =
+                                                                                android.graphics
+                                                                                        .Paint.Align
+                                                                                        .CENTER
+                                                                        color = onSurfaceColor
+                                                                        alpha = (255 * 0.9f).toInt()
+                                                                        isFakeBoldText = true
+                                                                }
+
+                                                        drawIntoCanvas { canvas ->
+                                                                allPrayers
+                                                                        .filterNot { it.isExtra }
+                                                                        .forEach { prayer ->
+                                                                                val pPos =
+                                                                                        pointAt(
+                                                                                                prayer.arcT
+                                                                                        )
+                                                                                val paint =
+                                                                                        if (prayer.name ==
+                                                                                                        nextPrayer
+                                                                                                                ?.name
+                                                                                        )
+                                                                                                nextLabelPaint
+                                                                                        else
+                                                                                                labelPaint
+                                                                                canvas.nativeCanvas
+                                                                                        .drawText(
+                                                                                                prayer.name,
+                                                                                                pPos.x,
+                                                                                                pPos.y +
+                                                                                                        18.dp.toPx(),
+                                                                                                paint
+                                                                                        )
                                                                         }
-                                                                        .padding(16.dp),
-                                                        contentAlignment = Alignment.Center
-                                                ) {
-                                                        val mk = makruhZones[activeMk!!]
-                                                        Column(
-                                                                horizontalAlignment =
-                                                                        Alignment.CenterHorizontally
+                                                        }
+                                                }
+
+                                                // Sunrise label: WbTwilight + arrow-up prefix +
+                                                // time
+                                                if (currentMkZone != null) {
+                                                        val badgeColor =
+                                                                if (currentMkZone.label.contains(
+                                                                                "Sunrise",
+                                                                                ignoreCase = true
+                                                                        ) ||
+                                                                                currentMkZone.label
+                                                                                        .contains(
+                                                                                                "Sunset",
+                                                                                                ignoreCase =
+                                                                                                        true
+                                                                                        )
+                                                                )
+                                                                        Color(0xFFFFB300)
+                                                                else Color(0xFFE53935)
+                                                        Box(
+                                                                modifier =
+                                                                        Modifier.align(
+                                                                                        Alignment
+                                                                                                .TopEnd
+                                                                                )
+                                                                                .padding(
+                                                                                        top = 6.dp,
+                                                                                        end = 10.dp
+                                                                                )
+                                                                                .background(
+                                                                                        badgeColor
+                                                                                                .copy(
+                                                                                                        alpha =
+                                                                                                                0.18f
+                                                                                                ),
+                                                                                        RoundedCornerShape(
+                                                                                                4.dp
+                                                                                        )
+                                                                                )
+                                                                                .padding(
+                                                                                        horizontal =
+                                                                                                5.dp,
+                                                                                        vertical =
+                                                                                                2.dp
+                                                                                )
                                                         ) {
                                                                 Text(
                                                                         text =
-                                                                                "Makruh · ${mk.label}".uppercase(),
+                                                                                "MAKRUH · ${currentMkZone.label.uppercase()}",
                                                                         style =
                                                                                 MaterialTheme
                                                                                         .typography
                                                                                         .labelSmall
                                                                                         .copy(
                                                                                                 fontSize =
-                                                                                                        8.sp,
+                                                                                                        7.sp,
                                                                                                 fontWeight =
                                                                                                         FontWeight
                                                                                                                 .Bold,
                                                                                                 letterSpacing =
-                                                                                                        0.09.sp
+                                                                                                        0.07.sp
                                                                                         ),
-                                                                        color = Color(0xFFF06045),
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        bottom =
-                                                                                                5.dp
-                                                                                )
+                                                                        color = badgeColor
                                                                 )
-                                                                Text(
-                                                                        text = mk.description,
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .bodySmall
-                                                                                        .copy(
-                                                                                                fontSize =
-                                                                                                        10.sp,
-                                                                                                fontWeight =
-                                                                                                        FontWeight
-                                                                                                                .Light,
-                                                                                                lineHeight =
-                                                                                                        15.sp
-                                                                                        ),
-                                                                        color =
-                                                                                Color.White.copy(
+                                                        }
+                                                }
+                                                Row(
+                                                        modifier =
+                                                                Modifier.align(
+                                                                                Alignment
+                                                                                        .BottomStart
+                                                                        )
+                                                                        .padding(
+                                                                                start = 18.dp,
+                                                                                bottom = 8.dp
+                                                                        ),
+                                                        verticalAlignment =
+                                                                Alignment.CenterVertically,
+                                                        horizontalArrangement =
+                                                                Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                        Icon(
+                                                                Icons.Filled.WbTwilight,
+                                                                contentDescription = null,
+                                                                tint =
+                                                                        Color(0xFFFFB74D)
+                                                                                .copy(
                                                                                         alpha =
-                                                                                                0.80f
+                                                                                                0.85f
                                                                                 ),
-                                                                        textAlign = TextAlign.Center
-                                                                )
+                                                                modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Column {
                                                                 Text(
-                                                                        text = "Tap to dismiss",
+                                                                        "Sunrise",
                                                                         style =
                                                                                 MaterialTheme
                                                                                         .typography
                                                                                         .labelSmall
                                                                                         .copy(
                                                                                                 fontSize =
-                                                                                                        7.5.sp
+                                                                                                        9.sp,
+                                                                                                fontWeight =
+                                                                                                        FontWeight
+                                                                                                                .Medium
                                                                                         ),
                                                                         color =
-                                                                                Color.White.copy(
-                                                                                        alpha =
-                                                                                                0.30f
-                                                                                ),
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        top = 8.dp
-                                                                                )
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onSurface
+                                                                                        .copy(
+                                                                                                alpha =
+                                                                                                        0.45f
+                                                                                        )
                                                                 )
+                                                                if (sunriseTime.isNotBlank())
+                                                                        Text(
+                                                                                sunriseTime,
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .labelSmall
+                                                                                                .copy(
+                                                                                                        fontFamily =
+                                                                                                                BeVietnamPro,
+                                                                                                        fontSize =
+                                                                                                                9.sp,
+                                                                                                        fontWeight =
+                                                                                                                FontWeight
+                                                                                                                        .Medium
+                                                                                                ),
+                                                                                color =
+                                                                                        MaterialTheme
+                                                                                                .colorScheme
+                                                                                                .onSurface
+                                                                        )
                                                         }
                                                 }
+
+                                                // Sunset label: WbTwilight + arrow-down prefix +
+                                                // time
+                                                Row(
+                                                        modifier =
+                                                                Modifier.align(Alignment.BottomEnd)
+                                                                        .padding(
+                                                                                end = 18.dp,
+                                                                                bottom = 8.dp
+                                                                        ),
+                                                        verticalAlignment =
+                                                                Alignment.CenterVertically,
+                                                        horizontalArrangement =
+                                                                Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                        Column(
+                                                                horizontalAlignment = Alignment.End
+                                                        ) {
+                                                                Text(
+                                                                        "Sunset",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .labelSmall
+                                                                                        .copy(
+                                                                                                fontSize =
+                                                                                                        9.sp,
+                                                                                                fontWeight =
+                                                                                                        FontWeight
+                                                                                                                .Medium
+                                                                                        ),
+                                                                        color =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onSurface
+                                                                                        .copy(
+                                                                                                alpha =
+                                                                                                        0.45f
+                                                                                        )
+                                                                )
+                                                                if (sunsetTime.isNotBlank())
+                                                                        Text(
+                                                                                sunsetTime,
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .labelSmall
+                                                                                                .copy(
+                                                                                                        fontFamily =
+                                                                                                                BeVietnamPro,
+                                                                                                        fontSize =
+                                                                                                                9.sp,
+                                                                                                        fontWeight =
+                                                                                                                FontWeight
+                                                                                                                        .Medium
+                                                                                                ),
+                                                                                color =
+                                                                                        MaterialTheme
+                                                                                                .colorScheme
+                                                                                                .onSurface
+                                                                        )
+                                                        }
+                                                        Icon(
+                                                                Icons.Filled.WbTwilight,
+                                                                contentDescription = null,
+                                                                tint =
+                                                                        Color(0xFF7986CB)
+                                                                                .copy(
+                                                                                        alpha =
+                                                                                                0.70f
+                                                                                ),
+                                                                modifier =
+                                                                        Modifier.size(18.dp)
+                                                                                .graphicsLayer {
+                                                                                        rotationZ =
+                                                                                                180f
+                                                                                }
+                                                        )
+                                                }
                                         }
-                                }
-                        } // end timeline Box
+                                                // ── Makruh info overlay ──────────────────────────────
+                                                val mkOverlayAlpha by animateFloatAsState(
+                                                        targetValue = if (activeMk != null) 1f else 0f,
+                                                        animationSpec = tween(220),
+                                                        label = "mk_overlay"
+                                                )
+                                                if (mkOverlayAlpha > 0f) {
+                                                        val mk = makruhZones[activeMk ?: 0]
+                                                        Box(
+                                                                modifier =
+                                                                        Modifier.fillMaxSize()
+                                                                                .graphicsLayer {
+                                                                                        alpha =
+                                                                                                mkOverlayAlpha
+                                                                                }
+                                                                                .background(
+                                                                                        Color.Black
+                                                                                                .copy(
+                                                                                                        alpha =
+                                                                                                                0.86f
+                                                                                                )
+                                                                                )
+                                                                                .clickable {
+                                                                                        activeMk =
+                                                                                                null
+                                                                                }
+                                                                                .padding(16.dp),
+                                                                contentAlignment = Alignment.Center
+                                                        ) {
+                                                                Column(
+                                                                        horizontalAlignment =
+                                                                                Alignment
+                                                                                        .CenterHorizontally
+                                                                ) {
+                                                                        Text(
+                                                                                text =
+                                                                                        "Makruh · ${mk.label}"
+                                                                                                .uppercase(),
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .labelSmall
+                                                                                                .copy(
+                                                                                                        fontSize =
+                                                                                                                7.5.sp,
+                                                                                                        fontWeight =
+                                                                                                                FontWeight
+                                                                                                                        .Bold,
+                                                                                                        letterSpacing =
+                                                                                                                0.09.sp
+                                                                                                ),
+                                                                                color =
+                                                                                        Color(
+                                                                                                0xFFF06045
+                                                                                        ),
+                                                                                modifier =
+                                                                                        Modifier
+                                                                                                .padding(
+                                                                                                        bottom =
+                                                                                                                6.dp
+                                                                                                )
+                                                                        )
+                                                                        Text(
+                                                                                text =
+                                                                                        mk.description,
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodySmall
+                                                                                                .copy(
+                                                                                                        fontSize =
+                                                                                                                10.5.sp,
+                                                                                                        fontWeight =
+                                                                                                                FontWeight
+                                                                                                                        .Light,
+                                                                                                        lineHeight =
+                                                                                                                16.sp
+                                                                                                ),
+                                                                                color =
+                                                                                        Color.White
+                                                                                                .copy(
+                                                                                                        alpha =
+                                                                                                                0.8f
+                                                                                                ),
+                                                                                textAlign =
+                                                                                        androidx
+                                                                                                .compose
+                                                                                                .ui
+                                                                                                .text
+                                                                                                .style
+                                                                                                .TextAlign
+                                                                                                .Center
+                                                                        )
+                                                                        Text(
+                                                                                text =
+                                                                                        "Tap to dismiss",
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .labelSmall
+                                                                                                .copy(
+                                                                                                        fontSize =
+                                                                                                                8.sp
+                                                                                                ),
+                                                                                color =
+                                                                                        Color.White
+                                                                                                .copy(
+                                                                                                        alpha =
+                                                                                                                0.3f
+                                                                                                ),
+                                                                                modifier =
+                                                                                        Modifier
+                                                                                                .padding(
+                                                                                                        top =
+                                                                                                                10.dp
+                                                                                                )
+                                                                        )
+                                                                }
+                                                        }
+                                                }
+                                } // end sunpath Box
                 } // end Column
 
                 // ── Night glitter overlay ──────────────────────────────────────────────
                 // Covers the whole card during night hours with subtle twinkling stars.
                 if (darkTheme && isNightTime) {
-                        Canvas(
-                                modifier =
-                                        Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp))
-                        ) {
+                        Canvas(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp))) {
                                 STARS.forEachIndexed { i, star ->
                                         // Spread stars across the full card width/height
                                         val sx =
@@ -2068,7 +2214,7 @@ fun NextPrayerCard(
                                                                 style =
                                                                         MaterialTheme.typography
                                                                                 .displaySmall.copy(
-                                                                                fontSize = 26.sp
+                                                                                fontSize = 24.sp
                                                                         ),
                                                                 color =
                                                                         MaterialTheme.colorScheme
@@ -2080,7 +2226,7 @@ fun NextPrayerCard(
                                                                 style =
                                                                         MaterialTheme.typography
                                                                                 .titleLarge.copy(
-                                                                                fontSize = 16.sp,
+                                                                                fontSize = 24.sp,
                                                                                 fontWeight =
                                                                                         FontWeight
                                                                                                 .Medium
@@ -2165,7 +2311,7 @@ fun NextPrayerCard(
                                                                 style =
                                                                         MaterialTheme.typography
                                                                                 .titleLarge.copy(
-                                                                                fontSize = 20.sp,
+                                                                                fontSize = 16.sp,
                                                                                 fontWeight =
                                                                                         FontWeight
                                                                                                 .Medium
@@ -3720,6 +3866,234 @@ fun PrayerSlab(
         }
 }
 
+private object LucideIcons {
+        val Compass: ImageVector by lazy {
+                ImageVector.Builder(
+                                name = "Compass",
+                                defaultWidth = 24.dp,
+                                defaultHeight = 24.dp,
+                                viewportWidth = 24f,
+                                viewportHeight = 24f
+                        )
+                        .apply {
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(12f, 12f)
+                                        drawCircle(10f)
+                                }
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(16.24f, 7.76f)
+                                        lineTo(14.436f, 13.171f)
+                                        curveToRelative(
+                                                -0.16f,
+                                                0.481f,
+                                                -0.553f,
+                                                0.875f,
+                                                -1.034f,
+                                                1.034f
+                                        )
+                                        lineTo(7.76f, 16.24f)
+                                        lineToRelative(1.804f, -5.411f)
+                                        curveToRelative(
+                                                0.16f,
+                                                -0.481f,
+                                                0.553f,
+                                                -0.875f,
+                                                1.034f,
+                                                -1.034f
+                                        )
+                                        close()
+                                }
+                        }
+                        .build()
+        }
+
+        val MapPin: ImageVector by lazy {
+                ImageVector.Builder(
+                                name = "MapPin",
+                                defaultWidth = 24.dp,
+                                defaultHeight = 24.dp,
+                                viewportWidth = 24f,
+                                viewportHeight = 24f
+                        )
+                        .apply {
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(20f, 10f)
+                                        curveToRelative(
+                                                0f,
+                                                4.993f,
+                                                -5.539f,
+                                                10.193f,
+                                                -7.399f,
+                                                11.799f
+                                        )
+                                        arcToRelative(
+                                                1f,
+                                                1f,
+                                                0f,
+                                                isMoreThanHalf = false,
+                                                isPositiveArc = true,
+                                                -1.202f,
+                                                0f
+                                        )
+                                        curveTo(9.539f, 20.193f, 4f, 14.993f, 4f, 10f)
+                                        arcToRelative(
+                                                8f,
+                                                8f,
+                                                0f,
+                                                isMoreThanHalf = false,
+                                                isPositiveArc = true,
+                                                16f,
+                                                0f
+                                        )
+                                        close()
+                                }
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(12f, 10f)
+                                        drawCircle(3f)
+                                }
+                        }
+                        .build()
+        }
+
+        val Calendar: ImageVector by lazy {
+                ImageVector.Builder(
+                                name = "Calendar",
+                                defaultWidth = 24.dp,
+                                defaultHeight = 24.dp,
+                                viewportWidth = 24f,
+                                viewportHeight = 24f
+                        )
+                        .apply {
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(8f, 2f)
+                                        verticalLineToRelative(4f)
+                                }
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(16f, 2f)
+                                        verticalLineToRelative(4f)
+                                }
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(3f, 6f)
+                                        arcToRelative(
+                                                2f,
+                                                2f,
+                                                0f,
+                                                isMoreThanHalf = false,
+                                                isPositiveArc = true,
+                                                2f,
+                                                -2f
+                                        )
+                                        horizontalLineToRelative(14f)
+                                        arcToRelative(
+                                                2f,
+                                                2f,
+                                                0f,
+                                                isMoreThanHalf = false,
+                                                isPositiveArc = true,
+                                                2f,
+                                                2f
+                                        )
+                                        verticalLineToRelative(14f)
+                                        arcToRelative(
+                                                2f,
+                                                2f,
+                                                0f,
+                                                isMoreThanHalf = false,
+                                                isPositiveArc = true,
+                                                -2f,
+                                                2f
+                                        )
+                                        horizontalLineTo(5f)
+                                        arcToRelative(
+                                                2f,
+                                                2f,
+                                                0f,
+                                                isMoreThanHalf = false,
+                                                isPositiveArc = true,
+                                                -2f,
+                                                -2f
+                                        )
+                                        close()
+                                }
+                                path(
+                                        stroke = SolidColor(Color.White),
+                                        strokeLineWidth = 2f,
+                                        strokeLineCap = StrokeCap.Round,
+                                        strokeLineJoin = StrokeJoin.Round
+                                ) {
+                                        moveTo(3f, 10f)
+                                        horizontalLineToRelative(18f)
+                                }
+                        }
+                        .build()
+        }
+
+        private fun ImageVector.Builder.drawCircle(radius: Float) {
+                path(
+                        stroke = SolidColor(Color.White),
+                        strokeLineWidth = 2f,
+                        strokeLineCap = StrokeCap.Round,
+                        strokeLineJoin = StrokeJoin.Round
+                ) {
+                        moveTo(12f, 12f - radius)
+                        arcToRelative(
+                                radius,
+                                radius,
+                                0f,
+                                isMoreThanHalf = true,
+                                isPositiveArc = true,
+                                0f,
+                                radius * 2
+                        )
+                        arcToRelative(
+                                radius,
+                                radius,
+                                0f,
+                                isMoreThanHalf = true,
+                                isPositiveArc = true,
+                                0f,
+                                -radius * 2
+                        )
+                        close()
+                }
+        }
+}
+
 @Composable
 private fun QuickDirectoryRow(
         onActionClick: (HomeQuickAction) -> Unit,
@@ -3739,24 +4113,27 @@ private fun QuickDirectoryRow(
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                        QuickDirectoryAction(
-                                icon = Icons.Default.MyLocation,
+                        ExploreMiniCard(
+                                icon = LucideIcons.Compass,
                                 label = "Qibla",
-                                supportLabel = "Coming soon",
+                                supportLabel = null,
+                                modifier = Modifier.weight(1f),
                                 onClick = { onActionClick(HomeQuickAction.QIBLA) }
                         )
-                        QuickDirectoryAction(
-                                icon = Icons.Default.LocationOn,
+                        ExploreMiniCard(
+                                icon = LucideIcons.MapPin,
                                 label = "Mosques",
-                                supportLabel = "Coming soon",
+                                supportLabel = "Soon",
+                                modifier = Modifier.weight(1f),
                                 onClick = { onActionClick(HomeQuickAction.MOSQUES) }
                         )
-                        QuickDirectoryAction(
-                                icon = Icons.Default.Event,
+                        ExploreMiniCard(
+                                icon = LucideIcons.Calendar,
                                 label = "Events",
                                 supportLabel = null,
+                                modifier = Modifier.weight(1f),
                                 onClick = { onActionClick(HomeQuickAction.EVENTS) }
                         )
                 }
@@ -3764,48 +4141,63 @@ private fun QuickDirectoryRow(
 }
 
 @Composable
-private fun QuickDirectoryAction(
+private fun ExploreMiniCard(
         icon: ImageVector,
         label: String,
         supportLabel: String?,
         onClick: () -> Unit,
+        modifier: Modifier = Modifier,
 ) {
-        Column(
+        Surface(
                 modifier =
-                        Modifier.widthIn(min = 82.dp)
-                                .clip(RoundedCornerShape(18.dp))
-                                .clickable(onClick = onClick)
-                                .padding(horizontal = 4.dp, vertical = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                        modifier.height(84.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .clickable(onClick = onClick),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 2.dp
         ) {
-                Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(26.dp)
-                )
-                Text(
-                        text = label,
-                        style =
-                                MaterialTheme.typography.labelMedium.copy(
-                                        fontFamily = BeVietnamPro,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 13.sp
-                                ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                )
-                Text(
-                        text = supportLabel ?: "Open",
-                        style =
-                                MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = BeVietnamPro,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Medium
-                                ),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.52f),
-                        textAlign = TextAlign.Center
-                )
+                Column(
+                        modifier =
+                                Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                ) {
+                        Icon(
+                                imageVector = icon,
+                                contentDescription = label,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                                text = label,
+                                style =
+                                        MaterialTheme.typography.labelMedium.copy(
+                                                fontFamily = BeVietnamPro,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 12.sp
+                                        ),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                        )
+                        if (supportLabel != null) {
+                                Text(
+                                        text = supportLabel,
+                                        style =
+                                                MaterialTheme.typography.labelSmall.copy(
+                                                        fontFamily = BeVietnamPro,
+                                                        fontSize = 9.sp,
+                                                        fontWeight = FontWeight.Medium
+                                                ),
+                                        color =
+                                                MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = 0.45f
+                                                ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                )
+                        }
+                }
         }
 }
