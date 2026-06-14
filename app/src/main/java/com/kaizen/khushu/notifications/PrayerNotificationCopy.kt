@@ -1,10 +1,9 @@
 package com.kaizen.khushu.notifications
 
 import android.content.Context
-import android.location.Geocoder
-import android.os.Build
 import com.kaizen.khushu.data.repository.extraPrayerTimingLabel
 import com.kaizen.khushu.data.repository.UserSettings
+import com.kaizen.khushu.util.LocationUtil
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -129,7 +128,11 @@ object PrayerNotificationCopy {
         triggerAtMillis: Long,
         prePrayerMinutes: Int,
     ): PrayerNotificationContent {
-        val locationLabel = resolveLocationLabel(context, settings)
+        val locationLabel = if (LocationUtil.isGenericLabel(settings.locationLabel)) {
+            LocationUtil.resolveLocationName(context, settings.locationLat.toDouble(), settings.locationLng.toDouble()) ?: "your area"
+        } else {
+            settings.locationLabel
+        }
         val prayerUtilityLine = "$prayerName at ${formatTime(triggerAtMillis)} in $locationLabel"
         val seed = "$prayerName|${type.name}|${dayStamp(triggerAtMillis)}".hashCode()
         val isExtraTiming = prayerTitles[prayerName] == null && prePrayerTitles[prayerName] == null
@@ -171,39 +174,6 @@ object PrayerNotificationCopy {
         return SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(triggerAtMillis))
     }
 
-    @Suppress("DEPRECATION")
-    private fun resolveLocationLabel(context: Context, settings: UserSettings): String {
-        return runCatching {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val results = mutableListOf<android.location.Address>()
-                val latch = java.util.concurrent.CountDownLatch(1)
-                geocoder.getFromLocation(
-                    settings.locationLat.toDouble(),
-                    settings.locationLng.toDouble(),
-                    1
-                ) { found ->
-                    results += found
-                    latch.countDown()
-                }
-                latch.await()
-                results
-            } else {
-                geocoder.getFromLocation(
-                    settings.locationLat.toDouble(),
-                    settings.locationLng.toDouble(),
-                    1
-                ).orEmpty()
-            }
-
-            val best = addresses.firstOrNull()
-            listOfNotNull(
-                best?.locality?.takeIf { it.isNotBlank() },
-                best?.subAdminArea?.takeIf { it.isNotBlank() },
-                best?.adminArea?.takeIf { it.isNotBlank() }
-            ).firstOrNull()
-        }.getOrNull() ?: "your area"
-    }
 
     private fun pick(options: List<String>, seed: Int): String? {
         if (options.isEmpty()) return null

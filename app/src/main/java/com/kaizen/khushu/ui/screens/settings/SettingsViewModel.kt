@@ -19,6 +19,7 @@ import com.kaizen.khushu.data.repository.QuranScriptFontRepository
 import com.kaizen.khushu.data.repository.SettingsRepository
 import com.kaizen.khushu.data.repository.UserSettings
 import com.kaizen.khushu.util.AppIconManager
+import com.kaizen.khushu.util.LocationUtil
 import com.kaizen.khushu.widget.PrayerWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -90,6 +91,11 @@ class SettingsViewModel(
                 if (!current.useGpsLocation) {
                     hasAttemptedGpsRefresh = false
                 }
+                
+                // If the current label is generic/empty, try to resolve it even if coordinates didn't change
+                if (LocationUtil.isGenericLabel(current.locationLabel)) {
+                    resolveAndSaveLocationLabel(current.locationLat, current.locationLng)
+                }
             }
         }
 
@@ -104,31 +110,12 @@ class SettingsViewModel(
 
     private fun resolveAndSaveLocationLabel(lat: Float, lng: Float) {
         viewModelScope.launch(Dispatchers.IO) {
-            val label = runCatching {
-                val geocoder = Geocoder(appContext, Locale.getDefault())
-                val addresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val results = mutableListOf<android.location.Address>()
-                    val latch = CountDownLatch(1)
-                    geocoder.getFromLocation(lat.toDouble(), lng.toDouble(), 1) { found ->
-                        results += found
-                        latch.countDown()
-                    }
-                    latch.await(2, java.util.concurrent.TimeUnit.SECONDS)
-                    results
-                } else {
-                    @Suppress("DEPRECATION")
-                    geocoder.getFromLocation(lat.toDouble(), lng.toDouble(), 1).orEmpty()
-                }
+            val label = LocationUtil.resolveLocationName(appContext, lat.toDouble(), lng.toDouble())
 
-                val best = addresses.firstOrNull()
-                listOfNotNull(
-                    best?.locality?.takeIf { it.isNotBlank() },
-                    best?.subAdminArea?.takeIf { it.isNotBlank() },
-                    best?.adminArea?.takeIf { it.isNotBlank() }
-                ).firstOrNull()
-            }.getOrNull() ?: "Your area"
-
-            repository.updateLocationLabel(label)
+            if (label != null) {
+                repository.updateLocationLabel(label)
+                PrayerWidgetProvider.forceWidgetRefresh(appContext)
+            }
         }
     }
 
@@ -415,11 +402,20 @@ class SettingsViewModel(
     }
 
     fun setLocation(lat: Float, lng: Float) {
-        viewModelScope.launch { repository.updateLocation(lat, lng) }
+        viewModelScope.launch {
+            repository.updateLocation(lat, lng)
+            PrayerWidgetProvider.forceWidgetRefresh(appContext)
+        }
     }
 
     fun toggleUseGpsLocation(enabled: Boolean) {
-        viewModelScope.launch { repository.updateUseGpsLocation(enabled) }
+        viewModelScope.launch {
+            repository.updateUseGpsLocation(enabled)
+            if (enabled) {
+                refreshLocation()
+            }
+            PrayerWidgetProvider.forceWidgetRefresh(appContext)
+        }
     }
 
     fun setPrayerSourceType(source: String) {

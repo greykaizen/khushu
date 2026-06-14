@@ -524,18 +524,24 @@ fun HomeScreen(
             }
     val nextPrayer = findNextPrayer(homeVisibleTimings, currentTimeMillis)
 
-    val sunArcT by derivedStateOf {
-        val fajrMs = displayPrayers.firstOrNull { it.name == "Fajr" }?.rawTime?.toEpochMilliseconds() ?: 0L
-        val ishaMs = displayPrayers.firstOrNull { it.name == "Isha" }?.rawTime?.toEpochMilliseconds() ?: 1L
-        val total = (ishaMs - fajrMs).toFloat()
-        if (total <= 0) 0.5f else {
-            val ratio = (currentTimeMillis - fajrMs).toFloat() / total
-            (0.08f + ratio * (0.93f - 0.08f)).coerceIn(-0.1f, 1.1f)
+    val sunArcT by remember {
+        derivedStateOf {
+            val fajrMs = displayPrayers.firstOrNull { it.name == "Fajr" }?.rawTime?.toEpochMilliseconds() ?: 0L
+            val ishaMs = displayPrayers.firstOrNull { it.name == "Isha" }?.rawTime?.toEpochMilliseconds() ?: 1L
+            val total = (ishaMs - fajrMs).toFloat()
+            if (total <= 0) 0.5f else {
+                val ratio = (currentTimeMillis - fajrMs).toFloat() / total
+                (0.08f + ratio * (0.93f - 0.08f)).coerceIn(-0.1f, 1.1f)
+            }
         }
     }
 
     val doneCount = doneStates.values.count { it }
-    val locationLabel = uiState.locationLabel.ifBlank { "Your area" }
+    val locationLabel = if (com.kaizen.khushu.util.LocationUtil.isGenericLabel(uiState.locationLabel)) {
+        "Your area"
+    } else {
+        uiState.locationLabel
+    }
     val pullProgress = (pullOffsetPx / refreshThresholdPx).coerceIn(0f, 1f)
 
     // Detect how much of the PrayerSlab (always the last LazyColumn item) is visible.
